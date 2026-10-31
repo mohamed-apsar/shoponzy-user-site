@@ -46,7 +46,7 @@ Old `.html` URLs (including `?id=`, `?sub=` and `#anchors`) redirect client-side
 ## Data and checkout
 
 - Categories, products, homepage banners/sections and public store settings load from the backend API.
-- During local development, `/api` is proxied to `http://localhost:5000`; start the backend and seed its database first. Set `VITE_API_BASE_URL` when the API is hosted elsewhere.
+- During local development, `/api` is proxied to `http://localhost:5000`; start the backend and seed its database first. Production builds default to `https://shoponzy-backend.vercel.app/api/v1`; set the Vercel project environment variable `VITE_API_BASE_URL` to override it.
 - Bag, wishlist and recently viewed live in `localStorage`, as on the original site (Phase 6 → synced to the account).
 - Checkout, contact form and newsletter still use the interim WhatsApp flow; server-side orders, customer account sync and branding are not connected yet.
 - If the API cannot be reached, the storefront shows the API error and a retry action rather than silently presenting the static seed catalogue.

@@ -1,8 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { STORE as DEFAULT_STORE } from "../data/catalog";
+import { API_BASE } from "../api/config";
 
 const CatalogContext = createContext(null);
-const API_BASE = (import.meta.env.VITE_API_BASE_URL || "/api/v1").replace(/\/$/, "");
 const PRODUCT_PAGE_SIZE = 60;
 
 async function getJson(path) {

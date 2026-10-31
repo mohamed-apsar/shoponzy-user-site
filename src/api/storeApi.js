@@ -1,6 +1,6 @@
 /* Storefront API client. Cookies carry the guest bag and (later) the customer session;
    state-changing requests send the double-submit CSRF token the backend requires. */
-const API_BASE = (import.meta.env.VITE_API_BASE_URL || "/api/v1").replace(/\/$/, "");
+import { API_BASE } from "./config";
 let csrfToken = "";
 
 export class ApiError extends Error {
