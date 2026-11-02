@@ -15,7 +15,7 @@ import { useCatalog } from "../context/CatalogContext";
 
 const hoverDevice = () => matchMedia("(hover: hover)").matches;
 
-function Gallery({ p, ci }) {
+function Gallery({ p, ci, containerRef }) {
   const [k, setK] = useState(0);
   const [zoom, setZoom] = useState(-1);
   const main = useRef(null);
@@ -38,7 +38,7 @@ function Gallery({ p, ci }) {
   }
 
   return (
-    <div className="gallery">
+    <div className="gallery" ref={containerRef}>
       <div className="g-thumbs" role="group" aria-label="Images">
         {views.map((i) => <ProductMedia as="button" type="button" key={i} product={p} ci={ci} k={i} aria-pressed={i === k} aria-label={`Image ${i + 1}`} onClick={() => show(i)} />)}
       </div>
@@ -110,6 +110,9 @@ function Product({ p, products, categories, store: STORE }) {
   const [contentBlocks, setContentBlocks] = useState([]);
   const [contentLoadError, setContentLoadError] = useState("");
   const [contentAttempt, setContentAttempt] = useState(0);
+  const pdpRef = useRef(null);
+  const galleryRef = useRef(null);
+  const infoRef = useRef(null);
   const picker = useRef(null);
   const buyRow = useRef(null);
 
@@ -127,6 +130,36 @@ function Product({ p, products, categories, store: STORE }) {
     });
     return () => { active = false; };
   }, [p.slug, contentAttempt]);
+  useEffect(() => {
+    const pdp = pdpRef.current;
+    const gallery = galleryRef.current;
+    const info = infoRef.current;
+    if (!pdp || !gallery || !info) return undefined;
+
+    const updateStickySide = () => {
+      if (!matchMedia("(min-width: 1000px)").matches) {
+        pdp.removeAttribute("data-sticky-side");
+        return;
+      }
+      const galleryHeight = gallery.getBoundingClientRect().height;
+      const infoHeight = info.getBoundingClientRect().height;
+      const side = Math.abs(galleryHeight - infoHeight) < 1
+        ? ""
+        : galleryHeight < infoHeight ? "gallery" : "info";
+      if (side) pdp.dataset.stickySide = side;
+      else pdp.removeAttribute("data-sticky-side");
+    };
+
+    const observer = new ResizeObserver(updateStickySide);
+    observer.observe(gallery);
+    observer.observe(info);
+    addEventListener("resize", updateStickySide);
+    updateStickySide();
+    return () => {
+      observer.disconnect();
+      removeEventListener("resize", updateStickySide);
+    };
+  }, [p.id, opt.c, p.sizes.length]);
   useEffect(() => {
     document.body.classList.add("pdp-page");
     const onScroll = () => setStickyShow(!!buyRow.current && buyRow.current.getBoundingClientRect().bottom < 0);
@@ -163,9 +196,9 @@ function Product({ p, products, categories, store: STORE }) {
         <nav className="crumbs" aria-label="Breadcrumb" style={{ fontSize: ".8rem", color: "var(--muted)", marginBottom: 14 }}>
           <Link to="/">Home</Link> / <Link to={categoryUrl(c.id)}>{c.name}</Link> / <Link to={categoryUrl(c.id, p.sub)}>{sub[1]}</Link>
         </nav>
-        <div className="pdp">
-          <Gallery p={p} ci={opt.c} />
-          <div className="pinfo">
+        <div className="pdp" ref={pdpRef}>
+          <Gallery p={p} ci={opt.c} containerRef={galleryRef} />
+          <div className="pinfo" ref={infoRef}>
             <p className="brand">{p.brand || sub[1]}</p><h1>{p.name}</h1>
             <div className="price"><b>{priceLabel}</b>{selectedMrp > priceFrom && <><s>MRP {money(selectedMrp)}</s><em>{discount}% OFF</em></>}</div>
             <p className="tax">Inclusive of all taxes</p>

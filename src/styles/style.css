@@ -305,7 +305,8 @@ ul, ol { list-style: none; }
 .gallery { position: relative; }
 @media (min-width: 1000px) {
   .gallery { display: block; }
-  .pinfo { position: sticky; top: calc(var(--head-h) + 20px); }
+  .pdp[data-sticky-side="gallery"] .gallery,
+  .pdp[data-sticky-side="info"] .pinfo { position: sticky; top: calc(var(--head-h) + 20px); align-self: start; }
 }
 .g-main { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; border-radius: var(--r-lg); margin: 0 -16px; }
 @media (min-width: 768px) { .g-main { margin: 0; } }
