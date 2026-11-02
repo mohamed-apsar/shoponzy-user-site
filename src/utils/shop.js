@@ -18,6 +18,13 @@ export const categoryUrl = (id, sub) => `/categories/${id}${sub ? `?sub=${sub}` 
 export const matches = (p, q, categories = CATS) =>
   `${p.name} ${cat(p.cat, categories)?.name || ""} ${subOf(p, categories)[1]} ${p.brand || ""} ${p.colors.map((c) => c[1]).join(" ")}`.toLowerCase().includes(q);
 
+export function sizeIsAvailable(p, colorIndex, size) {
+  if (!p.variants?.length) return true;
+  const color = p.colors[colorIndex]?.[1] || "Default";
+  return p.variants.some((variant) => (variant.color ?? "Default") === color &&
+    (variant.size === size || (!variant.size && size === "One size")) && variant.inStock !== false);
+}
+
 /* Price of a bag line: the chosen variant's price when it has its own, else the product's "from" price. */
 export function linePrice(p, l) {
   const color = p.colors[l.c]?.[1];

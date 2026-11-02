@@ -3,8 +3,8 @@ import { subOf } from "../utils/shop";
 import { useCatalog } from "../context/CatalogContext";
 
 /* Photo k of a product, or its colour-matched illustration when no photo exists. */
-export function mediaCount(p) {
-  return p.images ? p.images.length : Math.min(3, p.colors.length + 1);
+export function mediaCount(p, ci = 0) {
+  return p.colorImages?.[ci]?.length || p.images?.length || Math.min(3, p.colors.length + 1);
 }
 
 export function productArt(p, ci = 0, k = 0, categories) {
@@ -25,7 +25,8 @@ function markLoaded(event) {
 /* Renders the container element itself so the DOM matches the original (svg/img directly inside). */
 export default function ProductMedia({ product: p, ci = 0, k = 0, as: Tag = "span", className, ...rest }) {
   const { categories } = useCatalog();
-  const src = p.images?.[k];
+  const colorGallery = p.colorImages?.[ci];
+  const src = colorGallery?.length ? colorGallery[k] : p.images?.[k];
   if (src) {
     return (
       <Tag className={className} {...rest}>

@@ -7,7 +7,7 @@ import SectionHead from "../components/SectionHead";
 import { ProductList, WishButton } from "../components/ProductCard";
 import NotFound from "./NotFound";
 import { useStore } from "../context/StoreContext";
-import { byId, bySlug, cat, categoryUrl, money, off, subOf, wa } from "../utils/shop";
+import { byId, bySlug, cat, categoryUrl, money, off, sizeIsAvailable, subOf, wa } from "../utils/shop";
 import { usePageFx } from "../fx/usePageFx";
 import usePageMeta from "../hooks/usePageMeta";
 import { useCatalog } from "../context/CatalogContext";
@@ -18,7 +18,7 @@ function Gallery({ p, ci }) {
   const [k, setK] = useState(0);
   const [zoom, setZoom] = useState(-1);
   const main = useRef(null);
-  const views = Array.from({ length: mediaCount(p) }, (_, i) => i);
+  const views = Array.from({ length: mediaCount(p, ci) }, (_, i) => i);
 
   useEffect(() => { setK(0); main.current?.scrollTo({ left: 0 }); }, [ci]);
 
@@ -72,8 +72,8 @@ function PinCheck({ deliveryText }) {
 function Product({ p, products, categories, store: STORE }) {
   const { addToCart, viewed, recent } = useStore();
   const navigate = useNavigate();
-  const c = cat(p.cat, categories), sub = subOf(p, categories), o = off(p);
-  const [opt, setOpt] = useState({ c: 0, s: p.sizes.length === 1 ? p.sizes[0] : "" });
+  const c = cat(p.cat, categories), sub = subOf(p, categories);
+  const [opt, setOpt] = useState({ c: 0, s: p.sizes.length === 1 && sizeIsAvailable(p, 0, p.sizes[0]) ? p.sizes[0] : "" });
   const [stickyShow, setStickyShow] = useState(false);
   const picker = useRef(null);
   const buyRow = useRef(null);
@@ -101,7 +101,16 @@ function Product({ p, products, categories, store: STORE }) {
   const related = products.filter((x) => x.cat === p.cat && x.id !== p.id).concat(products.filter((x) => x.cat !== p.cat)).slice(0, 10);
   const recentOthers = recent.filter((id) => id !== p.id).map((id) => byId(id, products)).filter(Boolean);
   const specs = p.specs || [["Type", sub[1]], ["Colours", p.colors.map((x) => x[1]).join(", ")], ["Sizes", p.sizes.join(", ")]];
-  const priceLabel = p.from ? money(p.price) + "+" : money(p.price);
+  const selectedColor = p.colors[opt.c]?.[1] || "Default";
+  const colorVariants = (p.variants || []).filter((variant) => (variant.color ?? "Default") === selectedColor);
+  const priceVariants = opt.s ? colorVariants.filter((variant) => variant.size === opt.s) : colorVariants;
+  const priceFrom = priceVariants.length ? Math.min(...priceVariants.map((variant) => variant.price)) : p.price;
+  const priceTo = !opt.s && priceVariants.length
+    ? Math.max(...priceVariants.map((variant) => variant.price))
+    : !opt.s && !colorVariants.length && p.from ? p.priceTo : priceFrom;
+  const selectedMrp = priceVariants.length ? Math.max(...priceVariants.map((variant) => variant.mrp || 0)) : p.mrp;
+  const discount = off({ price: priceFrom, mrp: selectedMrp });
+  const priceLabel = priceTo > priceFrom ? `${money(priceFrom)} – ${money(priceTo)}` : money(priceFrom);
 
   return (
     <>
@@ -113,7 +122,7 @@ function Product({ p, products, categories, store: STORE }) {
           <Gallery p={p} ci={opt.c} />
           <div className="pinfo">
             <p className="brand">{p.brand || sub[1]}</p><h1>{p.name}</h1>
-            <div className="price">{p.from ? <b>{money(p.price)} – {money(p.priceTo)}</b> : <><b>{money(p.price)}</b>{p.mrp > p.price && <><s>MRP {money(p.mrp)}</s><em>{o}% OFF</em></>}</>}</div>
+            <div className="price"><b>{priceLabel}</b>{selectedMrp > priceFrom && <><s>MRP {money(selectedMrp)}</s><em>{discount}% OFF</em></>}</div>
             <p className="tax">Inclusive of all taxes</p>
             <ul className="offer-box">
               <li><Icon name="i-tag" />Extra {STORE.prepaidOffPct}% off when you pay by UPI</li>

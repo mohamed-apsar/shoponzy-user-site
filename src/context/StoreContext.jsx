@@ -30,7 +30,7 @@ function fly(from, product, ci, categories) {
   if (!from || !target || reduceMotion()) return bump();
   const a = from.getBoundingClientRect(), b = target.getBoundingClientRect(), f = document.createElement("div");
   f.className = "flyer";
-  const src = product.images?.[0];
+  const src = product.colorImages?.[ci]?.[0] || product.images?.[0];
   if (src) { const im = document.createElement("img"); im.src = src; im.alt = ""; f.appendChild(im); }
   else f.innerHTML = productArt(product, ci, 0, categories);
   f.style.left = a.left + a.width / 2 - 35 + "px";

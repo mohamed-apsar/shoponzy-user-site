@@ -45,9 +45,15 @@ function mapProduct(product, categoryById) {
   const category = categoryById.get(path[0]);
   const subcategory = categoryById.get(path[path.length - 1]);
   const colors = product.colors?.length
-    ? product.colors.map(({ hex, name }) => [hex || "#999999", name])
+    ? product.colors.map(({ hex, name, featuredImage }) => [hex || "#999999", name, featuredImage?.url || ""])
     : [["#999999", "Default"]];
   const sizes = product.sizes?.length ? product.sizes.map(String) : ["One size"];
+  const images = (product.images || []).map((image) => image.url).filter(Boolean);
+  const colorImages = (product.colors || []).map((color) => [
+    color.featuredImage?.url,
+    ...(color.images || []).map((image) => image.url),
+    ...images,
+  ].filter((url, index, list) => url && list.indexOf(url) === index));
   return {
     id: product.legacyId || product.id,
     apiId: product.id,
@@ -59,7 +65,8 @@ function mapProduct(product, categoryById) {
     sub: subcategory?.slug || "",
     colors,
     sizes,
-    images: (product.images || []).map((image) => image.url).filter(Boolean),
+    images,
+    colorImages,
     specs: (product.specs || []).map(({ label, value }) => [label, value]),
     variants: product.variants || [],
     price: product.price,

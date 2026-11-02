@@ -1,13 +1,23 @@
 import { useRef } from "react";
 import { Link } from "react-router-dom";
 import Icon from "./Icon";
-import ProductMedia from "./ProductMedia";
+import ProductMedia, { mediaCount } from "./ProductMedia";
 import { useStore } from "../context/StoreContext";
 import { money, off, productUrl, subOf } from "../utils/shop";
 import { itemEffects, useGsap } from "../fx/fx";
 import { useCatalog } from "../context/CatalogContext";
 
-export function Price({ p }) {
+export function Price({ p, colorIndex, size }) {
+  if (colorIndex !== undefined && p.variants?.length) {
+    const color = p.colors[colorIndex]?.[1] || "Default";
+    const matching = p.variants.filter((variant) => (variant.color ?? "Default") === color && (!size || variant.size === size));
+    if (matching.length) {
+      const price = Math.min(...matching.map((variant) => variant.price));
+      const priceTo = Math.max(...matching.map((variant) => variant.price));
+      const mrp = Math.max(...matching.map((variant) => variant.mrp || 0));
+      return <><b>{money(price)}</b>{priceTo > price && <s style={{ textDecoration: "none" }}>– {money(priceTo)}</s>}{mrp > price && <><s>{money(mrp)}</s><em>{off({ price, mrp })}% OFF</em></>}</>;
+    }
+  }
   if (p.from) return <><b>{money(p.price)}</b><s style={{ textDecoration: "none" }}>– {money(p.priceTo)}</s></>;
   return <><b>{money(p.price)}</b>{p.mrp > p.price && <><s>{money(p.mrp)}</s><em>{off(p)}% OFF</em></>}</>;
 }
@@ -39,7 +49,7 @@ export default function ProductCard({ p }) {
       <div className="media" ref={media}>
         <Link to={url} aria-label={p.name}>
           <ProductMedia product={p} className="im" />
-          <ProductMedia product={p} k={1} className="im alt" />
+          {mediaCount(p) > 1 && <ProductMedia product={p} k={1} className="im alt" />}
         </Link>
         <div className="tags">
           {p.isNew && <span className="tagx new">New</span>}
@@ -55,7 +65,9 @@ export default function ProductCard({ p }) {
         <div className="price"><Price p={p} /></div>
         {p.colors.length > 1 && (
           <div className="swatch-row" aria-label={`${p.colors.length} colours`}>
-            {p.colors.map((c) => <i key={c[1]} style={{ background: c[0] }} />)}
+            {p.colors.map((c) => c[2]
+              ? <span className="swatch-image" key={c[1]} title={c[1]}><img src={c[2]} alt="" loading="lazy" /></span>
+              : <i key={c[1]} title={c[1]} style={{ background: c[0] }} />)}
           </div>
         )}
       </div>

@@ -171,6 +171,7 @@ ul, ol { list-style: none; }
 .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 @media (min-width: 768px) { .grid { grid-template-columns: repeat(3, 1fr); gap: 18px; } }
 @media (min-width: 1280px) { .grid.g4 { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 1280px) { .grid:not(.g4) { grid-template-columns: repeat(4, 1fr); gap: 18px; } }
 .card { position: relative; display: flex; flex-direction: column; min-width: 0; }
 .card .media { position: relative; aspect-ratio: 1; border-radius: var(--r); overflow: hidden; background: var(--soft); }
 .card .media > a { position: absolute; inset: 0; display: block; }
@@ -202,6 +203,8 @@ ul, ol { list-style: none; }
 .price em { font-style: normal; font-size: .78rem; font-weight: 800; color: var(--ok); }
 .swatch-row { display: flex; gap: 4px; margin-top: 6px; }
 .swatch-row i { width: 12px; height: 12px; border-radius: 50%; box-shadow: 0 0 0 1px var(--line), inset 0 0 0 1.5px #fff; }
+.swatch-row .swatch-image { width: 24px; height: 24px; overflow: hidden; border: 1px solid var(--line); border-radius: 5px; background: #fff; }
+.swatch-row .swatch-image img { width: 100%; height: 100%; object-fit: contain; }
 
 /* ---------- Occasion tiles ---------- */
 .occ { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
@@ -298,17 +301,25 @@ ul, ol { list-style: none; }
 
 /* ---------- Product page ---------- */
 .pdp { display: grid; gap: 22px; }
-@media (min-width: 1000px) { .pdp { grid-template-columns: 1.1fr 1fr; gap: 48px; align-items: start; } }
+@media (min-width: 1000px) { .pdp { grid-template-columns: minmax(0, 1fr) minmax(320px, 390px); gap: 32px; align-items: start; } }
 .gallery { position: relative; }
-@media (min-width: 1000px) { .gallery { position: sticky; top: calc(var(--head-h) + 16px); display: grid; grid-template-columns: 76px 1fr; gap: 12px; } }
+@media (min-width: 1000px) {
+  .gallery { display: block; }
+  .pinfo { position: sticky; top: calc(var(--head-h) + 20px); }
+}
 .g-main { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; border-radius: var(--r-lg); margin: 0 -16px; }
 @media (min-width: 768px) { .g-main { margin: 0; } }
 .g-main::-webkit-scrollbar { display: none; }
-.g-main > div { flex: none; width: 100%; aspect-ratio: 1; scroll-snap-align: center; background: var(--soft); overflow: hidden; cursor: zoom-in; position: relative; }
-.g-main svg, .g-main img { width: 100%; height: 100%; object-fit: cover; transition: transform .3s; transform-origin: var(--zx, 50%) var(--zy, 50%); }
+.g-main > div { flex: none; width: 100%; aspect-ratio: 1; scroll-snap-align: center; background: #fff; overflow: hidden; cursor: zoom-in; position: relative; }
+.g-main svg, .g-main img { width: 100%; height: 100%; object-fit: contain; transition: transform .3s; transform-origin: var(--zx, 50%) var(--zy, 50%); }
 .g-main > div.zoom img, .g-main > div.zoom svg { transform: scale(1.9); }
 .g-thumbs { display: none; }
-@media (min-width: 1000px) { .g-thumbs { display: flex; flex-direction: column; gap: 10px; order: -1; } }
+@media (min-width: 1000px) {
+  .g-main { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; overflow: visible; scroll-snap-type: none; margin: 0; border-radius: 0; }
+  .g-main > div { width: auto; aspect-ratio: .86; border: 1px solid var(--line); border-radius: 14px; cursor: default; }
+  .g-thumbs { display: none; }
+  .g-dots { display: none; }
+}
 .g-thumbs button { aspect-ratio: 1; border-radius: 12px; overflow: hidden; border: 2px solid transparent; transition: border-color .2s; }
 .g-thumbs button[aria-pressed="true"] { border-color: var(--ink); }
 .g-thumbs svg, .g-thumbs img { width: 100%; height: 100%; object-fit: cover; }
@@ -324,15 +335,19 @@ ul, ol { list-style: none; }
 .offer-box li { display: flex; gap: 8px; align-items: flex-start; margin-top: 4px; }
 .offer-box .icon { width: 17px; height: 17px; color: var(--accent-d); margin-top: 2px; }
 .opt { margin-top: 20px; }
+.opt-sizes { padding: 14px; border-radius: 14px; background: #e8eee7; }
 .opt-h { display: flex; justify-content: space-between; align-items: center; font-weight: 800; font-size: .92rem; margin-bottom: 10px; }
 .opt-h span { font-weight: 500; color: var(--muted); }
 .colors { display: flex; gap: 10px; flex-wrap: wrap; }
-.colors button { width: 42px; height: 42px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 0 1.5px var(--line); transition: box-shadow .2s, transform .2s; }
-.colors button[aria-pressed="true"] { box-shadow: 0 0 0 2.5px var(--ink); }
+.colors .color-choice { display: flex; flex-direction: column; align-items: center; gap: 5px; width: 72px; min-height: 88px; padding: 3px; border: 1.5px solid var(--line); border-radius: 9px; background: #fff; color: var(--ink-2); font-size: .72rem; transition: border-color .2s, box-shadow .2s; }
+.colors .color-choice img { width: 62px; height: 60px; object-fit: contain; border-radius: 6px; background: #fff; }
+.colors .color-choice:not(.has-image)::before { content: ""; width: 38px; height: 38px; margin: 10px 0 12px; border-radius: 50%; background: var(--color-swatch); box-shadow: inset 0 0 0 2px #fff, 0 0 0 1px var(--line); }
+.colors .color-choice[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
 .sizes { display: flex; gap: 8px; flex-wrap: wrap; }
-.sizes button { min-width: 52px; height: 46px; padding: 0 14px; border-radius: 12px; border: 1.5px solid var(--line); font-weight: 700; transition: .2s; }
+.sizes button { min-width: 52px; height: 46px; padding: 0 14px; border-radius: 12px; border: 1.5px solid var(--line); background: #fff; font-weight: 700; transition: .2s; }
 .sizes button:hover { border-color: var(--ink); }
 .sizes button[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
+.sizes button:disabled { color: #a3aab7; background: #f1f3f5; text-decoration: line-through; cursor: not-allowed; }
 .sizes.shake { animation: shake .45s; }
 @keyframes shake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
 .err-t { color: var(--accent-d); font-size: .82rem; font-weight: 600; margin-top: 8px; }

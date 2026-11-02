@@ -6,7 +6,7 @@ import ProductMedia from "../ProductMedia";
 import OptionPicker from "../OptionPicker";
 import { Price } from "../ProductCard";
 import { useStore } from "../../context/StoreContext";
-import { byId, productUrl, subOf } from "../../utils/shop";
+import { byId, productUrl, sizeIsAvailable, subOf } from "../../utils/shop";
 import { useCatalog } from "../../context/CatalogContext";
 
 export default function QuickAddSheet() {
@@ -17,7 +17,7 @@ export default function QuickAddSheet() {
   const picker = useRef(null);
 
   useEffect(() => {
-    if (p) setOpt({ c: 0, s: p.sizes.length === 1 ? p.sizes[0] : "" });
+    if (p) setOpt({ c: 0, s: p.sizes.length === 1 && sizeIsAvailable(p, 0, p.sizes[0]) ? p.sizes[0] : "" });
   }, [p]);
 
   function add() {
@@ -36,7 +36,7 @@ export default function QuickAddSheet() {
             <div>
               <p className="brand" style={{ fontSize: ".75rem", fontWeight: 800, color: "var(--muted)", textTransform: "uppercase" }}>{p.brand || subOf(p, categories)[1]}</p>
               <h3>{p.name}</h3>
-              <div className="price" style={{ marginTop: 6 }}><Price p={p} /></div>
+              <div className="price" style={{ marginTop: 6 }}><Price p={p} colorIndex={opt.c} size={opt.s} /></div>
               <OptionPicker ref={picker} product={p} value={opt} onChange={setOpt} />
               <div className="buy">
                 <button type="button" className="btn btn-dark" onClick={add}><Icon name="i-bag" />Add to bag</button>

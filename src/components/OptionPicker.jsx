@@ -1,6 +1,7 @@
 import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import Icon from "./Icon";
 import { useStore } from "../context/StoreContext";
+import { sizeIsAvailable } from "../utils/shop";
 
 /* Colour + size selector. Parent owns { c, s }; ref.requireSize() shakes the
    size row and shows the error when no size is chosen (returns true if blocked). */
@@ -24,22 +25,29 @@ const OptionPicker = forwardRef(function OptionPicker({ product: p, value, onCha
 
   return (
     <>
-      <div className="opt">
+      <div className="opt opt-colors">
         <div className="opt-h">Colour <span>{p.colors[value.c][1]}</span></div>
         <div className="colors" role="group" aria-label="Colour">
           {p.colors.map((c, i) => (
-            <button type="button" key={c[1]} style={{ background: c[0] }} aria-pressed={i === value.c} aria-label={c[1]}
-              onClick={() => onChange({ ...value, c: i })} />
+            <button type="button" key={c[1]} className={`color-choice${c[2] ? " has-image" : ""}`} style={!c[2] ? { "--color-swatch": c[0] } : undefined} aria-pressed={i === value.c} aria-label={c[1]}
+              onClick={() => {
+                const sizeAvailable = !value.s || sizeIsAvailable(p, i, value.s);
+                setSizeError(false);
+                onChange({ ...value, c: i, s: sizeAvailable ? value.s : "" });
+              }}>
+              {c[2] && <img src={c[2]} alt="" loading="lazy" />}
+              <span>{c[1]}</span>
+            </button>
           ))}
         </div>
       </div>
-      <div className="opt">
+      <div className="opt opt-sizes">
         <div className="opt-h">Size {p.sizes.length > 1 && (
           <button className="view-all" type="button" onClick={() => openSheet("sizeSheet")}><Icon name="i-ruler" />Size guide</button>
         )}</div>
         <div className="sizes" role="group" aria-label="Size" ref={sizesRef}>
           {p.sizes.map((s) => (
-            <button type="button" key={s} aria-pressed={s === value.s}
+            <button type="button" key={s} aria-pressed={s === value.s} disabled={!sizeIsAvailable(p, value.c, s)}
               onClick={() => { setSizeError(false); onChange({ ...value, s }); }}>{s}</button>
           ))}
         </div>
