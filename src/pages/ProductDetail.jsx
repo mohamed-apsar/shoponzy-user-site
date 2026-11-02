@@ -10,6 +10,7 @@ import { useStore } from "../context/StoreContext";
 import { byId, bySlug, cat, categoryUrl, money, off, sizeIsAvailable, subOf, wa } from "../utils/shop";
 import { usePageFx } from "../fx/usePageFx";
 import usePageMeta from "../hooks/usePageMeta";
+import { fetchProductContentBlocks } from "../api/storeApi";
 import { useCatalog } from "../context/CatalogContext";
 
 const hoverDevice = () => matchMedia("(hover: hover)").matches;
@@ -69,12 +70,46 @@ function PinCheck({ deliveryText }) {
   );
 }
 
+function ProductContentBlocks({ blocks = [], error, onRetry }) {
+  if (error) {
+    return (
+      <div className="container product-content-error" role="alert">
+        <p>More product images could not be loaded: {error}</p>
+        <button type="button" className="view-all" onClick={onRetry}>Try again</button>
+      </div>
+    );
+  }
+  if (!blocks.length) return null;
+  return (
+    <section className="product-content-section" aria-label="More product images">
+      <div className="container">
+        <div className="product-content-stack">
+          {blocks.map((block, index) => block.type === "banner" ? (
+            block.image?.url
+              ? <img className="product-content-banner" key={`banner-${index}`} src={block.image.url} alt={block.image.alt || ""} loading="lazy" decoding="async" />
+              : null
+          ) : (
+            <div className="product-content-image-row" key={`row-${index}`}>
+              {block.images.filter((image) => image.url).map((image, imageIndex) => (
+                <img key={`${image.url}-${imageIndex}`} src={image.url} alt={image.alt || ""} loading="lazy" decoding="async" />
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Product({ p, products, categories, store: STORE }) {
   const { addToCart, viewed, recent } = useStore();
   const navigate = useNavigate();
   const c = cat(p.cat, categories), sub = subOf(p, categories);
   const [opt, setOpt] = useState({ c: 0, s: p.sizes.length === 1 && sizeIsAvailable(p, 0, p.sizes[0]) ? p.sizes[0] : "" });
   const [stickyShow, setStickyShow] = useState(false);
+  const [contentBlocks, setContentBlocks] = useState([]);
+  const [contentLoadError, setContentLoadError] = useState("");
+  const [contentAttempt, setContentAttempt] = useState(0);
   const picker = useRef(null);
   const buyRow = useRef(null);
 
@@ -82,6 +117,16 @@ function Product({ p, products, categories, store: STORE }) {
   usePageFx([p.id]);
 
   useEffect(() => { viewed(p.id); }, [p.id, viewed]);
+  useEffect(() => {
+    let active = true;
+    setContentLoadError("");
+    fetchProductContentBlocks(p.slug).then((blocks) => {
+      if (active) setContentBlocks(blocks);
+    }).catch((error) => {
+      if (active) setContentLoadError(error.message);
+    });
+    return () => { active = false; };
+  }, [p.slug, contentAttempt]);
   useEffect(() => {
     document.body.classList.add("pdp-page");
     const onScroll = () => setStickyShow(!!buyRow.current && buyRow.current.getBoundingClientRect().bottom < 0);
@@ -149,6 +194,8 @@ function Product({ p, products, categories, store: STORE }) {
           </div>
         </div>
       </div></section>
+
+      <ProductContentBlocks blocks={contentBlocks} error={contentLoadError} onRetry={() => setContentAttempt((attempt) => attempt + 1)} />
 
       <section className="section soft"><div className="container">
         <SectionHead title="You may also like" railId="related" viewAll="/products" />

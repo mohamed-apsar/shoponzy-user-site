@@ -57,3 +57,12 @@ export async function storeRequest(path, { method = "GET", body, retryCsrf = tru
   }
   return decode(response);
 }
+
+export async function fetchProductContentBlocks(slug) {
+  const { data } = await storeRequest(`/products/${encodeURIComponent(slug)}`);
+  return (data.contentBlocks || []).map((block) => ({
+    type: block.type,
+    image: block.image ? { url: block.image.url, alt: block.image.alt || data.name } : null,
+    images: (block.images || []).map((image) => ({ url: image.url, alt: image.alt || data.name })),
+  }));
+}

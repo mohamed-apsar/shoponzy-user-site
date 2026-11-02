@@ -377,6 +377,14 @@ ul, ol { list-style: none; }
 @media (min-width: 1000px) { .sticky-buy { display: none; } }
 body.pdp-page .tabbar { display: none; }
 body.pdp-page .tab-space { height: 80px; }
+.product-content-section { padding: 8px 0 34px; }
+.product-content-stack { display: grid; gap: clamp(20px, 3vw, 40px); }
+.product-content-banner { width: 100%; height: auto; border-radius: 4px; }
+.product-content-image-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(12px, 2vw, 28px); }
+.product-content-image-row img { width: 100%; height: auto; }
+.product-content-error { padding-bottom: 20px; color: var(--muted); }
+.product-content-error button { margin-top: 6px; color: var(--ink); text-decoration: underline; }
+@media (max-width: 700px) { .product-content-image-row { grid-template-columns: 1fr; } }
 
 /* ---------- Cart / checkout ---------- */
 .page-title { padding: 20px 0 6px; }
