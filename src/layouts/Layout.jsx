@@ -11,6 +11,7 @@ import { CategorySheet, MenuSheet, SizeGuideSheet } from "../components/sheets/N
 import { useStore } from "../context/StoreContext";
 import { MainRefContext } from "../fx/usePageFx";
 import { useCatalog } from "../context/CatalogContext";
+import SiteSkeleton from "../components/SiteSkeleton";
 
 function Toasts() {
   const { toasts } = useStore();
@@ -75,11 +76,10 @@ export default function Layout() {
       <a href="#main" className="sr-only">Skip to content</a>
       <AnnouncementBar />
       <Header />
-      {status === "loading" && <div className="container" role="status" style={{ padding: "12px 0" }}>Loading products and store data…</div>}
       {status === "error" && <div className="container" role="alert" style={{ padding: "12px 0", color: "var(--accent-d)" }}>
         Could not load store data: {error} <button type="button" className="view-all" onClick={retry}>Try again</button>
       </div>}
-      <main id="main" ref={main}>{status === "ready" ? <Outlet /> : null}</main>
+      <main id="main" ref={main}>{status === "loading" ? <SiteSkeleton /> : status === "ready" ? <Outlet /> : null}</main>
       <Footer />
       <TabBar />
       <Toasts />
