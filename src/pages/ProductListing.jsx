@@ -56,8 +56,10 @@ function Hero({ c, q }) {
     { depth: "1.6", style: { right: -30, bottom: "10%", width: 140 } },
   ];
   return (
-    <section className="cat-hero"><div className="bg" style={{ background: `linear-gradient(135deg,${c.gradient[0]},${c.gradient[1]})` }} />
-      {floats.map((f, i) => (
+    <section className="cat-hero"><div className="bg" style={c.bannerImage
+      ? { backgroundImage: `linear-gradient(90deg,rgba(0,0,0,.62),rgba(0,0,0,.12)),url("${c.bannerImage}")`, backgroundSize: "cover", backgroundPosition: "center" }
+      : { background: `linear-gradient(135deg,${c.gradient[0]},${c.gradient[1]})` }} />
+      {!c.bannerImage && floats.map((f, i) => (
         <span className="float" key={i} data-depth={f.depth} style={f.style}><span style={{ display: "block" }}><Art kind={c.heroArt[i][0]} color={c.heroArt[i][1]} category={c.id} /></span></span>
       ))}
       <div className="container in"><nav className="crumbs" aria-label="Breadcrumb"><Link to="/">Home</Link><span>/</span><span>{c.name}</span></nav>
@@ -113,12 +115,16 @@ function Listing({ pageCat }) {
       {c && subsAll.length > 0 && (
         <nav className="subs" id="subs" aria-label={`${c.name} types`}>
           <button type="button" className="sub" aria-pressed={!st.subs.length} onClick={() => set({ subs: [] })}>
-            <span className="im"><Art kind={subsAll[0][2]} color={c.color} category={c.id} /></span>All</button>
-          {subsAll.map(([id, name, kind]) => {
+            <span className="im">{c.image
+              ? <img src={c.image} alt="" loading="lazy" decoding="async" />
+              : <Art kind={subsAll[0][2]} color={c.color} category={c.id} />}</span>All</button>
+          {subsAll.map(([id, name, kind, , image]) => {
             const example = base.find((p) => p.sub === id);
             return (
               <button type="button" className="sub" key={id} aria-pressed={st.subs.includes(id)} onClick={() => set({ subs: [id] })}>
-                {example ? <ProductMedia className="im" product={example} /> : <span className="im"><Art kind={kind} color="#999999" category={c.id} /></span>}{name}
+                {image
+                  ? <span className="im"><img src={image} alt="" loading="lazy" decoding="async" /></span>
+                  : example ? <ProductMedia className="im" product={example} /> : <span className="im"><Art kind={kind} color="#999999" category={c.id} /></span>}{name}
               </button>
             );
           })}

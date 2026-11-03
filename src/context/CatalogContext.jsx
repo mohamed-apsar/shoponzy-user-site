@@ -24,6 +24,7 @@ function mapCategory(category) {
     name: category.name,
     image: category.image?.url || "",
     exploreImage: category.exploreImage?.url || "",
+    bannerImage: category.bannerImage?.url || "",
     tag: display.tagline || category.description || "",
     color: display.color || "#555555",
     gradient: display.gradient?.length === 2 ? display.gradient : ["#333333", "#777777"],
@@ -37,6 +38,7 @@ function mapCategory(category) {
       child.name,
       child.display?.artKind || "bag",
       child.display?.artColor || display.color || "#999999",
+      child.image?.url || "",
     ]),
   };
 }
