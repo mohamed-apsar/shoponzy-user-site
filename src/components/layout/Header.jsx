@@ -76,12 +76,10 @@ function CategoryMenu({ category }) {
   return (
     <div className={`dd category-dropdown${open ? " is-open" : ""}`} onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
       <NavLink to={categoryUrl(category.id)} onClick={blur}>{category.name}</NavLink>
-      {category.id !== "shoes" && <>
-        <button type="button" className="category-toggle" aria-label={`Show ${category.name} subcategories`} aria-expanded={open}
-          aria-controls={`category-menu-${category.id}`} onClick={() => setOpen((value) => !value)}>
-          <Icon name="i-down" />
-        </button>
-      </>}
+      <button type="button" className="category-toggle" aria-label={`Show ${category.name} subcategories`} aria-expanded={open}
+        aria-controls={`category-menu-${category.id}`} onClick={() => setOpen((value) => !value)}>
+        <Icon name="i-down" />
+      </button>
       <div className="category-menu" id={`category-menu-${category.id}`} ref={menuRef}
         style={{ "--category-columns": Math.max(category.subs.length, 1), ...(menuPosition || {}) }}>
         <div className="category-menu-items">
