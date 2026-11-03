@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import Icon from "../Icon";
 import Art from "../Art";
@@ -44,7 +44,27 @@ const blur = () => document.activeElement?.blur?.();
 
 function CategoryMenu({ category }) {
   const [open, setOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState(null);
+  const menuRef = useRef(null);
   const location = useLocation();
+
+  useLayoutEffect(() => {
+    if (!open || !menuRef.current) return undefined;
+
+    const updatePosition = () => {
+      const trigger = menuRef.current.closest(".category-dropdown");
+      if (!trigger) return;
+      const bounds = trigger.getBoundingClientRect();
+      const menuWidth = menuRef.current.offsetWidth;
+      const viewportWidth = document.documentElement.clientWidth;
+      const left = Math.max(16, Math.min(bounds.left, viewportWidth - menuWidth - 16));
+      setMenuPosition({ left: left - bounds.left, top: bounds.height + 12 });
+    };
+
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    return () => window.removeEventListener("resize", updatePosition);
+  }, [open, category.id, category.subs.length]);
 
   useEffect(() => {
     setOpen(false);
@@ -62,7 +82,8 @@ function CategoryMenu({ category }) {
           <Icon name="i-down" />
         </button>
       </>}
-      <div className="category-menu" id={`category-menu-${category.id}`}>
+      <div className="category-menu" id={`category-menu-${category.id}`} ref={menuRef}
+        style={{ "--category-columns": Math.max(category.subs.length, 1), ...(menuPosition || {}) }}>
         <div className="category-menu-items">
           {category.subs.map(([id, name, kind, color]) => (
             <Link className="category-menu-tile" key={id} to={categoryUrl(category.id, id)} onClick={() => { setOpen(false); blur(); }}>
