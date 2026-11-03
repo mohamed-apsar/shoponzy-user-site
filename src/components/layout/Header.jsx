@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import Icon from "../Icon";
-import Art from "../Art";
 import { useStore } from "../../context/StoreContext";
 import { categoryUrl, reduceMotion } from "../../utils/shop";
 import { headerEffects } from "../../fx/fx";
@@ -39,54 +38,35 @@ export function Logo({ image }) {
 
 export const Badge = ({ n }) => <span className={`badge-n${n > 0 ? " show" : ""}`}>{n}</span>;
 
-/* Closes the hover/focus mega-menu after a client-side navigation. */
+/* Closes the category dropdown after a client-side navigation. */
 const blur = () => document.activeElement?.blur?.();
 
-function CategoryMenu({ categories }) {
+function CategoryMenu({ category }) {
   const [open, setOpen] = useState(false);
-  const [selectedId, setSelectedId] = useState(categories[0]?.id || "");
-  const selected = categories.find((category) => category.id === selectedId) || categories[0];
   const location = useLocation();
-
-  useEffect(() => {
-    if (!categories.some((category) => category.id === selectedId)) setSelectedId(categories[0]?.id || "");
-  }, [categories, selectedId]);
 
   useEffect(() => {
     setOpen(false);
     blur();
   }, [location.pathname, location.search]);
 
+  if (!category) return null;
+
   return (
     <div className={`dd category-dropdown${open ? " is-open" : ""}`} onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
-      <button type="button" className="category-trigger" aria-expanded={open} aria-controls="category-menu" onClick={() => setOpen(true)}>
-        Category <Icon name="i-down" />
-      </button>
-      <div className="dd-menu category-menu" id="category-menu">
-        <div className="category-menu-inner">
-          <div className="category-menu-list" role="list" aria-label="Categories">
-            {categories.map((category) => (
-              <button type="button" key={category.id} className={category.id === selected?.id ? "selected" : ""}
-                onMouseEnter={() => setSelectedId(category.id)} onFocus={() => setSelectedId(category.id)} onClick={() => setSelectedId(category.id)}>
-                {category.name}<Icon name="i-right" />
-              </button>
-            ))}
-          </div>
-          {selected && <div className="category-submenu">
-            <div className="category-submenu-head">
-              <div><small>{selected.tag || "Explore the collection"}</small><h3>{selected.name}</h3></div>
-              <Link className="view-all" to={categoryUrl(selected.id)} onClick={() => { setOpen(false); blur(); }}>Shop all {selected.name}<Icon name="i-arrow" /></Link>
-            </div>
-            {selected.subs.length ? <div className="category-sub-list">
-              {selected.subs.map(([id, name, kind, color]) => (
-                <Link className="tile" key={id} to={categoryUrl(selected.id, id)} onClick={() => { setOpen(false); blur(); }}>
-                  <span className="im"><Art kind={kind} color={color} category={selected.id} /></span>{name}
-                </Link>
-              ))}
-            </div> : <p className="category-empty">Subcategories will appear here when available.</p>}
-          </div>}
+      <NavLink to={categoryUrl(category.id)} onClick={blur}>{category.name}</NavLink>
+      {category.id !== "shoes" && <>
+        <button type="button" className="category-toggle" aria-label={`Show ${category.name} subcategories`} aria-expanded={open}
+          aria-controls={`category-menu-${category.id}`} onClick={() => setOpen((value) => !value)}>
+          <Icon name="i-down" />
+        </button>
+        <div className="category-menu" id={`category-menu-${category.id}`}>
+          <Link to={categoryUrl(category.id)} onClick={() => { setOpen(false); blur(); }}>Shop all {category.name}</Link>
+          {category.subs.map(([id, name]) => (
+            <Link key={id} to={categoryUrl(category.id, id)} onClick={() => { setOpen(false); blur(); }}>{name}</Link>
+          ))}
         </div>
-      </div>
+      </>}
     </div>
   );
 }
@@ -112,10 +92,7 @@ export default function Header() {
         <button type="button" className="tool burger" aria-label="Open menu" onClick={() => openSheet("menuSheet")}><Icon name="i-menu" /></button>
         <Logo />
         <nav className="nav" aria-label="Main navigation">
-          <NavLink to="/" end onClick={blur}>Home</NavLink>
-          <CategoryMenu categories={CATS} />
-          <NavLink to="/about" onClick={blur}>About us</NavLink>
-          <NavLink to="/contact" onClick={blur}>Contact us</NavLink>
+          {CATS.map((category) => <CategoryMenu key={category.id} category={category} />)}
         </nav>
         <form className="search" role="search" onSubmit={(e) => { e.preventDefault(); navigate(`/products?q=${encodeURIComponent(q)}`); }}>
           <Icon name="i-search" style={{ color: "var(--muted)" }} />
