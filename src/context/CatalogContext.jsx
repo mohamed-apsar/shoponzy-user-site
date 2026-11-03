@@ -23,6 +23,7 @@ function mapCategory(category) {
     id: category.slug,
     name: category.name,
     image: category.image?.url || "",
+    exploreImage: category.exploreImage?.url || "",
     tag: display.tagline || category.description || "",
     color: display.color || "#555555",
     gradient: display.gradient?.length === 2 ? display.gradient : ["#333333", "#777777"],

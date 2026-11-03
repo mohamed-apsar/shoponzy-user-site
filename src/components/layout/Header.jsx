@@ -91,7 +91,13 @@ function CategoryMenu({ category }) {
           ))}
         </div>
         <Link className="category-menu-promo" to={categoryUrl(category.id)} onClick={() => { setOpen(false); blur(); }}
-          style={{ backgroundImage: `linear-gradient(135deg, ${category.gradient?.[0] || category.color}, ${category.gradient?.[1] || category.color})` }}>
+          style={{
+            backgroundImage: category.exploreImage
+              ? `linear-gradient(rgba(0,0,0,.4), rgba(0,0,0,.55)), url("${category.exploreImage}")`
+              : `linear-gradient(135deg, ${category.gradient?.[0] || category.color}, ${category.gradient?.[1] || category.color})`,
+            backgroundSize: category.exploreImage ? "cover" : undefined,
+            backgroundPosition: "center",
+          }}>
           <span className="category-menu-promo-art" aria-hidden="true">
             <Art kind={category.heroArt?.[0]?.[0] || category.subs[0]?.[2] || "bag"}
               color={category.heroArt?.[0]?.[1] || category.subs[0]?.[3] || category.color} category={category.id} />
