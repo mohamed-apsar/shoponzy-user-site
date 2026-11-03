@@ -83,9 +83,11 @@ function CategoryMenu({ category }) {
       <div className="category-menu" id={`category-menu-${category.id}`} ref={menuRef}
         style={{ "--category-columns": Math.max(category.subs.length, 1), ...(menuPosition || {}) }}>
         <div className="category-menu-items">
-          {category.subs.map(([id, name, kind, color]) => (
+          {category.subs.map(([id, name, kind, color, image]) => (
             <Link className="category-menu-tile" key={id} to={categoryUrl(category.id, id)} onClick={() => { setOpen(false); blur(); }}>
-              <span className="category-menu-art"><Art kind={kind} color={color} category={category.id} /></span>
+              <span className="category-menu-art">{image
+                ? <img src={image} alt="" loading="lazy" decoding="async" />
+                : <Art kind={kind} color={color} category={category.id} />}</span>
               <span>{name}</span>
             </Link>
           ))}
