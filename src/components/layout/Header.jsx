@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import Icon from "../Icon";
+import Art from "../Art";
 import { useStore } from "../../context/StoreContext";
 import { categoryUrl, reduceMotion } from "../../utils/shop";
 import { headerEffects } from "../../fx/fx";
@@ -60,13 +61,23 @@ function CategoryMenu({ category }) {
           aria-controls={`category-menu-${category.id}`} onClick={() => setOpen((value) => !value)}>
           <Icon name="i-down" />
         </button>
-        <div className="category-menu" id={`category-menu-${category.id}`}>
-          <Link to={categoryUrl(category.id)} onClick={() => { setOpen(false); blur(); }}>Shop all {category.name}</Link>
-          {category.subs.map(([id, name]) => (
-            <Link key={id} to={categoryUrl(category.id, id)} onClick={() => { setOpen(false); blur(); }}>{name}</Link>
+      </>}
+      <div className="category-menu" id={`category-menu-${category.id}`}>
+        <div className="category-menu-items">
+          {category.subs.map(([id, name, kind, color]) => (
+            <Link className="category-menu-tile" key={id} to={categoryUrl(category.id, id)} onClick={() => { setOpen(false); blur(); }}>
+              <span className="category-menu-art"><Art kind={kind} color={color} category={category.id} /></span>
+              <span>{name}</span>
+            </Link>
           ))}
         </div>
-      </>}
+        <Link className="category-menu-promo" to={categoryUrl(category.id)} onClick={() => { setOpen(false); blur(); }}
+          style={{ backgroundImage: `linear-gradient(135deg, ${category.gradient?.[0] || category.color}, ${category.gradient?.[1] || category.color})` }}>
+          <span>{category.tag || "Explore the collection"}</span>
+          <strong>Shop all {category.name}</strong>
+          <span className="category-menu-explore">Explore <Icon name="i-arrow" /></span>
+        </Link>
+      </div>
     </div>
   );
 }
