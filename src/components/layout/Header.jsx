@@ -48,8 +48,6 @@ function CategoryMenu({ category }) {
   const menuRef = useRef(null);
   const location = useLocation();
   const menuCategories = category.subs;
-  const categoryCount = Math.max(menuCategories.length, 1);
-  const menuColumns = Math.min(4, Math.ceil(categoryCount / Math.ceil(categoryCount / 4)));
 
   useLayoutEffect(() => {
     if (!open || !menuRef.current) return undefined;
@@ -84,7 +82,7 @@ function CategoryMenu({ category }) {
         <Icon name="i-down" />
       </button>
       <div className="category-menu" id={`category-menu-${category.id}`} ref={menuRef}
-        style={{ "--category-columns": menuColumns, ...(menuPosition || {}) }}>
+        style={menuPosition || undefined}>
         <div className="category-menu-items">
           {menuCategories.map(([slug, name, kind, color, image, categoryId, pathName, depth]) => {
             const key = categoryId || slug;
