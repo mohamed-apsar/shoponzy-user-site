@@ -18,7 +18,7 @@ function mapCategory(category) {
   const display = category.display || {};
   const firstChild = category.children?.[0]?.display || {};
   const descendants = [];
-  function collectDescendants(children, ancestors = []) {
+  function collectDescendants(children, ancestors = [], ancestorIds = [category.id]) {
     for (const child of children || []) {
       const pathNames = [...ancestors, child.name];
       descendants.push([
@@ -30,8 +30,9 @@ function mapCategory(category) {
         child.id,
         pathNames.join(" / "),
         child.level,
+        ancestorIds,
       ]);
-      collectDescendants(child.children, pathNames);
+      collectDescendants(child.children, pathNames, [...ancestorIds, child.id]);
     }
   }
   collectDescendants(category.children);
@@ -65,7 +66,9 @@ function mapCategory(category) {
 function mapProduct(product, categoryById) {
   const path = product.categoryPath || [];
   const category = categoryById.get(path[0]);
-  const subcategory = categoryById.get(path[path.length - 1]);
+  const assignedCategoryId = typeof product.category === "string" ? product.category : product.category?.id || product.category?._id;
+  const assignedCategory = categoryById.get(assignedCategoryId);
+  const subcategory = assignedCategory || categoryById.get(path[path.length - 1]);
   const colors = product.colors?.length
     ? product.colors.map(({ hex, name, featuredImage }) => [hex || "#999999", name, featuredImage?.url || ""])
     : [["#999999", "Default"]];
@@ -80,6 +83,7 @@ function mapProduct(product, categoryById) {
     id: product.legacyId || product.id,
     apiId: product.id,
     categoryIds: path,
+    assignedCategoryId,
     slug: product.slug,
     name: product.name,
     brand: product.brand || "",

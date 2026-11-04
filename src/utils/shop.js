@@ -12,7 +12,11 @@ export const subOf = (p, categories = CATS) => {
   const category = cat(p.cat, categories);
   const subs = category?.descendants?.length ? category.descendants : category?.subs || [];
   const leafId = p.categoryIds?.[p.categoryIds.length - 1];
-  return (leafId && subs.find((s) => s[5] === leafId)) || subs.find((s) => s[0] === p.sub) || subs[0] || ["", "Products", "bag", "#999999"];
+  return (p.assignedCategoryId && subs.find((s) => s[5] === p.assignedCategoryId))
+    || (leafId && subs.find((s) => s[5] === leafId))
+    || subs.find((s) => s[0] === p.sub)
+    || subs[0]
+    || ["", "Products", "bag", "#999999"];
 };
 export const productUrl = (p) => `/products/${p.slug}`;
 export const categoryUrl = (id, sub) => `/categories/${id}${sub ? `?sub=${sub}` : ""}`;

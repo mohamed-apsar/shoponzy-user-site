@@ -8,6 +8,7 @@ import { ProductList } from "../components/ProductCard";
 import NotFound from "./NotFound";
 import { useStore } from "../context/StoreContext";
 import { cat, matches, money, off } from "../utils/shop";
+import { productMatchesCategory } from "../utils/categoryProducts";
 import { usePageFx } from "../fx/usePageFx";
 import usePageMeta from "../hooks/usePageMeta";
 import { useCatalog } from "../context/CatalogContext";
@@ -28,7 +29,7 @@ function Filters({ st, base, subsAll, sizes, colors, sliderMax, pageCat, toggle,
         return <label className="fopt" key={key} title={pathName || name}>
           <input type="checkbox" checked={st.subs.includes(key)} onChange={() => toggle("subs", key)} />
           <span>{name}{depth > 2 && pathName && <small className="fopt-path">{pathName}</small>}</span>
-          <small>{base.filter((p) => p.categoryIds?.length ? p.categoryIds.includes(key) : p.sub === slug).length}</small>
+          <small>{base.filter((p) => productMatchesCategory(p, sub)).length}</small>
         </label>;
       })}</div>}
       <div className="fg"><h3>Size</h3><div className="chips">{sizes.map((s) => (
@@ -90,7 +91,7 @@ function Listing({ pageCat }) {
   usePageFx([pageCat]);
 
   const base = useMemo(() => (pageCat ? PRODUCTS.filter((p) => p.cat === pageCat) : PRODUCTS), [pageCat, PRODUCTS]);
-  const subsAll = c ? (c.descendants?.length ? c.descendants : c.subs) : [];
+  const subsAll = useMemo(() => c ? (c.descendants?.length ? c.descendants : c.subs) : [], [c]);
   const sizes = useMemo(() => [...new Set(base.flatMap((p) => p.sizes))], [base]);
   const colors = useMemo(() => [...new Map(base.flatMap((p) => p.colors).map((x) => [x[1], x])).values()].slice(0, 14), [base]);
   const sliderMax = base.length ? Math.ceil(Math.max(...base.map((p) => p.price)) / 100) * 100 : 1000;
@@ -102,12 +103,15 @@ function Listing({ pageCat }) {
 
   const list = useMemo(() => {
     const q = st.q.toLowerCase();
-    let out = base.filter((p) => (!st.subs.length || st.subs.some((sub) => p.categoryIds?.includes(sub) || p.sub === sub)) && (!st.cats.length || st.cats.includes(p.cat))
+    let out = base.filter((p) => (!st.subs.length || st.subs.some((selected) => {
+      const sub = subsAll.find((item) => (item[5] || item[0]) === selected);
+      return sub ? productMatchesCategory(p, sub) : p.sub === selected;
+    })) && (!st.cats.length || st.cats.includes(p.cat))
       && (!st.sizes.length || p.sizes.some((s) => st.sizes.includes(s))) && (!st.colors.length || p.colors.some((x) => st.colors.includes(x[1])))
       && (!st.max || p.price <= st.max) && (!st.sale || off(p) > 0) && (!q || matches(p, q, CATS)));
     if (SORTERS[st.sort]) out = [...out].sort(SORTERS[st.sort]);
     return out;
-  }, [base, st, CATS]);
+  }, [base, st, CATS, subsAll]);
 
   const chips = [
     ...st.cats.map((v) => ["cats", v, cat(v, CATS)?.name || v]),
@@ -130,7 +134,7 @@ function Listing({ pageCat }) {
           {subsAll.map((sub) => {
             const [slug, name, kind, , image, categoryId, pathName, depth] = sub;
             const key = categoryId || slug;
-            const example = base.find((p) => p.categoryIds?.length ? p.categoryIds.includes(key) : p.sub === slug);
+            const example = base.find((p) => productMatchesCategory(p, sub));
             return (
               <button type="button" className={`sub${depth > 2 ? " sub-nested" : ""}`} key={key} aria-pressed={st.subs.includes(key)} onClick={() => set({ subs: [key] })}>
                 {image
