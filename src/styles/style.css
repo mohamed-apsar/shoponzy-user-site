@@ -88,7 +88,7 @@ ul, ol { list-style: none; }
 .category-menu-art img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .category-menu-tile:hover .category-menu-art { transform: translateY(-3px); }
 .category-menu-promo { position: relative; isolation: isolate; overflow: hidden; min-height: 155px; padding: 18px; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-end; gap: 4px; border-radius: 14px; color: #fff; }
-.category-menu-promo-art { position: absolute; z-index: -1; top: -26px; right: -24px; width: 132px; height: 132px; overflow: hidden; border-radius: 50%; opacity: .3; mix-blend-mode: screen; pointer-events: none; }
+.category-menu-promo-art { position: absolute; z-index: -1; top: -26px; right: -24px; width: 132px; height: 132px; overflow: visible; border-radius: 0; opacity: .3; mix-blend-mode: screen; pointer-events: none; }
 .category-menu-promo-art > span { width: 100% !important; height: 100% !important; }
 .category-menu-promo > span:not(.category-menu-promo-art), .category-menu-promo strong { position: relative; z-index: 1; }
 .category-menu-promo > span:first-child { font-size: .75rem; }
