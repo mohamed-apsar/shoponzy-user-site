@@ -47,6 +47,7 @@ function CategoryMenu({ category }) {
   const [menuPosition, setMenuPosition] = useState(null);
   const menuRef = useRef(null);
   const location = useLocation();
+  const menuCategories = category.descendants?.length ? category.descendants : category.subs;
 
   useLayoutEffect(() => {
     if (!open || !menuRef.current) return undefined;
@@ -64,7 +65,7 @@ function CategoryMenu({ category }) {
     updatePosition();
     window.addEventListener("resize", updatePosition);
     return () => window.removeEventListener("resize", updatePosition);
-  }, [open, category.id, category.subs.length]);
+  }, [open, category.id, menuCategories.length]);
 
   useEffect(() => {
     setOpen(false);
@@ -81,16 +82,17 @@ function CategoryMenu({ category }) {
         <Icon name="i-down" />
       </button>
       <div className="category-menu" id={`category-menu-${category.id}`} ref={menuRef}
-        style={{ "--category-columns": Math.max(category.subs.length, 1), ...(menuPosition || {}) }}>
+        style={{ "--category-columns": Math.max(Math.min(menuCategories.length, 4), 1), ...(menuPosition || {}) }}>
         <div className="category-menu-items">
-          {category.subs.map(([id, name, kind, color, image]) => (
-            <Link className="category-menu-tile" key={id} to={categoryUrl(category.id, id)} onClick={() => { setOpen(false); blur(); }}>
+          {menuCategories.map(([slug, name, kind, color, image, categoryId, pathName, depth]) => {
+            const key = categoryId || slug;
+            return <Link className="category-menu-tile" key={key} to={categoryUrl(category.id, key)} onClick={() => { setOpen(false); blur(); }}>
               <span className="category-menu-art">{image
                 ? <img src={image} alt="" loading="lazy" decoding="async" />
                 : <Art kind={kind} color={color} category={category.id} />}</span>
-              <span>{name}</span>
-            </Link>
-          ))}
+              <span>{name}</span>{depth > 2 && pathName && <small className="category-menu-path">{pathName}</small>}
+            </Link>;
+          })}
         </div>
         <Link className="category-menu-promo" to={categoryUrl(category.id)} onClick={() => { setOpen(false); blur(); }}
           style={{

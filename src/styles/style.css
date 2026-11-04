@@ -82,8 +82,9 @@ ul, ol { list-style: none; }
 .category-dropdown::after { content: ""; position: absolute; z-index: 1; top: 100%; left: 0; width: 100%; height: 14px; }
 .category-menu { position: absolute; z-index: 102; width: max-content; max-width: calc(100vw - 32px); padding: 20px; display: grid; grid-template-columns: max-content 210px; gap: 18px; background: #fff; border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 18px 42px rgba(17,19,24,.14); opacity: 0; visibility: hidden; transform: translateY(6px); transition: .2s var(--ease); }
 .category-dropdown.is-open .category-menu { opacity: 1; visibility: visible; transform: none; }
-.category-menu-items { display: grid; grid-template-columns: repeat(var(--category-columns), minmax(0, 140px)); gap: 12px; align-content: start; }
+.category-menu-items { display: grid; grid-template-columns: repeat(var(--category-columns), minmax(0, 140px)); gap: 12px; align-content: start; max-height: min(60vh, 500px); overflow-y: auto; }
 .category-menu-tile { min-width: 0; text-align: center; font-size: .82rem; font-weight: 700; }
+.category-menu-path { display: block; margin-top: 3px; color: var(--muted); font-size: .68rem; font-weight: 500; line-height: 1.25; }
 .category-menu-art { display: block; aspect-ratio: 1; margin-bottom: 8px; overflow: hidden; border-radius: 50%; background: #EFF4F7; transition: transform .25s var(--ease); }
 .category-menu-art img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .category-menu-tile:hover .category-menu-art { transform: translateY(-3px); }
@@ -273,6 +274,10 @@ ul, ol { list-style: none; }
 .sub:hover .im { transform: translateY(-3px); }
 .sub[aria-pressed="true"] .im { border-color: var(--accent); }
 .sub[aria-pressed="true"] { color: var(--accent-d); }
+.sub > span:not(.im) { display: block; }
+.sub > small { display: block; margin-top: 3px; color: var(--muted); font-size: .65rem; font-weight: 500; line-height: 1.2; }
+.sub-nested { width: 108px; }
+.fopt-path { margin-left: 4px; color: var(--muted); font-size: .72rem; }
 .plp { display: grid; gap: 24px; }
 @media (min-width: 1024px) { .plp { grid-template-columns: 250px 1fr; gap: 30px; } }
 .filters { display: none; }
@@ -591,7 +596,7 @@ body.pdp-page .tab-space { height: 80px; }
 .mnav-category-list { padding-left: 12px; }
 .mnav-category-name { font-weight: 600; color: var(--ink-2); }
 .mnav-subcategories { padding: 2px 0 8px 12px; }
-.mnav-subcategories a { padding: 9px 2px; font-size: .9rem; font-weight: 600; color: var(--muted); }
+.mnav-subcategories a { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 2px; font-size: .9rem; font-weight: 600; color: var(--muted); }
 
 /* ---------- Toast & fly ---------- */
 .toasts { position: fixed; left: 50%; bottom: calc(var(--tab-h) + 20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 500; display: grid; gap: 8px; justify-items: center; pointer-events: none; width: max-content; max-width: 92vw; }

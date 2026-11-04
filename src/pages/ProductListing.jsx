@@ -22,9 +22,15 @@ function Filters({ st, base, subsAll, sizes, colors, sliderMax, pageCat, toggle,
       {!pageCat && <div className="fg"><h3>Category</h3>{categories.map((c) => (
         <label className="fopt" key={c.id}><input type="checkbox" checked={st.cats.includes(c.id)} onChange={() => toggle("cats", c.id)} />{c.name}<small>{products.filter((p) => p.cat === c.id).length}</small></label>
       ))}</div>}
-      {subsAll.length > 0 && <div className="fg"><h3>Type</h3>{subsAll.map(([id, name]) => (
-        <label className="fopt" key={id}><input type="checkbox" checked={st.subs.includes(id)} onChange={() => toggle("subs", id)} />{name}<small>{base.filter((p) => p.sub === id).length}</small></label>
-      ))}</div>}
+      {subsAll.length > 0 && <div className="fg"><h3>Type</h3>{subsAll.map((sub) => {
+        const [slug, name, , , , categoryId, pathName, depth] = sub;
+        const key = categoryId || slug;
+        return <label className="fopt" key={key} title={pathName || name}>
+          <input type="checkbox" checked={st.subs.includes(key)} onChange={() => toggle("subs", key)} />
+          <span>{name}{depth > 2 && pathName && <small className="fopt-path">{pathName}</small>}</span>
+          <small>{base.filter((p) => p.categoryIds?.length ? p.categoryIds.includes(key) : p.sub === slug).length}</small>
+        </label>;
+      })}</div>}
       <div className="fg"><h3>Size</h3><div className="chips">{sizes.map((s) => (
         <label key={s}><input type="checkbox" checked={st.sizes.includes(s)} onChange={() => toggle("sizes", s)} /><span>{s}</span></label>
       ))}</div></div>
@@ -74,7 +80,9 @@ function Listing({ pageCat }) {
   const { openSheet, closeSheet } = useStore();
   const c = pageCat ? cat(pageCat, CATS) : null;
   const [st, setSt] = useState(() => ({
-    ...EMPTY, subs: params.get("sub") ? [params.get("sub")] : [], sale: params.get("sale") === "1", q: params.get("q") || "",
+    ...EMPTY, subs: params.get("sub") ? [
+      c?.descendants?.find(([slug, , , , , id]) => id === params.get("sub") || slug === params.get("sub"))?.[5] || params.get("sub"),
+    ] : [], sale: params.get("sale") === "1", q: params.get("q") || "",
     sort: params.get("sort") || "featured",
   }));
   usePageMeta(c ? `${c.name} Online | Shoponzy` : st.q ? `Search: ${st.q} | Shoponzy` : "Shop All | Shoponzy",
@@ -82,7 +90,7 @@ function Listing({ pageCat }) {
   usePageFx([pageCat]);
 
   const base = useMemo(() => (pageCat ? PRODUCTS.filter((p) => p.cat === pageCat) : PRODUCTS), [pageCat, PRODUCTS]);
-  const subsAll = c ? c.subs : [];
+  const subsAll = c ? (c.descendants?.length ? c.descendants : c.subs) : [];
   const sizes = useMemo(() => [...new Set(base.flatMap((p) => p.sizes))], [base]);
   const colors = useMemo(() => [...new Map(base.flatMap((p) => p.colors).map((x) => [x[1], x])).values()].slice(0, 14), [base]);
   const sliderMax = base.length ? Math.ceil(Math.max(...base.map((p) => p.price)) / 100) * 100 : 1000;
@@ -94,7 +102,7 @@ function Listing({ pageCat }) {
 
   const list = useMemo(() => {
     const q = st.q.toLowerCase();
-    let out = base.filter((p) => (!st.subs.length || st.subs.includes(p.sub)) && (!st.cats.length || st.cats.includes(p.cat))
+    let out = base.filter((p) => (!st.subs.length || st.subs.some((sub) => p.categoryIds?.includes(sub) || p.sub === sub)) && (!st.cats.length || st.cats.includes(p.cat))
       && (!st.sizes.length || p.sizes.some((s) => st.sizes.includes(s))) && (!st.colors.length || p.colors.some((x) => st.colors.includes(x[1])))
       && (!st.max || p.price <= st.max) && (!st.sale || off(p) > 0) && (!q || matches(p, q, CATS)));
     if (SORTERS[st.sort]) out = [...out].sort(SORTERS[st.sort]);
@@ -102,7 +110,8 @@ function Listing({ pageCat }) {
   }, [base, st, CATS]);
 
   const chips = [
-    ...st.cats.map((v) => ["cats", v, cat(v, CATS)?.name || v]), ...st.subs.map((v) => ["subs", v, subsAll.find((x) => x[0] === v)?.[1] || v]),
+    ...st.cats.map((v) => ["cats", v, cat(v, CATS)?.name || v]),
+    ...st.subs.map((v) => ["subs", v, subsAll.find((x) => (x[5] || x[0]) === v)?.[1] || v]),
     ...st.sizes.map((v) => ["sizes", v, "Size " + v]), ...st.colors.map((v) => ["colors", v, v]),
     ...(st.max ? [["max", "", "Up to " + money(st.max)]] : []), ...(st.sale ? [["sale", "", "On sale"]] : []), ...(st.q ? [["q", "", `“${st.q}”`]] : []),
   ];
@@ -118,13 +127,16 @@ function Listing({ pageCat }) {
             <span className="im">{c.image
               ? <img src={c.image} alt="" loading="lazy" decoding="async" />
               : <Art kind={subsAll[0][2]} color={c.color} category={c.id} />}</span>All</button>
-          {subsAll.map(([id, name, kind, , image]) => {
-            const example = base.find((p) => p.sub === id);
+          {subsAll.map((sub) => {
+            const [slug, name, kind, , image, categoryId, pathName, depth] = sub;
+            const key = categoryId || slug;
+            const example = base.find((p) => p.categoryIds?.length ? p.categoryIds.includes(key) : p.sub === slug);
             return (
-              <button type="button" className="sub" key={id} aria-pressed={st.subs.includes(id)} onClick={() => set({ subs: [id] })}>
+              <button type="button" className={`sub${depth > 2 ? " sub-nested" : ""}`} key={key} aria-pressed={st.subs.includes(key)} onClick={() => set({ subs: [key] })}>
                 {image
                   ? <span className="im"><img src={image} alt="" loading="lazy" decoding="async" /></span>
-                  : example ? <ProductMedia className="im" product={example} /> : <span className="im"><Art kind={kind} color="#999999" category={c.id} /></span>}{name}
+                  : example ? <ProductMedia className="im" product={example} /> : <span className="im"><Art kind={kind} color="#999999" category={c.id} /></span>}
+                <span>{name}</span>{depth > 2 && pathName && <small>{pathName}</small>}
               </button>
             );
           })}

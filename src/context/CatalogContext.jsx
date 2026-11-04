@@ -17,6 +17,24 @@ async function getJson(path) {
 function mapCategory(category) {
   const display = category.display || {};
   const firstChild = category.children?.[0]?.display || {};
+  const descendants = [];
+  function collectDescendants(children, ancestors = []) {
+    for (const child of children || []) {
+      const pathNames = [...ancestors, child.name];
+      descendants.push([
+        child.slug,
+        child.name,
+        child.display?.artKind || "bag",
+        child.display?.artColor || display.color || "#999999",
+        child.image?.url || child.productImage?.url || "",
+        child.id,
+        pathNames.join(" / "),
+        child.level,
+      ]);
+      collectDescendants(child.children, pathNames);
+    }
+  }
+  collectDescendants(category.children);
   return {
     // Illustration for the category itself; categories added in the admin may have no subcategories yet.
     icon: [firstChild.artKind || display.artKind || "bag", firstChild.artColor || display.artColor || display.color || "#999999"],
@@ -38,8 +56,9 @@ function mapCategory(category) {
       child.name,
       child.display?.artKind || "bag",
       child.display?.artColor || display.color || "#999999",
-      child.image?.url || "",
+      child.image?.url || child.productImage?.url || "",
     ]),
+    descendants,
   };
 }
 
@@ -60,6 +79,7 @@ function mapProduct(product, categoryById) {
   return {
     id: product.legacyId || product.id,
     apiId: product.id,
+    categoryIds: path,
     slug: product.slug,
     name: product.name,
     brand: product.brand || "",
