@@ -95,7 +95,7 @@ function CategoryMenu({ category }) {
         <Link className="category-menu-promo" to={categoryUrl(category.id)} onClick={() => { setOpen(false); blur(); }}
           style={{
             backgroundImage: category.exploreImage
-              ? `linear-gradient(rgba(0,0,0,.4), rgba(0,0,0,.55)), url("${category.exploreImage}")`
+              ? `url("${category.exploreImage}")`
               : `linear-gradient(135deg, ${category.gradient?.[0] || category.color}, ${category.gradient?.[1] || category.color})`,
             backgroundSize: category.exploreImage ? "cover" : undefined,
             backgroundPosition: "center",
