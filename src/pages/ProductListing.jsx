@@ -82,7 +82,10 @@ function Listing({ pageCat }) {
   const c = pageCat ? cat(pageCat, CATS) : null;
   const [st, setSt] = useState(() => ({
     ...EMPTY, subs: params.get("sub") ? [
-      c?.descendants?.find(([slug, , , , , id]) => id === params.get("sub") || slug === params.get("sub"))?.[5] || params.get("sub"),
+      (() => {
+        const selected = c?.descendants?.find(([slug, , , , , id]) => id === params.get("sub") || slug === params.get("sub"));
+        return selected?.[8]?.[1] || selected?.[5] || params.get("sub");
+      })(),
     ] : [], sale: params.get("sale") === "1", q: params.get("q") || "",
     sort: params.get("sort") || "featured",
   }));
@@ -91,7 +94,7 @@ function Listing({ pageCat }) {
   usePageFx([pageCat]);
 
   const base = useMemo(() => (pageCat ? PRODUCTS.filter((p) => p.cat === pageCat) : PRODUCTS), [pageCat, PRODUCTS]);
-  const subsAll = useMemo(() => c ? (c.descendants?.length ? c.descendants : c.subs) : [], [c]);
+  const subsAll = useMemo(() => c?.subs || [], [c]);
   const sizes = useMemo(() => [...new Set(base.flatMap((p) => p.sizes))], [base]);
   const colors = useMemo(() => [...new Map(base.flatMap((p) => p.colors).map((x) => [x[1], x])).values()].slice(0, 14), [base]);
   const sliderMax = base.length ? Math.ceil(Math.max(...base.map((p) => p.price)) / 100) * 100 : 1000;

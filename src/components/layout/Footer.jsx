@@ -39,7 +39,7 @@ export default function Footer() {
       <div className="container popular"><p style={{ marginBottom: 6 }}><b>POPULAR SEARCHES</b></p>
         {CATS.map((c) => {
           const suffix = ["shoes", "clothing"].includes(c.id) ? " for men & women" : " ";
-          const subcategories = c.descendants?.length ? c.descendants : c.subs;
+          const subcategories = c.subs;
           return (
             <p key={c.id}><b>{c.name}:</b> {subcategories.map(([slug, name, , , , categoryId, pathName, depth], i) => {
               const key = categoryId || slug;

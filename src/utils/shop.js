@@ -10,10 +10,9 @@ export const bySlug = (slug, products = PRODUCTS) => products.find((p) => p.slug
 export const cat = (id, categories = CATS) => categories.find((c) => c.id === id);
 export const subOf = (p, categories = CATS) => {
   const category = cat(p.cat, categories);
-  const subs = category?.descendants?.length ? category.descendants : category?.subs || [];
-  const leafId = p.categoryIds?.[p.categoryIds.length - 1];
-  return (p.assignedCategoryId && subs.find((s) => s[5] === p.assignedCategoryId))
-    || (leafId && subs.find((s) => s[5] === leafId))
+  const subs = category?.subs || [];
+  const subcategoryId = p.categoryIds?.[1];
+  return (subcategoryId && subs.find((s) => s[5] === subcategoryId))
     || subs.find((s) => s[0] === p.sub)
     || subs[0]
     || ["", "Products", "bag", "#999999"];

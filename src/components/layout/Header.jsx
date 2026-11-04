@@ -47,7 +47,7 @@ function CategoryMenu({ category }) {
   const [menuPosition, setMenuPosition] = useState(null);
   const menuRef = useRef(null);
   const location = useLocation();
-  const menuCategories = category.descendants?.length ? category.descendants : category.subs;
+  const menuCategories = category.subs;
 
   useLayoutEffect(() => {
     if (!open || !menuRef.current) return undefined;

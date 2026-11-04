@@ -45,11 +45,9 @@ export function MenuSheet() {
               </button>
               {selectedCategory === category.id && <div className="mnav-subcategories">
                 <Link to={categoryUrl(category.id)} data-close>Shop all {category.name}</Link>
-                {(category.descendants?.length ? category.descendants : category.subs).map(([slug, name, , , , categoryId, pathName, depth]) => {
+                {category.subs.map(([slug, name, , , , categoryId]) => {
                   const key = categoryId || slug;
-                  return <Link key={key} to={categoryUrl(category.id, key)} data-close>
-                    <span>{name}{depth > 2 && pathName && <small className="category-menu-path">{pathName}</small>}</span><Icon name="i-right" />
-                  </Link>;
+                  return <Link key={key} to={categoryUrl(category.id, key)} data-close>{name}<Icon name="i-right" /></Link>;
                 })}
               </div>}
             </div>)}

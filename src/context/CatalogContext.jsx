@@ -57,7 +57,11 @@ function mapCategory(category) {
       child.name,
       child.display?.artKind || "bag",
       child.display?.artColor || display.color || "#999999",
-      child.image?.url || child.productImage?.url || "",
+      child.image?.url || "",
+      child.id,
+      child.name,
+      child.level,
+      [category.id],
     ]),
     descendants,
   };
