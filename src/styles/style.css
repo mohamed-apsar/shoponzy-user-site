@@ -194,7 +194,7 @@ ul, ol { list-style: none; }
 .heart { position: absolute; right: 8px; top: 8px; z-index: 2; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,.95); display: grid; place-items: center; box-shadow: 0 4px 12px rgba(0,0,0,.08); transition: transform .25s var(--ease); }
 .heart .icon { width: 18px; height: 18px; }
 .heart:hover { transform: scale(1.1); }
-.heart[aria-pressed="true"] { color: var(--accent); }
+.heart[aria-pressed="true"] { color: #e11d48; }
 .heart[aria-pressed="true"] .icon { fill: currentColor; animation: pop .45s var(--ease); }
 @keyframes pop { 50% { transform: scale(1.4); } }
 .card .addq { position: absolute; right: 8px; bottom: 8px; z-index: 2; height: 36px; padding: 0 14px; border-radius: 10px; background: #fff; font-weight: 800; font-size: .8rem; display: flex; align-items: center; gap: 4px; box-shadow: 0 6px 16px rgba(0,0,0,.12); transition: .3s var(--ease); }
