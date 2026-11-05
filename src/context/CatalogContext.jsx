@@ -98,6 +98,7 @@ function mapProduct(product, categoryById) {
     sizes,
     images,
     colorImages,
+    seo: product.seo || {},
     specs: (product.specs || []).map(({ label, value }) => [label, value]),
     variants: product.variants || [],
     price: product.price,

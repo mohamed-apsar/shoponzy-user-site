@@ -62,14 +62,16 @@ export default function Layout() {
         meta?.remove();
       }
     }
-    let robots = document.head.querySelector('meta[name="robots"]');
-    if (!robots) {
-      robots = document.createElement("meta");
-      robots.setAttribute("name", "robots");
-      document.head.appendChild(robots);
+    if (!/^\/products\/[^/]+\/?$/.test(pathname)) {
+      let robots = document.head.querySelector('meta[name="robots"]');
+      if (!robots) {
+        robots = document.createElement("meta");
+        robots.setAttribute("name", "robots");
+        document.head.appendChild(robots);
+      }
+      robots.setAttribute("content", store.seo?.robotsMeta || "index, follow");
     }
-    robots.setAttribute("content", store.seo?.robotsMeta || "index, follow");
-  }, [store.seo]);
+  }, [pathname, store.seo]);
 
   // Scroll to the top on navigation, or to the #anchor when one is given.
   useEffect(() => {

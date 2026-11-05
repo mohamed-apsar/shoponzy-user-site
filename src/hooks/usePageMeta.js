@@ -36,5 +36,16 @@ export default function usePageMeta(title, description = DEFAULT_DESCRIPTION, me
     if (metadata.shareImage) setMeta('meta[property="og:image"]', "property", "og:image", metadata.shareImage);
     else image?.remove();
     setCanonical(metadata.canonical || location.origin + location.pathname + location.search);
-  }, [title, description, metadata.canonical, metadata.keywords, metadata.ogTitle, metadata.ogDescription, metadata.shareImage]);
+    if (!metadata.robots) return undefined;
+    const robotsSelector = 'meta[name="robots"]';
+    const previousRobots = document.head.querySelector(robotsSelector);
+    const previousContent = previousRobots?.getAttribute("content");
+    setMeta(robotsSelector, "name", "robots", metadata.robots);
+    return () => {
+      const currentRobots = document.head.querySelector(robotsSelector);
+      if (currentRobots?.getAttribute("content") !== metadata.robots) return;
+      if (previousContent !== null && previousContent !== undefined) currentRobots.setAttribute("content", previousContent);
+      else currentRobots.remove();
+    };
+  }, [title, description, metadata.canonical, metadata.keywords, metadata.ogTitle, metadata.ogDescription, metadata.shareImage, metadata.robots]);
 }

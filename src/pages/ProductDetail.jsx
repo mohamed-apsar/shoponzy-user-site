@@ -116,7 +116,15 @@ function Product({ p, products, categories, store: STORE }) {
   const picker = useRef(null);
   const buyRow = useRef(null);
 
-  usePageMeta(`${p.name} | Shoponzy`, `${p.name}${p.brand ? " by " + p.brand : ""} for ${money(p.price)}. Shop ${c.name.toLowerCase()} online at Shoponzy.`);
+  const defaultTitle = `${p.name} | Shoponzy`;
+  const defaultDescription = `${p.name}${p.brand ? " by " + p.brand : ""} for ${money(p.price)}. Shop ${c.name.toLowerCase()} online at Shoponzy.`;
+  const seo = p.seo || {};
+  usePageMeta(seo.title || defaultTitle, seo.description || defaultDescription, {
+    ogTitle: seo.title || defaultTitle,
+    ogDescription: seo.description || defaultDescription,
+    shareImage: seo.image?.url || STORE.seo?.shareImage?.url || STORE.shareImage,
+    robots: seo.robots || STORE.seo?.robotsMeta,
+  });
   usePageFx([p.id]);
 
   useEffect(() => { viewed(p.id); }, [p.id, viewed]);
