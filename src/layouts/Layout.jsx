@@ -42,6 +42,35 @@ export default function Layout() {
     icon.href = store.favicon || "/favicon.svg";
   }, [store.favicon]);
 
+  useEffect(() => {
+    const verifications = [
+      ["google-site-verification", store.seo?.googleVerification],
+      ["msvalidate.01", store.seo?.bingVerification],
+      ["baidu-site-verification", store.seo?.baiduVerification],
+      ["yandex-verification", store.seo?.yandexVerification],
+    ];
+    for (const [name, rawValue] of verifications) {
+      const selector = `meta[name="${name}"]`;
+      const meta = document.head.querySelector(selector);
+      const content = rawValue?.match(/\bcontent\s*=\s*["']([^"']+)["']/i)?.[1] || rawValue?.trim() || "";
+      if (content) {
+        const element = meta || document.createElement("meta");
+        element.setAttribute("name", name);
+        element.setAttribute("content", content);
+        if (!meta) document.head.appendChild(element);
+      } else {
+        meta?.remove();
+      }
+    }
+    let robots = document.head.querySelector('meta[name="robots"]');
+    if (!robots) {
+      robots = document.createElement("meta");
+      robots.setAttribute("name", "robots");
+      document.head.appendChild(robots);
+    }
+    robots.setAttribute("content", store.seo?.robotsMeta || "index, follow");
+  }, [store.seo]);
+
   // Scroll to the top on navigation, or to the #anchor when one is given.
   useEffect(() => {
     if (!hash) {

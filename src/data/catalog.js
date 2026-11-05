@@ -9,6 +9,12 @@
    ========================================================== */
 export const STORE = {
   name: "Shoponzy",
+  seo: {
+    title: "Shoponzy | Shoes, Sunglasses, Perfumes, Clothing & Watches Online",
+    description: "Shop shoes, sunglasses, perfumes, clothing, watches and essentials online at Shoponzy. Free delivery above ₹999, COD and 7-day returns.",
+    googleVerification: "", bingVerification: "", baiduVerification: "", yandexVerification: "",
+    robotsMeta: "index, follow",
+  },
   whatsapp: "919000000000", // CONFIRM: orders are sent here
   phoneDisplay: "+91 90000 00000", // CONFIRM
   phoneTel: "+919000000000", // CONFIRM

@@ -51,7 +51,17 @@ function Newsletter() {
 
 export default function Home() {
   const { categories: CATS, slides: HERO_SLIDES, products: PRODUCTS, sections, store } = useCatalog();
-  usePageMeta("Shoponzy | Shoes, Sunglasses, Perfumes, Clothing & Watches Online");
+  usePageMeta(
+    store.seo?.title || "Shoponzy | Shoes, Sunglasses, Perfumes, Clothing & Watches Online",
+    store.seo?.description,
+    {
+      canonical: store.seo?.canonical,
+      keywords: store.seo?.keywords,
+      ogTitle: store.seo?.ogTitle,
+      ogDescription: store.seo?.ogDescription,
+      shareImage: store.seo?.shareImage?.url,
+    },
+  );
   usePageFx();
 
   const newSection = sections.find((section) => section.source === "new");

@@ -133,6 +133,7 @@ function mapSettings(settings) {
     headerLogo: headerFooter.headerLogo?.url || "",
     footerLogo: headerFooter.footerLogo?.url || branding.footerLogo?.url || "",
     favicon: branding.favicon?.url || "",
+    seo: { ...seo },
     footerDescription: headerFooter.footerDescription || "",
     shareImage: seo.shareImage?.url || "",
     freeShippingAbove: commerce.freeShippingAbove ?? DEFAULT_STORE.freeShippingAbove,
