@@ -3,12 +3,13 @@ import { storeRequest, storeUpload } from "../api/storeApi";
 import { money } from "../utils/shop";
 
 /* Return requests for one order: what can still be returned, the request form, and existing requests. */
-const RETURN_REASONS = [
-  ["damaged", "Damaged product"], ["wrong_item", "Wrong product delivered"], ["defective", "Defective product"],
-  ["size_fit", "Size or fit issue"], ["not_as_described", "Product not as described"], ["missing_items", "Missing items"],
-  ["changed_mind", "Changed mind"], ["other", "Other"],
+/* Reasons come from the store (admins manage them); this list is only a fallback for an older API. */
+const FALLBACK_REASONS = [
+  { code: "damaged", label: "Damaged product" }, { code: "wrong_item", label: "Wrong product delivered" },
+  { code: "defective", label: "Defective product" }, { code: "size_fit", label: "Size or fit issue" },
+  { code: "not_as_described", label: "Product not as described" }, { code: "missing_items", label: "Missing items" },
+  { code: "changed_mind", label: "Changed mind" }, { code: "other", label: "Other", requiresComment: true },
 ];
-const REASON_LABEL = Object.fromEntries(RETURN_REASONS);
 const RETURN_STATUS = {
   requested: "Requested — under review", approved: "Approved", rejected: "Rejected", pickup_scheduled: "Pickup scheduled",
   in_transit: "On its way back", received: "Received by us", inspected: "Inspected", completed: "Completed", cancelled: "Cancelled",
@@ -16,7 +17,7 @@ const RETURN_STATUS = {
 const REFUND_STATUS = { pending: "Refund due after inspection", processing: "Refund processing", completed: "Refunded", failed: "Refund delayed — we're on it" };
 const MAX_PHOTOS = 5;
 
-function ReturnForm({ orderNumber, items, onDone, onCancel }) {
+function ReturnForm({ orderNumber, items, reasons, onDone, onCancel }) {
   const [qty, setQty] = useState(() => Object.fromEntries(items.map((i) => [i.variant, 0])));
   const [reason, setReason] = useState("");
   const [comments, setComments] = useState("");
@@ -25,6 +26,7 @@ function ReturnForm({ orderNumber, items, onDone, onCancel }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const chosen = items.filter((i) => qty[i.variant] > 0);
+  const needsComment = Boolean(reasons.find((r) => r.code === reason)?.requiresComment);
 
   async function addPhotos(event) {
     const files = [...(event.target.files || [])].slice(0, MAX_PHOTOS - photos.length);
@@ -49,7 +51,7 @@ function ReturnForm({ orderNumber, items, onDone, onCancel }) {
     event.preventDefault();
     if (!chosen.length) return setError("Choose at least one item and how many to return.");
     if (!reason) return setError("Choose a reason for the return.");
-    if (reason === "other" && comments.trim().length < 5) return setError("Tell us a little about the reason for the return.");
+    if (needsComment && comments.trim().length < 5) return setError("Tell us a little about the reason for the return.");
     if (!window.confirm(`Request a return for ${chosen.reduce((s, i) => s + qty[i.variant], 0)} item(s)?`)) return;
     setBusy(true);
     setError("");
@@ -83,11 +85,11 @@ function ReturnForm({ orderNumber, items, onDone, onCancel }) {
       <div className="field" style={{ marginTop: 14 }}>
         <label htmlFor="rq-reason">Reason <em>*</em></label>
         <select id="rq-reason" value={reason} onChange={(e) => setReason(e.target.value)} required>
-          <option value="">Choose a reason</option>{RETURN_REASONS.map(([id, label]) => <option key={id} value={id}>{label}</option>)}
+          <option value="">Choose a reason</option>{reasons.map((r) => <option key={r.code} value={r.code}>{r.label}</option>)}
         </select>
       </div>
       <div className="field" style={{ marginTop: 12 }}>
-        <label htmlFor="rq-comments">Comments {reason === "other" && <em>*</em>}</label>
+        <label htmlFor="rq-comments">Comments {needsComment && <em>*</em>}</label>
         <textarea id="rq-comments" value={comments} maxLength={1000} onChange={(e) => setComments(e.target.value)} placeholder="Anything that helps us — what's wrong, which part is damaged…" />
       </div>
       <div className="field" style={{ marginTop: 12 }}>
@@ -143,7 +145,7 @@ export default function OrderReturns({ orderNumber, deliveredOrder }) {
         <div key={r.id} className="line" style={{ gridTemplateColumns: "1fr" }}>
           <div>
             <h3>{r.returnNumber} · {RETURN_STATUS[r.status] || r.status}</h3>
-            <p className="meta">{r.items.map((i) => `${i.name} × ${i.qty}`).join(", ")} · {REASON_LABEL[r.reason] || r.reason} · {new Date(r.createdAt).toLocaleDateString("en-IN")}</p>
+            <p className="meta">{r.items.map((i) => `${i.name} × ${i.qty}`).join(", ")} · {r.reasonLabel || r.reason} · {new Date(r.createdAt).toLocaleDateString("en-IN")}</p>
             {r.refund.status !== "not_applicable" && <p className="tax">{REFUND_STATUS[r.refund.status] || r.refund.status}{r.refund.amount ? ` · ${money(r.refund.amount)}` : ""}</p>}
             {r.rejectionReason && <p className="tax">Reason: {r.rejectionReason}</p>}
             {r.status === "requested" && <button type="button" className="btn btn-ghost" style={{ minHeight: 38, padding: "6px 14px", marginTop: 8 }} onClick={() => cancel(r.returnNumber)}>Cancel request</button>}
@@ -156,7 +158,7 @@ export default function OrderReturns({ orderNumber, deliveredOrder }) {
           <button type="button" className="btn btn-ghost" style={{ marginTop: 10 }} onClick={() => { setOpen(true); setNotice(""); }}>Request a return</button>
         </>
         : !data.returns.length && <p className="tax">{e.reason}</p>)}
-      {open && e && <ReturnForm orderNumber={orderNumber} items={e.items.filter((i) => i.returnable > 0)} onCancel={() => setOpen(false)}
+      {open && e && <ReturnForm orderNumber={orderNumber} items={e.items.filter((i) => i.returnable > 0)} reasons={e.reasons?.length ? e.reasons : FALLBACK_REASONS} onCancel={() => setOpen(false)}
         onDone={() => { setOpen(false); setNotice("Return requested. We'll review it and update you here."); load(); }} />}
     </div>
   );
