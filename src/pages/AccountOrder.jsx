@@ -4,6 +4,7 @@ import { storeRequest } from "../api/storeApi";
 import { money } from "../utils/shop";
 import usePageMeta from "../hooks/usePageMeta";
 import { STATUS_LABELS } from "./Account";
+import OrderReturns from "../components/OrderReturns";
 
 const CANCELLABLE = ["placed", "confirmed"];
 
@@ -55,6 +56,7 @@ export default function AccountOrder() {
               ))}
               <h2 style={{ marginTop: 18 }}>Deliver to</h2>
               <p className="tax">{a.name}<br />{a.line1}{a.line2 ? `, ${a.line2}` : ""}<br />{a.city}, {a.state} {a.pincode}<br />{a.phone}</p>
+              <OrderReturns orderNumber={order.orderNumber} deliveredOrder={["delivered", "returned"].includes(order.status)} />
               <h2 style={{ marginTop: 18 }}>History</h2>
               <ul className="tax">{order.history.map((h, i) => <li key={i}>{STATUS_LABELS[h.status] || h.status} — {new Date(h.at).toLocaleString("en-IN")}{h.note ? ` · ${h.note}` : ""}</li>)}</ul>
             </div>

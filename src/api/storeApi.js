@@ -33,6 +33,19 @@ function refreshSession() {
   return refreshing;
 }
 
+/* Multipart upload (return-request photos). Same CSRF/session handling as storeRequest. */
+export async function storeUpload(path, file, { retryCsrf = true } = {}) {
+  if (!csrfToken) await refreshCsrfToken();
+  const body = new FormData();
+  body.append("file", file);
+  const response = await fetch(`${API_BASE}${path}`, { method: "POST", headers: { "X-CSRF-Token": csrfToken }, credentials: "include", body });
+  if (response.status === 403 && retryCsrf) {
+    const peek = await response.clone().json().catch(() => null);
+    if (peek?.error?.code === "CSRF_INVALID") { csrfToken = ""; return storeUpload(path, file, { retryCsrf: false }); }
+  }
+  return decode(response);
+}
+
 export async function storeRequest(path, { method = "GET", body, retryCsrf = true, retryAuth = true } = {}) {
   const headers = {};
   const mutating = !["GET", "HEAD", "OPTIONS"].includes(method);
