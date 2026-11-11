@@ -49,5 +49,6 @@ export function totals(cart, coupon, pay = "cod", products = PRODUCTS, store = S
   }
   const prepaid = pay === "upi" ? Math.round(((sub - disc) * store.prepaidOffPct) / 100) : 0;
   const ship = sub === 0 || sub - disc >= store.freeShippingAbove ? 0 : store.shippingFee;
-  return { sub, mrp, disc, prepaid, ship, total: sub - disc - prepaid + ship, cmsg };
+  const tax = Math.round(Math.max(0, sub - disc - prepaid) * (Number(store.taxRate) || 0) / 100 * 100) / 100;
+  return { sub, mrp, disc, prepaid, ship, tax, total: sub - disc - prepaid + ship + tax, cmsg };
 }

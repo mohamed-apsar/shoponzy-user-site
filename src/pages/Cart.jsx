@@ -78,6 +78,7 @@ export default function Cart() {
               {t.mrp > t.sub && <div className="srow"><span>Discount on MRP</span><span className="save">−{money(t.mrp - t.sub)}</span></div>}
               {t.disc > 0 && <div className="srow"><span>Coupon {coupon.code}</span><span className="save">−{money(t.disc)}</span></div>}
               <div className="srow"><span>Delivery</span><span>{t.ship ? money(t.ship) : <span className="save">Free</span>}</span></div>
+              {t.tax > 0 && <div className="srow"><span>Tax ({STORE.taxRate}%)</span><span>{money(t.tax)}</span></div>}
               <div className="srow total"><span>Total</span><span>{money(t.total)}</span></div>
               <p className="tax">Pay by UPI at checkout for an extra {STORE.prepaidOffPct}% off.</p>
               <CouponForm />

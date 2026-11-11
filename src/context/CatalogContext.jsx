@@ -92,6 +92,7 @@ function mapSettings(settings) {
   return {
     ...DEFAULT_STORE,
     name: general.websiteName || DEFAULT_STORE.name,
+    taxRate: general.taxRate ?? DEFAULT_STORE.taxRate ?? 0,
     homeCategories: {
       categories: homeCategories.categories || [],
       showAllCategories: homeCategories.showAllCategories ?? true,

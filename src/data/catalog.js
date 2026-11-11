@@ -19,6 +19,7 @@ export const STORE = {
   freeShippingAbove: 999, // CONFIRM
   shippingFee: 59, // CONFIRM
   prepaidOffPct: 5, // CONFIRM: extra % off for prepaid orders
+  taxRate: 0,
   coupons: { WELCOME10: { pct: 10, min: 1499, label: "10% off on ₹1,499+" } }, // CONFIRM
   deliveryText: "Usually delivered in 3–7 working days", // CONFIRM
   offers: [
