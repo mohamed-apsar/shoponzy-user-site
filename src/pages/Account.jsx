@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import FormField, { EMAIL_RE, PHONE_RE, normalisePhone } from "../components/FormField";
 import Icon from "../components/Icon";
 import { useCustomer } from "../context/CustomerContext";
@@ -255,6 +255,7 @@ export default function Account() {
   usePageMeta("My Account | Shoponzy");
   const { user, status, signOut } = useCustomer();
   const navigate = useNavigate();
+  const location = useLocation();
   const [params, setParams] = useSearchParams();
   const next = params.get("next");
   const [authMode, setAuthMode] = useState(() => params.get("mode") === "signup" ? "signup" : "login");
@@ -266,6 +267,12 @@ export default function Account() {
     setParams(updated, { replace: true });
   };
   const done = () => { if (next && next.startsWith("/") && !next.startsWith("//")) navigate(next); else scrollTo({ top: 0 }); };
+
+  useEffect(() => {
+    if (!user || !location.hash) return;
+    const targetId = decodeURIComponent(location.hash.slice(1));
+    requestAnimationFrame(() => document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  }, [user, location.hash]);
 
   return (
     <>

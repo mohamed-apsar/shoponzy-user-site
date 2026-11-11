@@ -110,6 +110,14 @@ ul, ol { list-style: none; }
 @media (min-width: 768px) { .search + .tools { margin-left: 6px; } }
 .tool { position: relative; width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; transition: background .2s; }
 .tool:hover { background: var(--soft); }
+.profile-dropdown { position: relative; }
+.profile-menu { position: absolute; z-index: 120; top: calc(100% + 8px); right: 0; display: none; width: 220px; padding: 6px 0; overflow: hidden; background: #fff; border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow-lg); }
+.profile-dropdown.is-open .profile-menu { display: block; }
+.profile-menu a, .profile-menu button { display: block; width: 100%; padding: 11px 16px; text-align: left; font-size: .9rem; transition: background .2s; }
+.profile-menu a:hover, .profile-menu button:hover { background: var(--soft); }
+.profile-menu button { border-top: 1px solid var(--line); }
+.profile-menu[aria-hidden="true"] { visibility: hidden; }
+.profile-menu[aria-hidden="false"] { visibility: visible; }
 .tool .badge-n { position: absolute; top: 4px; right: 3px; min-width: 18px; height: 18px; border-radius: 9px; padding: 0 5px; background: var(--accent); color: #fff; font-size: .68rem; font-weight: 800; display: grid; place-items: center; transform: scale(0); transition: transform .3s var(--ease); }
 .tool .badge-n.show { transform: scale(1); }
 .tool.bump { animation: bump .5s var(--ease); }
@@ -430,6 +438,7 @@ body.pdp-page .tab-space { height: 80px; }
 .coupon button { padding: 0 16px; border-radius: 10px; background: var(--ink); color: #fff; font-weight: 700; font-size: .85rem; }
 .cmsg { font-size: .82rem; } .cmsg.ok { color: var(--ok); } .cmsg.bad { color: var(--accent-d); }
 .box { background: #fff; border: 1px solid var(--line); border-radius: var(--r-lg); padding: 20px; }
+.box#myOrders, #profileForm { scroll-margin-top: calc(var(--head-h) + 18px); }
 @media (min-width: 640px) { .box { padding: 26px; } }
 .box h2 { font-size: 1.1rem; font-weight: 800; margin-bottom: 14px; display: flex; gap: 10px; align-items: center; }
 .box h2 .n { width: 28px; height: 28px; border-radius: 8px; background: var(--ink); color: #fff; display: grid; place-items: center; font-size: .85rem; }

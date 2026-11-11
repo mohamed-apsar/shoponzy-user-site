@@ -6,6 +6,7 @@ import { useStore } from "../../context/StoreContext";
 import { categoryUrl, reduceMotion } from "../../utils/shop";
 import { headerEffects } from "../../fx/fx";
 import { useCatalog } from "../../context/CatalogContext";
+import { useCustomer } from "../../context/CustomerContext";
 
 export function AnnouncementBar() {
   const { store } = useCatalog();
@@ -118,10 +119,14 @@ function CategoryMenu({ category }) {
 export default function Header() {
   const { categories: CATS } = useCatalog();
   const { wish, cartCount, openSheet } = useStore();
+  const { signedIn, signOut } = useCustomer();
   const navigate = useNavigate();
+  const location = useLocation();
   const [q, setQ] = useState("");
   const [scrolled, setScrolled] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const ref = useRef(null);
+  const profileRef = useRef(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(scrollY > 10);
@@ -129,6 +134,30 @@ export default function Header() {
     const stop = headerEffects(ref.current);
     return () => { removeEventListener("scroll", onScroll); stop(); };
   }, []);
+
+  useEffect(() => {
+    setProfileOpen(false);
+  }, [location.pathname, location.search, location.hash]);
+
+  useEffect(() => {
+    if (!profileOpen) return undefined;
+    const closeOnOutsideClick = (event) => {
+      if (!profileRef.current?.contains(event.target)) setProfileOpen(false);
+    };
+    const closeOnEscape = (event) => { if (event.key === "Escape") setProfileOpen(false); };
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOnOutsideClick);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [profileOpen]);
+
+  const logout = async () => {
+    setProfileOpen(false);
+    try { await signOut(); }
+    finally { navigate("/"); }
+  };
 
   return (
     <header className={`header${scrolled ? " scrolled" : ""}`} ref={ref}>
@@ -145,7 +174,17 @@ export default function Header() {
         <div className="tools">
           <button type="button" className="tool show-m" aria-label="Search" onClick={() => openSheet("searchSheet")}><Icon name="i-search" /></button>
           <Link className="tool hide-m" to="/wishlist" aria-label="Wishlist"><Icon name="i-heart" /><Badge n={wish.length} /></Link>
-          <Link className="tool hide-m" to="/account" aria-label="My account"><Icon name="i-user" /></Link>
+          {signedIn ? (
+            <div className={`profile-dropdown${profileOpen ? " is-open" : ""}`} ref={profileRef}>
+              <button type="button" className="tool hide-m" aria-label="Account menu" aria-expanded={profileOpen}
+                aria-haspopup="menu" onClick={() => setProfileOpen((open) => !open)}><Icon name="i-user" /></button>
+              <div className="profile-menu" role="menu" aria-hidden={!profileOpen}>
+                <Link to="/account#myOrders" role="menuitem" tabIndex={profileOpen ? 0 : -1}>My Order</Link>
+                <Link to="/account#profileForm" role="menuitem" tabIndex={profileOpen ? 0 : -1}>My Profile</Link>
+                <button type="button" role="menuitem" tabIndex={profileOpen ? 0 : -1} onClick={logout}>Logout</button>
+              </div>
+            </div>
+          ) : <Link className="tool hide-m" to="/account" aria-label="My account"><Icon name="i-user" /></Link>}
           <a className="tool" href="/cart" data-open-cart aria-label="Bag"><Icon name="i-bag" /><Badge n={cartCount} /></a>
         </div>
       </div>
