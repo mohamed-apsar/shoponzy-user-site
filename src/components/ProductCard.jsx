@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Icon from "./Icon";
 import ProductMedia, { mediaCount } from "./ProductMedia";
 import { useStore } from "../context/StoreContext";
@@ -38,12 +38,16 @@ export function WishButton({ id, className = "heart", style, label }) {
 export default function ProductCard({ p }) {
   const { categories } = useCatalog();
   const { addToCart, quickView } = useStore();
+  const navigate = useNavigate();
   const media = useRef(null);
   const url = productUrl(p);
 
   function onAdd(event) {
     event.preventDefault();
-    if (p.sizes.length === 1 && p.colors.length === 1) addToCart(p.id, 0, p.sizes[0], 1, media.current);
+    if (p.sizes.length === 1 && p.colors.length === 1) {
+      addToCart(p.id, 0, p.sizes[0], 1, media.current);
+      setTimeout(() => navigate("/cart"), 350);
+    }
     else quickView(p.id);
   }
 

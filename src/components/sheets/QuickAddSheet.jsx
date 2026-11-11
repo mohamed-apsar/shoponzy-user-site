@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Sheet from "../Sheet";
 import Icon from "../Icon";
 import ProductMedia from "../ProductMedia";
@@ -12,6 +12,7 @@ import { useCatalog } from "../../context/CatalogContext";
 export default function QuickAddSheet() {
   const { products, categories } = useCatalog();
   const { quickViewId, addToCart, closeSheet } = useStore();
+  const navigate = useNavigate();
   const p = quickViewId ? byId(quickViewId, products) : null;
   const [opt, setOpt] = useState({ c: 0, s: "" });
   const picker = useRef(null);
@@ -24,6 +25,7 @@ export default function QuickAddSheet() {
     if (picker.current.requireSize()) return;
     addToCart(p.id, opt.c, opt.s, 1, document.querySelector("#qvSheet .qv .media"));
     closeSheet("qvSheet");
+    setTimeout(() => navigate("/cart"), 350);
   }
 
   return (
