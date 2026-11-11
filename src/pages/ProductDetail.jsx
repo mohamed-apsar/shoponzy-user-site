@@ -12,6 +12,7 @@ import { usePageFx } from "../fx/usePageFx";
 import usePageMeta from "../hooks/usePageMeta";
 import { fetchProductContentBlocks } from "../api/storeApi";
 import { useCatalog } from "../context/CatalogContext";
+import { useCustomer } from "../context/CustomerContext";
 
 const hoverDevice = () => matchMedia("(hover: hover)").matches;
 
@@ -103,6 +104,7 @@ function ProductContentBlocks({ blocks = [], error, onRetry }) {
 
 function Product({ p, products, categories, store: STORE }) {
   const { addToCart, viewed, recent } = useStore();
+  const { signedIn } = useCustomer();
   const navigate = useNavigate();
   const c = cat(p.cat, categories), sub = subOf(p, categories);
   const [opt, setOpt] = useState({ c: 0, s: p.sizes.length === 1 && sizeIsAvailable(p, 0, p.sizes[0]) ? p.sizes[0] : "" });
@@ -181,7 +183,8 @@ function Product({ p, products, categories, store: STORE }) {
       return;
     }
     addToCart(p.id, opt.c, opt.s, 1, from || document.querySelector(".g-main"));
-    setTimeout(() => navigate(buy ? "/checkout" : "/cart"), 450);
+    const destination = buy ? (signedIn ? "/checkout" : "/account?next=%2Fcheckout") : "/cart";
+    setTimeout(() => navigate(destination), 450);
   }
 
   const related = products.filter((x) => x.cat === p.cat && x.id !== p.id).concat(products.filter((x) => x.cat !== p.cat)).slice(0, 10);
