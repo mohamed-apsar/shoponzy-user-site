@@ -181,7 +181,7 @@ function Product({ p, products, categories, store: STORE }) {
       return;
     }
     addToCart(p.id, opt.c, opt.s, 1, from || document.querySelector(".g-main"));
-    if (buy) setTimeout(() => navigate("/checkout"), 450);
+    setTimeout(() => navigate(buy ? "/checkout" : "/cart"), 450);
   }
 
   const related = products.filter((x) => x.cat === p.cat && x.id !== p.id).concat(products.filter((x) => x.cat !== p.cat)).slice(0, 10);
