@@ -3,7 +3,7 @@ import { useCustomer } from "../context/CustomerContext";
 import { Link } from "react-router-dom";
 import Icon from "../components/Icon";
 import ProductMedia from "../components/ProductMedia";
-import FormField, { EMAIL_RE, PHONE_RE, normalisePhone } from "../components/FormField";
+import FormField, { EMAIL_RE, PHONE_RE } from "../components/FormField";
 import { useStore } from "../context/StoreContext";
 import { ApiError, storeRequest } from "../api/storeApi";
 import { byId, linePrice, money, totals } from "../utils/shop";
@@ -17,7 +17,7 @@ const FIELDS = ["name", "phone", "email", "address", "city", "pincode", "state"]
 function validate(v) {
   const er = {};
   if ((v.name || "").trim().length < 2) er.name = "Enter your full name.";
-  if (!PHONE_RE.test(normalisePhone(v.phone))) er.phone = "Enter a valid 10-digit mobile number.";
+  if (!PHONE_RE.test(v.phone || "")) er.phone = "Enter a valid 10-digit mobile number using digits only.";
   if (v.email && !EMAIL_RE.test(v.email)) er.email = "Check the email address.";
   if ((v.address || "").trim().length < 8) er.address = "Enter house no., street and area.";
   if ((v.city || "").trim().length < 2) er.city = "Enter your city.";
@@ -26,7 +26,7 @@ function validate(v) {
   return er;
 }
 
-function Summary({ cart, coupon, pay, products, store: STORE }) {
+function Summary({ cart, coupon, pay, products, store: STORE, submitting, formError }) {
   const t = totals(cart, coupon, pay, products, STORE);
   return (
     <aside className="summary" id="coSum"><h2>Your order</h2>
@@ -41,10 +41,15 @@ function Summary({ cart, coupon, pay, products, store: STORE }) {
         <div className="srow"><span>Subtotal</span><span>{money(t.sub)}</span></div>
         {t.disc > 0 && <div className="srow"><span>Coupon {coupon.code}</span><span className="save">−{money(t.disc)}</span></div>}
         {t.prepaid > 0 && <div className="srow"><span>Prepaid discount ({STORE.prepaidOffPct}%)</span><span className="save">−{money(t.prepaid)}</span></div>}
-        <div className="srow"><span>Delivery</span><span>{t.ship ? money(t.ship) : <span className="save">Free</span>}</span></div>
-        {t.tax > 0 && <div className="srow"><span>Tax ({STORE.taxRate}%)</span><span>{money(t.tax)}</span></div>}
+        <div className="srow"><span>Shipping</span><span>{t.ship ? money(t.ship) : <span className="save">Free</span>}</span></div>
+        <div className="srow"><span>Tax ({STORE.taxRate}%)</span><span>{money(t.tax)}</span></div>
         <div className="srow total"><span>Total</span><span>{money(t.total)}</span></div>
       </div>
+      {formError && <p className="err-t" role="alert">{formError}</p>}
+      <button className="btn btn-dark btn-block" type="submit" form="coForm" style={{ marginTop: 16, minHeight: 54 }} disabled={submitting}>
+        {submitting ? "Placing your order…" : pay === "upi" ? "Pay & place order" : "Place order"}
+      </button>
+      <p className="tax" style={{ textAlign: "center", marginTop: 8 }}>Final prices, stock and discounts are confirmed when you place the order.</p>
     </aside>
   );
 }
@@ -156,7 +161,16 @@ export default function Checkout() {
   const update = (event) => {
     const { name, value } = event.target;
     setValues((v) => ({ ...v, [name]: value }));
-    if (errors[name]) setErrors((er) => ({ ...er, [name]: "" }));
+    if (name === "phone") {
+      const phoneError = value.length > 10
+          ? "Mobile number must be exactly 10 digits."
+          : value && !/^\d+$/.test(value)
+            ? "Use digits only for your mobile number."
+          : value.length === 10 && !PHONE_RE.test(value)
+            ? "Enter a valid 10-digit mobile number."
+            : "";
+      setErrors((er) => ({ ...er, phone: phoneError }));
+    } else if (errors[name]) setErrors((er) => ({ ...er, [name]: "" }));
   };
   const field = (name) => ({ name, id: `f-${name}`, value: values[name], onChange: update, error: errors[name] });
 
@@ -256,14 +270,9 @@ export default function Checkout() {
                   <label className="pay"><input type="radio" name="pay" value="upi" checked={values.pay === "upi"} onChange={update} /><span><b>Pay online (extra {STORE.prepaidOffPct}% off)</b><small>UPI, cards, netbanking or wallets — secured by Razorpay.</small></span></label>
                   <label className="pay"><input type="radio" name="pay" value="cod" checked={values.pay === "cod"} onChange={update} /><span><b>Cash on delivery</b><small>Pay when your parcel arrives.</small></span></label>
                 </div>
-                {formError && <p className="err-t" role="alert">{formError}</p>}
-                <button className="btn btn-dark btn-block" style={{ marginTop: 16, minHeight: 54 }} disabled={submitting}>
-                  {submitting ? "Placing your order…" : values.pay === "upi" ? "Pay & place order" : "Place order"}
-                </button>
-                <p className="tax" style={{ textAlign: "center", marginTop: 8 }}>Final prices, stock and discounts are confirmed when you place the order.</p>
               </div>
             </form>
-            <Summary cart={cart} coupon={coupon} pay={values.pay} products={products} store={STORE} />
+            <Summary cart={cart} coupon={coupon} pay={values.pay} products={products} store={STORE} submitting={submitting} formError={formError} />
           </div>
         )}
       </div></section>
