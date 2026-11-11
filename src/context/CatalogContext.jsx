@@ -119,7 +119,7 @@ function mapProduct(product, categoryById) {
   };
 }
 
-function mapSettings(settings) {
+function mapSettings(settings, couponOffers) {
   const general = settings.general || {};
   const commerce = settings.commerce || {};
   const contact = settings.contact || {};
@@ -158,14 +158,18 @@ function mapSettings(settings) {
     facebook: contact.facebook || DEFAULT_STORE.facebook,
     youtube: contact.youtube || DEFAULT_STORE.youtube,
     offers: announcement.active && announcement.messages?.length ? announcement.messages : [],
+    coupons: Array.isArray(couponOffers)
+      ? Object.fromEntries(couponOffers.map((coupon) => [coupon.code, coupon]))
+      : DEFAULT_STORE.coupons,
   };
 }
 
 async function loadCatalog() {
-  const [categoryResponse, homepageResponse, settingsResponse, firstPage] = await Promise.all([
+  const [categoryResponse, homepageResponse, settingsResponse, couponsResponse, firstPage] = await Promise.all([
     getJson("/categories"),
     getJson("/homepage"),
     getJson("/site-settings"),
+    getJson("/coupons").catch(() => null),
     getJson(`/products?limit=${PRODUCT_PAGE_SIZE}&page=1`),
   ]);
   const categories = categoryResponse.data.map(mapCategory);
@@ -206,7 +210,7 @@ async function loadCatalog() {
     products,
     slides,
     sections,
-    store: mapSettings(settingsResponse.data),
+    store: mapSettings(settingsResponse.data, couponsResponse?.data),
   };
 }
 
