@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import FormField, { EMAIL_RE, PHONE_RE, normalisePhone } from "../components/FormField";
 import Icon from "../components/Icon";
+import { WishlistItems } from "./Wishlist";
 import { useCustomer } from "../context/CustomerContext";
+import { useStore } from "../context/StoreContext";
+import { useCatalog } from "../context/CatalogContext";
 import { storeRequest } from "../api/storeApi";
 import { money } from "../utils/shop";
 import usePageMeta from "../hooks/usePageMeta";
@@ -12,7 +15,6 @@ export const STATUS_LABELS = {
   pending_payment: "Awaiting payment", placed: "Order placed", confirmed: "Confirmed", packed: "Packed",
   shipped: "Shipped", delivered: "Delivered", cancelled: "Cancelled", returned: "Returned",
 };
-const grid = { display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", alignItems: "start" };
 const errorText = (error) => (error.details?.length ? error.details.map((d) => d.message).join(" ") : error.message);
 
 /* Small helper for the forms on this page: values, per-field errors, a form-level error and busy state. */
@@ -125,31 +127,38 @@ function Orders() {
 
 function Profile() {
   const { user, setUser } = useCustomer();
-  const f = useForm({ name: user.name || "", phone: user.phone || "" });
+  const nameParts = (user.name || "").trim().split(/\s+/);
+  const f = useForm({ firstName: nameParts[0] || "", lastName: nameParts.slice(1).join(" "), phone: user.phone || "" });
   const [saved, setSaved] = useState(false);
   const field = f.field("pf");
   const submit = (e) => {
     e.preventDefault();
     setSaved(false);
     f.run((v) => ({
-      ...(v.name.trim().length < 2 && { name: "Enter your name." }),
+      ...(v.firstName.trim().length < 1 && { firstName: "Enter your first name." }),
       ...(v.phone && !PHONE_RE.test(normalisePhone(v.phone)) && { phone: "Enter a valid 10-digit mobile number." }),
     }), async (v) => {
-      const r = await storeRequest("/account/profile", { method: "PATCH", body: { name: v.name.trim(), phone: v.phone } });
+      const r = await storeRequest("/account/profile", { method: "PATCH", body: { name: [v.firstName.trim(), v.lastName.trim()].filter(Boolean).join(" "), phone: v.phone } });
       setUser(r.data.user);
       setSaved(true);
     });
   };
   return (
-    <form className="box form" id="profileForm" noValidate onSubmit={submit}>
-      <h2>Profile</h2>
-      <p className="tax" style={{ marginTop: -8 }}>{user.email}</p>
-      <FormField label="Full name" autoComplete="name" {...field("name")} />
-      <FormField label="Mobile number" inputMode="tel" autoComplete="tel" {...field("phone")} />
+    <div className="account-profile-stack" id="profileForm">
+      <form className="box form two account-profile-form" noValidate onSubmit={submit}>
+      <h2 className="full">Profile Info</h2>
+      <div className="account-profile-identity full"><span className="account-profile-avatar"><Icon name="i-user" /></span><b>{user.name}</b></div>
+      <FormField label="First Name" autoComplete="given-name" required {...field("firstName")} />
+      <FormField label="Last Name" autoComplete="family-name" {...field("lastName")} />
+      <FormField label="Phone Number" inputMode="tel" autoComplete="tel" {...field("phone")} />
+      <FormField id="profile-email" label="Email" type="email" value={user.email || ""} readOnly />
       {f.failure && <p className="err-t" role="alert">{f.failure}</p>}
       {saved && <p className="cmsg ok" role="status">Profile saved.</p>}
-      <button className="btn btn-dark" disabled={f.busy}>{f.busy ? "Saving…" : "Save profile"}</button>
-    </form>
+      <button className="btn btn-dark account-profile-submit full" disabled={f.busy}>{f.busy ? "Saving…" : "Update"}</button>
+      </form>
+      <ChangePassword />
+      <Addresses />
+    </div>
   );
 }
 
@@ -254,11 +263,25 @@ function ChangePassword() {
 export default function Account() {
   usePageMeta("My Account | Shoponzy");
   const { user, status, signOut } = useCustomer();
+  const { products } = useCatalog();
+  const { wish } = useStore();
   const navigate = useNavigate();
-  const location = useLocation();
   const [params, setParams] = useSearchParams();
   const next = params.get("next");
   const [authMode, setAuthMode] = useState(() => params.get("mode") === "signup" ? "signup" : "login");
+  const accountSections = [
+    ["wishlist", "Wishlist", "i-heart"],
+    ["orders", "My Order", "i-box"],
+    ["profile", "My Profile", "i-user"],
+    ["support", "Support Ticket", "i-wa"],
+  ];
+  const selectedSection = accountSections.some(([key]) => key === params.get("section")) ? params.get("section") : "profile";
+  const selectSection = (section) => {
+    const updated = new URLSearchParams(params);
+    updated.set("section", section);
+    updated.delete("mode");
+    setParams(updated);
+  };
   const switchAuthMode = (mode) => {
     setAuthMode(mode);
     const updated = new URLSearchParams(params);
@@ -267,12 +290,6 @@ export default function Account() {
     setParams(updated, { replace: true });
   };
   const done = () => { if (next && next.startsWith("/") && !next.startsWith("//")) navigate(next); else scrollTo({ top: 0 }); };
-
-  useEffect(() => {
-    if (!user || !location.hash) return;
-    const targetId = decodeURIComponent(location.hash.slice(1));
-    requestAnimationFrame(() => document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth", block: "start" }));
-  }, [user, location.hash]);
 
   return (
     <>
@@ -285,13 +302,22 @@ export default function Account() {
               : <SignIn onDone={done} onMode={switchAuthMode} />}
           </div>
         ) : (
-          <div style={grid}>
-            <div style={{ display: "grid", gap: 16 }}><Orders /><Addresses /></div>
-            <div style={{ display: "grid", gap: 16 }}>
-              <Profile />
-              <ChangePassword />
-              <button type="button" className="btn btn-ghost btn-block" onClick={async () => { await signOut(); navigate("/"); }}>Sign out</button>
-            </div>
+          <div className="account-dashboard">
+            <aside className="account-sidebar" aria-label="Account sections">
+              {accountSections.map(([key, label, icon]) => (
+                <button type="button" key={key} className={`account-nav-item${selectedSection === key ? " active" : ""}`}
+                  aria-current={selectedSection === key ? "page" : undefined} onClick={() => selectSection(key)}>
+                  <Icon name={icon} /><span>{label}</span>
+                </button>
+              ))}
+            </aside>
+            <main className="account-panel">
+              {selectedSection === "profile" && <Profile />}
+              {selectedSection === "orders" && <Orders />}
+              {selectedSection === "wishlist" && <section className="box account-wishlist"><h2>Wishlist</h2><WishlistItems products={products} wish={wish} /></section>}
+              {selectedSection === "support" && <section className="box account-support"><h2>Support Ticket</h2><p className="tax">Need help with an order, delivery, or product? Send a message to our support team.</p><Link className="btn btn-dark" to="/help#contact">Contact Support</Link></section>}
+              <button type="button" className="btn btn-ghost account-signout" onClick={async () => { await signOut(); navigate("/"); }}>Sign out</button>
+            </main>
           </div>
         )}
       </div></section>

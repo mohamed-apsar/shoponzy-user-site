@@ -179,8 +179,8 @@ export default function Header() {
               <button type="button" className="tool hide-m" aria-label="Account menu" aria-expanded={profileOpen}
                 aria-haspopup="menu" onClick={() => setProfileOpen((open) => !open)}><Icon name="i-user" /></button>
               <div className="profile-menu" role="menu" aria-hidden={!profileOpen}>
-                <Link to="/account#myOrders" role="menuitem" tabIndex={profileOpen ? 0 : -1}>My Order</Link>
-                <Link to="/account#profileForm" role="menuitem" tabIndex={profileOpen ? 0 : -1}>My Profile</Link>
+                <Link to="/account?section=orders" role="menuitem" tabIndex={profileOpen ? 0 : -1}>My Order</Link>
+                <Link to="/account?section=profile" role="menuitem" tabIndex={profileOpen ? 0 : -1}>My Profile</Link>
                 <button type="button" role="menuitem" tabIndex={profileOpen ? 0 : -1} onClick={logout}>Logout</button>
               </div>
             </div>

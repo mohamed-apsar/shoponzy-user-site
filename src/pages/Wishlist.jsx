@@ -15,13 +15,18 @@ export default function Wishlist() {
     <>
       <div className="container page-title"><h1>Wishlist</h1><p>{list.length} saved item{list.length === 1 ? "" : "s"}</p></div>
       <section className="section" style={{ paddingTop: 10 }}><div className="container">
-        {list.length ? <ProductList id="wishGrid" className="grid g4" items={list} /> : (
-          <div className="grid g4" id="wishGrid"><div className="empty">
-            <div className="art"><Art kind="sneaker" color="#E0E0E0" category="shoes" /></div>
-            <b>No favourites yet</b><p>Tap the heart on any product to save it here.</p><Link className="btn btn-dark" to="/products">Browse products</Link>
-          </div></div>
-        )}
+        <WishlistItems products={products} wish={wish} />
       </div></section>
     </>
+  );
+}
+
+export function WishlistItems({ products, wish }) {
+  const list = wish.map((id) => byId(id, products)).filter(Boolean);
+  return list.length ? <ProductList id="wishGrid" className="grid g4" items={list} /> : (
+    <div className="grid g4" id="wishGrid"><div className="empty">
+      <div className="art"><Art kind="sneaker" color="#E0E0E0" category="shoes" /></div>
+      <b>No favourites yet</b><p>Tap the heart on any product to save it here.</p><Link className="btn btn-dark" to="/products">Browse products</Link>
+    </div></div>
   );
 }
