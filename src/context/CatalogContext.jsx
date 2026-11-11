@@ -83,6 +83,13 @@ function mapProduct(product, categoryById) {
     ...(color.images || []).map((image) => image.url),
     ...images,
   ].filter((url, index, list) => url && list.indexOf(url) === index));
+  // Product totals are normally derived by the API. Older/simple product records may
+  // only have prices on their single variant, so keep storefront pricing available there too.
+  const variants = product.variants || [];
+  const variantPrices = variants.map((variant) => Number(variant.price)).filter(Number.isFinite);
+  const variantMrps = variants.map((variant) => Number(variant.mrp)).filter(Number.isFinite);
+  const price = product.price ?? product.minPrice ?? (variantPrices.length ? Math.min(...variantPrices) : 0);
+  const mrp = Math.max(Number(product.mrp) || 0, variantMrps.length ? Math.max(...variantMrps) : 0);
   return {
     id: product.legacyId || product.id,
     apiId: product.id,
@@ -100,11 +107,11 @@ function mapProduct(product, categoryById) {
     colorImages,
     seo: product.seo || {},
     specs: (product.specs || []).map(({ label, value }) => [label, value]),
-    variants: product.variants || [],
-    price: product.price,
+    variants,
+    price,
     priceTo: product.priceTo,
-    from: product.priceTo != null && product.priceTo > product.price,
-    mrp: product.mrp || 0,
+    from: product.priceTo != null && product.priceTo > price,
+    mrp,
     isNew: Boolean(product.isNewArrival),
     isBestseller: Boolean(product.isBestseller),
     isTrending: Boolean(product.isTrending),
@@ -129,6 +136,7 @@ function mapSettings(settings) {
       showAllCategories: homeCategories.showAllCategories ?? true,
       showNewIn: homeCategories.showNewIn ?? true,
       showDeals: homeCategories.showDeals ?? true,
+      newInImage: homeCategories.newInImage?.url || "",
     },
     logo: branding.logo?.url || headerFooter.headerLogo?.url || "",
     headerLogo: headerFooter.headerLogo?.url || "",
