@@ -10,7 +10,12 @@ export const bySlug = (slug, products = PRODUCTS) => products.find((p) => p.slug
 export const cat = (id, categories = CATS) => categories.find((c) => c.id === id);
 export const subOf = (p, categories = CATS) => {
   const category = cat(p.cat, categories);
-  return category?.subs.find((s) => s[0] === p.sub) || category?.subs[0] || ["", "Products", "bag", "#999999"];
+  const subs = category?.subs || [];
+  const subcategoryId = p.categoryIds?.[1];
+  return (subcategoryId && subs.find((s) => s[5] === subcategoryId))
+    || subs.find((s) => s[0] === p.sub)
+    || subs[0]
+    || ["", "Products", "bag", "#999999"];
 };
 export const productUrl = (p) => `/products/${p.slug}`;
 export const categoryUrl = (id, sub) => `/categories/${id}${sub ? `?sub=${sub}` : ""}`;

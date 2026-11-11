@@ -21,6 +21,30 @@ const STATUS_LABELS = {
 };
 const ORDER_ID_RE = /^SZ\d{6,9}$/;
 
+/* FAQs are managed in the admin panel (FAQ Management); these show until any are added there. */
+const FALLBACK_FAQS = [
+  { id: "f1", question: "How do I place an order?", answer: "Add items to your bag, check out, and pay online or choose cash on delivery. You get an order ID straight away." },
+  { id: "f2", question: "Is cash on delivery available?", answer: "Yes, on most PIN codes. Paying online gets you an extra 5% off." },
+  { id: "f3", question: "How do I find my size?", answer: "Tap “Size guide” on any product page. If you’re between sizes, pick the larger one or ask us on WhatsApp." },
+];
+function Faqs() {
+  const [faqs, setFaqs] = useState(FALLBACK_FAQS);
+  useEffect(() => {
+    let live = true;
+    storeRequest("/faqs").then((r) => { if (live && r.data?.length) setFaqs(r.data); }).catch(() => {});
+    return () => { live = false; };
+  }, []);
+  const groups = [...new Set(faqs.map((f) => f.category || ""))];
+  return groups.map((g) => (
+    <div key={g || "all"} className="acc" style={{ maxWidth: 860 }}>
+      {groups.length > 1 && g && <h3 style={{ fontSize: "1rem", fontWeight: 800, margin: "14px 0 6px" }}>{g}</h3>}
+      {faqs.filter((f) => (f.category || "") === g).map((f) => (
+        <details key={f.id}><summary>{f.question}</summary><div className="body" style={{ whiteSpace: "pre-line" }}>{f.answer}</div></details>
+      ))}
+    </div>
+  ));
+}
+
 function TrackOrder() {
   const [values, setValues] = useState({ order: "", phone: "" });
   const [errors, setErrors] = useState({});
@@ -157,11 +181,7 @@ export default function Help({ section }) {
           <h2 id="about">About Shoponzy</h2><p>Shoponzy brings shoes, sunglasses, perfumes, clothing, watches and everyday essentials together in one easy store, with honest prices and quick delivery.</p>
           <h2 id="faq">FAQs</h2>
         </div>
-        <div className="acc" style={{ maxWidth: 860 }}>
-          <details><summary>How do I place an order?</summary><div className="body">Add items to your bag, check out, and pay online or choose cash on delivery. You get an order ID straight away.</div></details>
-          <details><summary>Is cash on delivery available?</summary><div className="body">Yes, on most PIN codes. Paying online gets you an extra 5% off.</div></details>
-          <details><summary>How do I find my size?</summary><div className="body">Tap “Size guide” on any product page. If you’re between sizes, pick the larger one or ask us on WhatsApp.</div></details>
-        </div>
+        <Faqs />
         <div style={{ maxWidth: 860, marginTop: 30 }} id="contact"><h2 style={{ fontSize: "1.3rem", fontWeight: 800, marginBottom: 12 }}>Contact us</h2>
           <ContactForm />
           <p className="tax" style={{ marginTop: 12 }}>Email <a href={`mailto:${STORE.email}`} style={{ textDecoration: "underline" }}>{STORE.email}</a> · Call <a href={`tel:${STORE.phoneTel}`} style={{ textDecoration: "underline" }}>{STORE.phoneDisplay}</a></p>

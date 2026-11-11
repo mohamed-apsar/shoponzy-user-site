@@ -45,7 +45,10 @@ export function MenuSheet() {
               </button>
               {selectedCategory === category.id && <div className="mnav-subcategories">
                 <Link to={categoryUrl(category.id)} data-close>Shop all {category.name}</Link>
-                {category.subs.map(([id, name]) => <Link key={id} to={categoryUrl(category.id, id)} data-close>{name}<Icon name="i-right" /></Link>)}
+                {category.subs.map(([slug, name, , , , categoryId]) => {
+                  const key = categoryId || slug;
+                  return <Link key={key} to={categoryUrl(category.id, key)} data-close>{name}<Icon name="i-right" /></Link>;
+                })}
               </div>}
             </div>)}
           </div>}

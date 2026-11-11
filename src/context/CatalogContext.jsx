@@ -17,12 +17,33 @@ async function getJson(path) {
 function mapCategory(category) {
   const display = category.display || {};
   const firstChild = category.children?.[0]?.display || {};
+  const descendants = [];
+  function collectDescendants(children, ancestors = [], ancestorIds = [category.id]) {
+    for (const child of children || []) {
+      const pathNames = [...ancestors, child.name];
+      descendants.push([
+        child.slug,
+        child.name,
+        child.display?.artKind || "bag",
+        child.display?.artColor || display.color || "#999999",
+        child.image?.url || child.productImage?.url || "",
+        child.id,
+        pathNames.join(" / "),
+        child.level,
+        ancestorIds,
+      ]);
+      collectDescendants(child.children, pathNames, [...ancestorIds, child.id]);
+    }
+  }
+  collectDescendants(category.children);
   return {
     // Illustration for the category itself; categories added in the admin may have no subcategories yet.
     icon: [firstChild.artKind || display.artKind || "bag", firstChild.artColor || display.artColor || display.color || "#999999"],
     id: category.slug,
     name: category.name,
     image: category.image?.url || "",
+    exploreImage: category.exploreImage?.url || "",
+    bannerImage: category.bannerImage?.url || "",
     tag: display.tagline || category.description || "",
     color: display.color || "#555555",
     gradient: display.gradient?.length === 2 ? display.gradient : ["#333333", "#777777"],
@@ -36,14 +57,22 @@ function mapCategory(category) {
       child.name,
       child.display?.artKind || "bag",
       child.display?.artColor || display.color || "#999999",
+      child.image?.url || "",
+      child.id,
+      child.name,
+      child.level,
+      [category.id],
     ]),
+    descendants,
   };
 }
 
 function mapProduct(product, categoryById) {
   const path = product.categoryPath || [];
   const category = categoryById.get(path[0]);
-  const subcategory = categoryById.get(path[path.length - 1]);
+  const assignedCategoryId = typeof product.category === "string" ? product.category : product.category?.id || product.category?._id;
+  const assignedCategory = categoryById.get(assignedCategoryId);
+  const subcategory = assignedCategory || categoryById.get(path[path.length - 1]);
   const colors = product.colors?.length
     ? product.colors.map(({ hex, name, featuredImage }) => [hex || "#999999", name, featuredImage?.url || ""])
     : [["#999999", "Default"]];
@@ -57,6 +86,8 @@ function mapProduct(product, categoryById) {
   return {
     id: product.legacyId || product.id,
     apiId: product.id,
+    categoryIds: path,
+    assignedCategoryId,
     slug: product.slug,
     name: product.name,
     brand: product.brand || "",
@@ -67,6 +98,7 @@ function mapProduct(product, categoryById) {
     sizes,
     images,
     colorImages,
+    seo: product.seo || {},
     specs: (product.specs || []).map(({ label, value }) => [label, value]),
     variants: product.variants || [],
     price: product.price,
@@ -103,6 +135,7 @@ function mapSettings(settings) {
     headerLogo: headerFooter.headerLogo?.url || "",
     footerLogo: headerFooter.footerLogo?.url || branding.footerLogo?.url || "",
     favicon: branding.favicon?.url || "",
+    seo: { ...seo },
     footerDescription: headerFooter.footerDescription || "",
     shareImage: seo.shareImage?.url || "",
     freeShippingAbove: commerce.freeShippingAbove ?? DEFAULT_STORE.freeShippingAbove,

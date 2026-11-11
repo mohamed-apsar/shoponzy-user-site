@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import Icon from "../Icon";
 import Art from "../Art";
@@ -39,53 +39,77 @@ export function Logo({ image }) {
 
 export const Badge = ({ n }) => <span className={`badge-n${n > 0 ? " show" : ""}`}>{n}</span>;
 
-/* Closes the hover/focus mega-menu after a client-side navigation. */
+/* Closes the category dropdown after a client-side navigation. */
 const blur = () => document.activeElement?.blur?.();
 
-function CategoryMenu({ categories }) {
+function CategoryMenu({ category }) {
   const [open, setOpen] = useState(false);
-  const [selectedId, setSelectedId] = useState(categories[0]?.id || "");
-  const selected = categories.find((category) => category.id === selectedId) || categories[0];
+  const [menuPosition, setMenuPosition] = useState(null);
+  const menuRef = useRef(null);
   const location = useLocation();
+  const menuCategories = category.subs;
 
-  useEffect(() => {
-    if (!categories.some((category) => category.id === selectedId)) setSelectedId(categories[0]?.id || "");
-  }, [categories, selectedId]);
+  useLayoutEffect(() => {
+    if (!open || !menuRef.current) return undefined;
+
+    const updatePosition = () => {
+      const trigger = menuRef.current.closest(".category-dropdown");
+      if (!trigger) return;
+      const bounds = trigger.getBoundingClientRect();
+      const menuWidth = menuRef.current.offsetWidth;
+      const viewportWidth = document.documentElement.clientWidth;
+      const left = Math.max(16, Math.min(bounds.left, viewportWidth - menuWidth - 16));
+      setMenuPosition({ left: left - bounds.left, top: bounds.height + 12 });
+    };
+
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    return () => window.removeEventListener("resize", updatePosition);
+  }, [open, category.id, menuCategories.length]);
 
   useEffect(() => {
     setOpen(false);
     blur();
   }, [location.pathname, location.search]);
 
+  if (!category) return null;
+
   return (
     <div className={`dd category-dropdown${open ? " is-open" : ""}`} onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
-      <button type="button" className="category-trigger" aria-expanded={open} aria-controls="category-menu" onClick={() => setOpen(true)}>
-        Category <Icon name="i-down" />
+      <NavLink to={categoryUrl(category.id)} onClick={blur}>{category.name}</NavLink>
+      <button type="button" className="category-toggle" aria-label={`Show ${category.name} subcategories`} aria-expanded={open}
+        aria-controls={`category-menu-${category.id}`} onClick={() => setOpen((value) => !value)}>
+        <Icon name="i-down" />
       </button>
-      <div className="dd-menu category-menu" id="category-menu">
-        <div className="category-menu-inner">
-          <div className="category-menu-list" role="list" aria-label="Categories">
-            {categories.map((category) => (
-              <button type="button" key={category.id} className={category.id === selected?.id ? "selected" : ""}
-                onMouseEnter={() => setSelectedId(category.id)} onFocus={() => setSelectedId(category.id)} onClick={() => setSelectedId(category.id)}>
-                {category.name}<Icon name="i-right" />
-              </button>
-            ))}
-          </div>
-          {selected && <div className="category-submenu">
-            <div className="category-submenu-head">
-              <div><small>{selected.tag || "Explore the collection"}</small><h3>{selected.name}</h3></div>
-              <Link className="view-all" to={categoryUrl(selected.id)} onClick={() => { setOpen(false); blur(); }}>Shop all {selected.name}<Icon name="i-arrow" /></Link>
-            </div>
-            {selected.subs.length ? <div className="category-sub-list">
-              {selected.subs.map(([id, name, kind, color]) => (
-                <Link className="tile" key={id} to={categoryUrl(selected.id, id)} onClick={() => { setOpen(false); blur(); }}>
-                  <span className="im"><Art kind={kind} color={color} category={selected.id} /></span>{name}
-                </Link>
-              ))}
-            </div> : <p className="category-empty">Subcategories will appear here when available.</p>}
-          </div>}
+      <div className="category-menu" id={`category-menu-${category.id}`} ref={menuRef}
+        style={menuPosition || undefined}>
+        <div className="category-menu-items">
+          {menuCategories.map(([slug, name, kind, color, image, categoryId, pathName, depth]) => {
+            const key = categoryId || slug;
+            return <Link className="category-menu-tile" key={key} to={categoryUrl(category.id, key)} onClick={() => { setOpen(false); blur(); }}>
+              <span className="category-menu-art">{image
+                ? <img src={image} alt="" loading="lazy" decoding="async" />
+                : <Art kind={kind} color={color} category={category.id} />}</span>
+              <span>{name}</span>{depth > 2 && pathName && <small className="category-menu-path">{pathName}</small>}
+            </Link>;
+          })}
         </div>
+        <Link className="category-menu-promo" to={categoryUrl(category.id)} onClick={() => { setOpen(false); blur(); }}
+          style={{
+            backgroundImage: category.exploreImage
+              ? `url("${category.exploreImage}")`
+              : `linear-gradient(135deg, ${category.gradient?.[0] || category.color}, ${category.gradient?.[1] || category.color})`,
+            backgroundSize: category.exploreImage ? "cover" : undefined,
+            backgroundPosition: "center",
+          }}>
+          <span className="category-menu-promo-art" aria-hidden="true">
+            <Art kind={category.heroArt?.[0]?.[0] || category.subs[0]?.[2] || "bag"}
+              color={category.heroArt?.[0]?.[1] || category.subs[0]?.[3] || category.color} category={category.id} />
+          </span>
+          <span>{category.tag || "Explore the collection"}</span>
+          <strong>Shop all {category.name}</strong>
+          <span className="category-menu-explore">Explore <Icon name="i-arrow" /></span>
+        </Link>
       </div>
     </div>
   );
@@ -112,10 +136,7 @@ export default function Header() {
         <button type="button" className="tool burger" aria-label="Open menu" onClick={() => openSheet("menuSheet")}><Icon name="i-menu" /></button>
         <Logo />
         <nav className="nav" aria-label="Main navigation">
-          <NavLink to="/" end onClick={blur}>Home</NavLink>
-          <CategoryMenu categories={CATS} />
-          <NavLink to="/about" onClick={blur}>About us</NavLink>
-          <NavLink to="/contact" onClick={blur}>Contact us</NavLink>
+          {CATS.map((category) => <CategoryMenu key={category.id} category={category} />)}
         </nav>
         <form className="search" role="search" onSubmit={(e) => { e.preventDefault(); navigate(`/products?q=${encodeURIComponent(q)}`); }}>
           <Icon name="i-search" style={{ color: "var(--muted)" }} />
