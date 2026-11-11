@@ -67,7 +67,7 @@ export default function Cart() {
                 <div className="line" key={`${l.id}|${l.c}|${l.s}`}>
                   <ProductMedia as={Link} to={productUrl(p)} className="mini" product={p} ci={l.c} />
                   <div><h3><Link to={productUrl(p)}>{p.name}</Link></h3><p className="meta">{p.colors[l.c][1]} · Size {l.s}</p>
-                    <div className="row"><QtyControl qty={l.qty} onChange={(d) => setQty(i, d)} /><b>{money(linePrice(p, l) * l.qty)}</b></div>
+                    <div className="row"><QtyControl qty={l.qty} onChange={(d) => setQty(i, d)} onRemove={() => removeLine(i)} /><b>{money(linePrice(p, l) * l.qty)}</b></div>
                     <button type="button" className="rm" onClick={() => removeLine(i)}>Remove</button></div>
                 </div>
               );

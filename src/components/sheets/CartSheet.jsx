@@ -21,10 +21,10 @@ export function FreeDeliveryMeter({ t, short = false }) {
   );
 }
 
-export function QtyControl({ qty, onChange }) {
+export function QtyControl({ qty, onChange, onRemove }) {
   return (
     <div className="qty">
-      <button type="button" aria-label="Decrease" onClick={() => onChange(-1)}>−</button><span>{qty}</span>
+      <button type="button" aria-label={qty <= 1 ? "Remove item" : "Decrease"} onClick={() => qty <= 1 ? onRemove?.() : onChange(-1)}>−</button><span>{qty}</span>
       <button type="button" aria-label="Increase" onClick={() => onChange(1)}>+</button>
     </div>
   );
@@ -52,7 +52,7 @@ export default function CartSheet() {
                 <div className="dline" key={`${l.id}|${l.c}|${l.s}`}>
                   <ProductMedia as={Link} to={productUrl(p)} className="mini" product={p} ci={l.c} data-close />
                   <div><h4>{p.name}</h4><p className="meta">{p.colors[l.c][1]} · {l.s}</p>
-                    <div className="row"><QtyControl qty={l.qty} onChange={(d) => setQty(i, d)} /><b>{money(linePrice(p, l) * l.qty)}</b></div>
+                    <div className="row"><QtyControl qty={l.qty} onChange={(d) => setQty(i, d)} onRemove={() => removeLine(i)} /><b>{money(linePrice(p, l) * l.qty)}</b></div>
                     <button type="button" className="rm" onClick={() => removeLine(i)}>Remove</button></div>
                 </div>
               );
