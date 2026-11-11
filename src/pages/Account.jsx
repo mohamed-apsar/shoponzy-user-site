@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import FormField, { EMAIL_RE, PHONE_RE, normalisePhone } from "../components/FormField";
+import Icon from "../components/Icon";
 import { useCustomer } from "../context/CustomerContext";
 import { storeRequest } from "../api/storeApi";
 import { money } from "../utils/shop";
@@ -40,7 +41,7 @@ function useForm(initial) {
 }
 
 /* ---------------- Signed out ---------------- */
-function SignIn({ onDone }) {
+function SignIn({ onDone, onMode }) {
   const { signIn } = useCustomer();
   const f = useForm({ email: "", password: "" });
   const field = f.field("si");
@@ -50,43 +51,51 @@ function SignIn({ onDone }) {
       async (v) => { await signIn(v.email.trim(), v.password); onDone(); });
   };
   return (
-    <form className="box form" id="signInForm" noValidate onSubmit={submit}>
+    <form className="box form auth-card auth-signin" id="signInForm" noValidate onSubmit={submit}>
+      <span className="auth-avatar" aria-hidden="true"><Icon name="i-user" /></span>
       <h2>Sign in</h2>
       <FormField label="Email" type="email" autoComplete="email" required {...field("email")} />
       <FormField label="Password" type="password" autoComplete="current-password" required {...field("password")} />
       {f.failure && <p className="err-t" role="alert">{f.failure}</p>}
       <button className="btn btn-dark btn-block" disabled={f.busy}>{f.busy ? "Signing in…" : "Sign in"}</button>
       <p className="tax"><Link to="/forgot-password" style={{ textDecoration: "underline" }}>Forgot your password?</Link></p>
+      <p className="auth-switch">New to Shoponzy? <button type="button" onClick={() => onMode("signup")}>Create an account</button></p>
     </form>
   );
 }
 
-function Register({ onDone }) {
+function Register({ onDone, onMode }) {
   const { register } = useCustomer();
-  const f = useForm({ name: "", email: "", phone: "", password: "" });
+  const f = useForm({ firstName: "", lastName: "", email: "", phone: "", password: "", confirmPassword: "" });
   const field = f.field("rg");
   const submit = (e) => {
     e.preventDefault();
     f.run((v) => ({
-      ...(v.name.trim().length < 2 && { name: "Enter your name." }),
+      ...(v.firstName.trim().length < 1 && { firstName: "Enter your first name." }),
+      ...(v.lastName.trim().length < 1 && { lastName: "Enter your last name." }),
       ...(!EMAIL_RE.test(v.email) && { email: "Enter a valid email address." }),
       ...(v.phone && !PHONE_RE.test(normalisePhone(v.phone)) && { phone: "Enter a valid 10-digit mobile number." }),
       ...(v.password.length < 8 && { password: "Use at least 8 characters." }),
+      ...(v.confirmPassword !== v.password && { confirmPassword: "Passwords do not match." }),
     }), async (v) => {
-      await register({ name: v.name.trim(), email: v.email.trim(), password: v.password, ...(v.phone ? { phone: v.phone } : {}) });
+      await register({ name: `${v.firstName.trim()} ${v.lastName.trim()}`, email: v.email.trim(), password: v.password, ...(v.phone ? { phone: v.phone } : {}) });
       onDone();
     });
   };
   return (
-    <form className="box form" id="registerForm" noValidate onSubmit={submit}>
-      <h2>Create an account</h2>
-      <p className="tax" style={{ marginTop: -8 }}>Track orders, save addresses and keep your wishlist on every device.</p>
-      <FormField label="Full name" autoComplete="name" required {...field("name")} />
-      <FormField label="Email" type="email" autoComplete="email" required {...field("email")} />
+    <form className="box form two auth-card auth-signup" id="registerForm" noValidate onSubmit={submit}>
+      <span className="auth-avatar" aria-hidden="true"><Icon name="i-user" /></span>
+      <h2 className="full">Create an account</h2>
+      <p className="tax full auth-intro">Track orders, save addresses and keep your wishlist on every device.</p>
+      <FormField label="First name" autoComplete="given-name" required {...field("firstName")} />
+      <FormField label="Last name" autoComplete="family-name" required {...field("lastName")} />
+      <FormField label="Email address" type="email" autoComplete="email" required {...field("email")} />
       <FormField label="Mobile number (optional)" inputMode="tel" autoComplete="tel" {...field("phone")} />
       <FormField label="Password (8+ characters)" type="password" autoComplete="new-password" required {...field("password")} />
+      <FormField label="Confirm password" type="password" autoComplete="new-password" required {...field("confirmPassword")} />
       {f.failure && <p className="err-t" role="alert">{f.failure}</p>}
-      <button className="btn btn-dark btn-block" disabled={f.busy}>{f.busy ? "Creating…" : "Create account"}</button>
+      <button className="btn btn-dark btn-block full" disabled={f.busy}>{f.busy ? "Creating…" : "Create account"}</button>
+      <p className="auth-switch full">Already have an account? <button type="button" onClick={() => onMode("login")}>Sign in</button></p>
     </form>
   );
 }
@@ -246,19 +255,28 @@ export default function Account() {
   usePageMeta("My Account | Shoponzy");
   const { user, status, signOut } = useCustomer();
   const navigate = useNavigate();
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
   const next = params.get("next");
+  const [authMode, setAuthMode] = useState(() => params.get("mode") === "signup" ? "signup" : "login");
+  const switchAuthMode = (mode) => {
+    setAuthMode(mode);
+    const updated = new URLSearchParams(params);
+    if (mode === "signup") updated.set("mode", "signup");
+    else updated.delete("mode");
+    setParams(updated, { replace: true });
+  };
   const done = () => { if (next && next.startsWith("/") && !next.startsWith("//")) navigate(next); else scrollTo({ top: 0 }); };
 
   return (
     <>
-      <div className="container page-title">
-        <h1>{user ? `Hi, ${user.name.split(" ")[0]}` : "My account"}</h1>
-        <p>{user ? "Your orders, addresses and details." : "Sign in or create an account. You can also check out as a guest."}</p>
-      </div>
+      {user && <div className="container page-title"><h1>Hi, {user.name.split(" ")[0]}</h1><p>Your orders, addresses and details.</p></div>}
       <section className="section" style={{ paddingTop: 12 }}><div className="container">
         {status === "loading" ? <p className="tax">Loading…</p> : !user ? (
-          <div style={grid}><SignIn onDone={done} /><Register onDone={done} /></div>
+          <div className="auth-layout">
+            {authMode === "signup"
+              ? <Register onDone={done} onMode={switchAuthMode} />
+              : <SignIn onDone={done} onMode={switchAuthMode} />}
+          </div>
         ) : (
           <div style={grid}>
             <div style={{ display: "grid", gap: 16 }}><Orders /><Addresses /></div>
