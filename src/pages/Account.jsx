@@ -2,11 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import FormField, { EMAIL_RE, PHONE_RE, normalisePhone } from "../components/FormField";
 import Icon from "../components/Icon";
-import { WishlistItems } from "./Wishlist";
 import { useCustomer } from "../context/CustomerContext";
-import { useStore } from "../context/StoreContext";
-import { useCatalog } from "../context/CatalogContext";
-import { storeRequest } from "../api/storeApi";
+import { storeRequest, storeUpload } from "../api/storeApi";
 import { money } from "../utils/shop";
 import usePageMeta from "../hooks/usePageMeta";
 
@@ -260,17 +257,122 @@ function ChangePassword() {
   );
 }
 
+const TICKET_TYPES = ["Website problem", "Order issue", "Payment issue", "Delivery issue", "Return / exchange", "Product question", "Other"];
+const TICKET_STATUS = { new: "Submitted", read: "In progress", replied: "Replied", closed: "Closed" };
+
+function SupportTickets() {
+  const [tickets, setTickets] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [values, setValues] = useState({ subject: "", type: "Website problem", priority: "", message: "" });
+  const [file, setFile] = useState(null);
+  const [errors, setErrors] = useState({});
+  const [failure, setFailure] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const loadTickets = useCallback(async () => {
+    setLoading(true);
+    try { setTickets((await storeRequest("/account/tickets")).data); }
+    catch (error) { setFailure(error.message); }
+    finally { setLoading(false); }
+  }, []);
+  useEffect(() => { loadTickets(); }, [loadTickets]);
+
+  const update = (event) => {
+    const { name, value } = event.target;
+    setValues((current) => ({ ...current, [name]: value }));
+    setErrors((current) => ({ ...current, [name]: "" }));
+  };
+
+  const submit = async (event) => {
+    event.preventDefault();
+    const nextErrors = {};
+    if (values.subject.trim().length < 3) nextErrors.subject = "Enter a subject for your ticket.";
+    if (!values.priority) nextErrors.priority = "Choose a priority.";
+    if (values.message.trim().length < 10) nextErrors.message = "Describe the issue in at least 10 characters.";
+    if (file && file.size > 5 * 1024 * 1024) nextErrors.attachment = "Choose an image smaller than 5 MB.";
+    setErrors(nextErrors);
+    setFailure("");
+    if (Object.keys(nextErrors).length) return;
+
+    setBusy(true);
+    try {
+      let attachment;
+      if (file) {
+        const uploaded = await storeUpload("/account/tickets/attachment", file);
+        attachment = { publicId: uploaded.data.publicId, filename: uploaded.data.filename };
+      }
+      await storeRequest("/account/tickets", { method: "POST", body: { ...values, attachment } });
+      setModalOpen(false);
+      setValues({ subject: "", type: "Website problem", priority: "", message: "" });
+      setFile(null);
+      await loadTickets();
+    } catch (error) {
+      setFailure(error.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <>
+      <section className="box account-support">
+        <div className="support-ticket-head"><h2>Support ticket</h2><button type="button" className="btn btn-dark" onClick={() => { setFailure(""); setModalOpen(true); }}>Add New Ticket</button></div>
+        {failure && !modalOpen && <p className="err-t" role="alert">{failure}</p>}
+        {loading ? <p className="tax support-ticket-empty">Loading tickets…</p> : !tickets?.length ? (
+          <div className="support-ticket-empty"><span className="support-empty-icon"><Icon name="i-mail" /></span><b>No Ticket Found!</b></div>
+        ) : (
+          <div className="support-ticket-list">
+            {tickets.map((ticket) => (
+              <article className="support-ticket-row" key={ticket.id}>
+                <div className="support-ticket-row-main"><div><h3>{ticket.subject}</h3><p>{ticket.type} · {new Date(ticket.createdAt).toLocaleDateString("en-IN")}</p></div>
+                  <div className="support-ticket-badges"><span className={`ticket-status status-${ticket.status}`}>{TICKET_STATUS[ticket.status] || ticket.status}</span><span className={`ticket-priority priority-${ticket.priority}`}>{ticket.priority}</span></div>
+                </div>
+                <p className="support-ticket-message">{ticket.message}</p>
+                {ticket.attachment?.url && <a className="support-ticket-attachment" href={ticket.attachment.url} target="_blank" rel="noreferrer">{ticket.attachment.filename || "View attachment"}</a>}
+                {!!ticket.replies?.length && <div className="support-ticket-replies"><b>Support reply</b><p>{ticket.replies[ticket.replies.length - 1].message}</p></div>}
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+      {modalOpen && (
+        <div className="support-ticket-overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) setModalOpen(false); }}>
+          <section className="support-ticket-modal" role="dialog" aria-modal="true" aria-labelledby="new-ticket-title">
+            <header className="support-ticket-modal-head"><div><h2 id="new-ticket-title">Submit new ticket</h2><p>You will get a response.</p></div>
+              <button type="button" className="tool" aria-label="Close" disabled={busy} onClick={() => setModalOpen(false)}>×</button>
+            </header>
+            <form className="form two support-ticket-form" noValidate onSubmit={submit}>
+              <div className="full"><FormField label="Subject" required name="subject" id="ticket-subject" value={values.subject} error={errors.subject} onChange={update} /></div>
+              <FormField as="select" label="Type" required name="type" id="ticket-type" value={values.type} onChange={update}>
+                {TICKET_TYPES.map((type) => <option key={type}>{type}</option>)}
+              </FormField>
+              <FormField as="select" label="Priority" required name="priority" id="ticket-priority" value={values.priority} error={errors.priority} onChange={update}>
+                <option value="">Choose priority</option><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option>
+              </FormField>
+              <FormField as="textarea" label="Describe your issue" required full rows={5} name="message" id="ticket-message" value={values.message} error={errors.message} onChange={update} />
+              <div className="support-attachment-field full"><label htmlFor="ticket-attachment">Attachment <span>(optional image, up to 5 MB)</span></label>
+                <label className="support-attachment-picker" htmlFor="ticket-attachment"><Icon name="i-plus" /><span>{file?.name || "Choose an image"}</span><input id="ticket-attachment" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" onChange={(event) => { setFile(event.target.files?.[0] || null); setErrors((current) => ({ ...current, attachment: "" })); }} /></label>
+                {errors.attachment && <p className="field-error">{errors.attachment}</p>}
+              </div>
+              {failure && <p className="err-t full" role="alert">{failure}</p>}
+              <div className="support-ticket-actions full"><button type="button" className="btn btn-ghost" disabled={busy} onClick={() => setModalOpen(false)}>Close</button><button className="btn btn-dark" disabled={busy}>{busy ? "Submitting…" : "Submit a ticket"}</button></div>
+            </form>
+          </section>
+        </div>
+      )}
+    </>
+  );
+}
+
 export default function Account() {
   usePageMeta("My Account | Shoponzy");
   const { user, status, signOut } = useCustomer();
-  const { products } = useCatalog();
-  const { wish } = useStore();
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const next = params.get("next");
   const [authMode, setAuthMode] = useState(() => params.get("mode") === "signup" ? "signup" : "login");
   const accountSections = [
-    ["wishlist", "Wishlist", "i-heart"],
     ["orders", "My Order", "i-box"],
     ["profile", "My Profile", "i-user"],
     ["support", "Support Ticket", "i-wa"],
@@ -314,8 +416,7 @@ export default function Account() {
             <main className="account-panel">
               {selectedSection === "profile" && <Profile />}
               {selectedSection === "orders" && <Orders />}
-              {selectedSection === "wishlist" && <section className="box account-wishlist"><h2>Wishlist</h2><WishlistItems products={products} wish={wish} /></section>}
-              {selectedSection === "support" && <section className="box account-support"><h2>Support Ticket</h2><p className="tax">Need help with an order, delivery, or product? Send a message to our support team.</p><Link className="btn btn-dark" to="/help#contact">Contact Support</Link></section>}
+              {selectedSection === "support" && <SupportTickets />}
               <button type="button" className="btn btn-ghost account-signout" onClick={async () => { await signOut(); navigate("/"); }}>Sign out</button>
             </main>
           </div>
