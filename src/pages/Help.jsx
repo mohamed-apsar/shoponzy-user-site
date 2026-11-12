@@ -93,6 +93,40 @@ function TrackOrder() {
   );
 }
 
+function PrivacyPolicy({ email }) {
+  const sections = [
+    { title: "1. Information We Collect", intro: "We may collect the following types of information:", groups: [
+      ["Personal Information", "When you create an account, place an order, or contact us, we may collect:", ["Full name", "Email address", "Mobile number", "Billing and shipping address", "Account login information"]],
+      ["Order and Transaction Information", "We may collect information related to:", ["Products you purchase", "Order history", "Payment status", "Delivery and shipping details", "Returns and refunds"]],
+      ["Automatically Collected Information", "When you visit Shoponzy, we may automatically collect certain technical information, including:", ["IP address", "Browser type", "Device information", "Pages visited", "Website usage and interaction data", "Cookies and similar technologies"]],
+    ] },
+    { title: "2. How We Use Your Information", intro: "Shoponzy may use your information to:", items: ["Create and manage your account", "Process and fulfil your orders", "Process payments", "Deliver products to your address", "Send order confirmations and delivery updates", "Provide customer support", "Improve our website, products, and services", "Personalise your shopping experience", "Prevent fraud and unauthorised activities", "Comply with legal and regulatory requirements", "Send promotional offers or marketing communications where permitted or based on your preferences"] },
+    { title: "3. Payments", paragraphs: ["Payments made through Shoponzy may be processed by authorised third-party payment service providers.", "Shoponzy does not intentionally store complete debit card, credit card, or other sensitive payment credentials unless required and handled through appropriate secure systems.", "We recommend reviewing the privacy policies of the payment providers used on our platform."] },
+    { title: "4. Cookies and Similar Technologies", intro: "Shoponzy may use cookies and similar technologies to:", items: ["Keep you signed in", "Remember your preferences", "Improve website functionality", "Understand how visitors use our website", "Analyse website performance", "Provide relevant content and offers"], paragraphs: ["You may manage or disable cookies through your browser settings. However, disabling certain cookies may affect some features of our website."] },
+    { title: "5. How We Share Your Information", intro: "We may share your information only when necessary with trusted third parties, including:", items: ["Payment service providers", "Delivery and logistics partners", "Technology and hosting providers", "Customer support service providers", "Government authorities or law enforcement agencies when required by applicable law"], paragraphs: ["We do not sell your personal information to third parties for their independent marketing purposes."] },
+    { title: "6. Data Security", intro: "We take reasonable technical and organisational measures to protect your personal information against:", items: ["Unauthorised access", "Loss", "Misuse", "Alteration", "Disclosure"], paragraphs: ["However, no method of transmission over the internet or electronic storage system can be guaranteed to be completely secure. Users should also take appropriate steps to protect their account credentials."] },
+    { title: "7. Your Privacy Choices and Rights", intro: "Subject to applicable law, you may have the right to:", items: ["Request information about your personal data", "Request correction or updating of inaccurate information", "Request deletion of personal information where applicable", "Withdraw consent for certain data processing activities", "Opt out of marketing communications", "Raise questions or complaints regarding the handling of your personal information"], paragraphs: ["To exercise these rights, please contact us using the contact details provided below."] },
+    { title: "8. Data Retention", intro: "We retain personal information only for as long as necessary to:", items: ["Provide our services", "Complete transactions and orders", "Meet legal and regulatory requirements", "Resolve disputes", "Prevent fraud and abuse", "Enforce our agreements"], paragraphs: ["When personal information is no longer required, we will take appropriate steps to delete or securely dispose of it, subject to applicable legal requirements."] },
+    { title: "9. Third-Party Links", paragraphs: ["Our website may contain links to third-party websites or services.", "Shoponzy is not responsible for the privacy practices, content, or security of third-party websites. We encourage users to review the privacy policies of those websites before providing personal information."] },
+    { title: "10. Children's Privacy", paragraphs: ["Shoponzy does not knowingly collect personal information from children in violation of applicable laws.", "If we become aware that personal information has been collected from a child without appropriate authorisation where required, we will take reasonable steps to delete or appropriately handle that information."] },
+    { title: "11. Changes to This Privacy Policy", paragraphs: ["Shoponzy may update this Privacy Policy from time to time.", "Any changes will be posted on this page with an updated “Last Updated” date. We encourage you to review this Privacy Policy periodically to stay informed about how we protect your information."] },
+  ];
+
+  return <div>
+    <p><b>Last Updated: November 12, 2026</b></p>
+    <p>Welcome to Shoponzy. Your privacy is important to us. This Privacy Policy explains how Shoponzy collects, uses, stores, protects, and shares your personal information when you visit or use our website and services.</p>
+    <p>By using Shoponzy, you agree to the practices described in this Privacy Policy.</p>
+    {sections.map(({ title, intro, groups, items, paragraphs }) => <section key={title}>
+      <h2>{title}</h2>{intro && <p>{intro}</p>}
+      {groups?.map(([name, description, list]) => <div key={name}><h3>{name}</h3><p>{description}</p><ul>{list.map((item) => <li key={item}>{item}</li>)}</ul></div>)}
+      {items && <ul>{items.map((item) => <li key={item}>{item}</li>)}</ul>}
+      {paragraphs?.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+    </section>)}
+    <section><h2>12. Contact Us</h2><p>If you have any questions, concerns, or requests regarding this Privacy Policy or your personal information, please contact us:</p><p>Shoponzy<br />Email: <a href={`mailto:${email}`}>{email}</a><br />Website: <a href={window.location.origin}>{window.location.origin}</a></p><p>We will make reasonable efforts to respond to privacy-related requests in accordance with applicable law.</p></section>
+    <hr /><p>By using Shoponzy, you acknowledge that you have read and understood this Privacy Policy.</p>
+  </div>;
+}
+
 function ContactForm() {
   const [values, setValues] = useState({ name: "", phone: "", topic: "Order question", order: "", msg: "" });
   const [errors, setErrors] = useState({});
@@ -168,7 +202,7 @@ export default function Help({ section }) {
       case "order-cancellation": content = <p>Orders can be cancelled before they are shipped. Contact us with your order ID to request a cancellation.</p>; break;
       case "shipping-policy": content = <ul><li>Orders are dispatched within 1–2 working days.</li><li>{STORE.deliveryText}.</li><li>Free delivery on orders above ₹999; a flat ₹59 applies below that.</li><li>Cash on delivery is available on most PIN codes.</li></ul>; break;
       case "return-policy": content = <ul><li>Return or exchange within 7 days of delivery, for unused items with original tags and packaging.</li><li>Perfumes, innerwear and items marked non-returnable can’t be returned once opened, for hygiene reasons.</li><li>Refunds for prepaid orders go back to the original payment method within 5–7 working days after the return is received.</li></ul>; break;
-      case "privacy-policy": content = <p>We collect only the details needed to process and deliver your order (name, phone, address, email). We don’t sell your data. Your wishlist is stored in your own browser.</p>; break;
+      case "privacy-policy": content = <PrivacyPolicy email={STORE.email} />; break;
       case "terms": content = <p>Prices and offers can change without notice. Prices, stock and discounts are confirmed when the order is placed. Product colours may vary slightly from screen to screen.</p>; break;
       case "faqs": content = <Faqs />; break;
       default: content = <p>Find answers and contact options in our <a href="/help" style={{ textDecoration: "underline" }}>Help center</a>.</p>;
