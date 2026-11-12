@@ -430,7 +430,7 @@ export default function Account() {
               {selectedSection === "profile" && <Profile />}
               {selectedSection === "orders" && <Orders />}
               {selectedSection === "support" && <SupportTickets />}
-              <button type="button" className="btn btn-ghost account-signout" onClick={async () => { await signOut(); navigate("/"); }}>Sign out</button>
+              <button type="button" className="btn btn-ghost account-signout" onClick={async () => { if (!window.confirm("Are you sure you want to log out?")) return; await signOut(); navigate("/"); }}>Sign out</button>
             </main>
           </div>
         )}

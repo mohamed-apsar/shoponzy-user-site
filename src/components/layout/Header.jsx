@@ -154,6 +154,7 @@ export default function Header() {
   }, [profileOpen]);
 
   const logout = async () => {
+    if (!window.confirm("Are you sure you want to log out?")) return;
     setProfileOpen(false);
     try { await signOut(); }
     finally { navigate("/"); }

@@ -32,7 +32,7 @@ export default function AccountOrder() {
   }, [load]);
 
   async function cancel() {
-    if (!window.confirm("Cancel this order?")) return;
+    if (!window.confirm("Are you sure you want to cancel this order?")) return;
     setBusy(true);
     setFailure("");
     try {
