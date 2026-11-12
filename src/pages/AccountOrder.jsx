@@ -16,8 +16,20 @@ export default function AccountOrder() {
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(() => storeRequest(`/orders/${encodeURIComponent(orderNumber)}`)
-    .then((r) => setOrder(r.data.order)).catch((e) => setFailure(e.message)), [orderNumber]);
-  useEffect(() => { load(); }, [load]);
+    .then((r) => { setOrder(r.data.order); setFailure(""); })
+    .catch((e) => setFailure(e.message)), [orderNumber]);
+  useEffect(() => {
+    const refreshWhenVisible = () => { if (document.visibilityState === "visible") load(); };
+    load();
+    window.addEventListener("focus", refreshWhenVisible);
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+    const timer = window.setInterval(refreshWhenVisible, 30_000);
+    return () => {
+      window.removeEventListener("focus", refreshWhenVisible);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+      window.clearInterval(timer);
+    };
+  }, [load]);
 
   async function cancel() {
     if (!window.confirm("Cancel this order?")) return;

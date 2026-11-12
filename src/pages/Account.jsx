@@ -103,12 +103,25 @@ function Register({ onDone, onMode }) {
 function Orders() {
   const [orders, setOrders] = useState(null);
   const [failure, setFailure] = useState("");
+  const load = useCallback(() => storeRequest("/orders?limit=50")
+    .then((r) => { setOrders(r.data); setFailure(""); })
+    .catch((e) => setFailure(e.message)), []);
   useEffect(() => {
-    storeRequest("/orders?limit=50").then((r) => setOrders(r.data)).catch((e) => setFailure(e.message));
-  }, []);
+    const refreshWhenVisible = () => { if (document.visibilityState === "visible") load(); };
+    load();
+    window.addEventListener("focus", refreshWhenVisible);
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+    const timer = window.setInterval(refreshWhenVisible, 30_000);
+    return () => {
+      window.removeEventListener("focus", refreshWhenVisible);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+      window.clearInterval(timer);
+    };
+  }, [load]);
   return (
     <div className="box" id="myOrders">
       <h2>My orders</h2>
+      <p className="tax">Order status updates refresh automatically.</p>
       {failure && <p className="err-t">{failure}</p>}
       {!orders ? !failure && <p className="tax">Loading…</p> : !orders.length ? (
         <p className="tax">No orders yet. <Link to="/products" style={{ textDecoration: "underline" }}>Start shopping</Link></p>

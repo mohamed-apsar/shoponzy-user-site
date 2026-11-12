@@ -55,7 +55,7 @@ export async function storeRequest(path, { method = "GET", body, retryCsrf = tru
   }
   if (body !== undefined) headers["Content-Type"] = "application/json";
   const response = await fetch(`${API_BASE}${path}`, {
-    method, headers, credentials: "include", body: body === undefined ? undefined : JSON.stringify(body),
+    method, headers, credentials: "include", cache: "no-store", body: body === undefined ? undefined : JSON.stringify(body),
   });
   // The CSRF cookie can expire while the page stays open: fetch a fresh token once and retry.
   if (response.status === 403 && mutating && retryCsrf) {
