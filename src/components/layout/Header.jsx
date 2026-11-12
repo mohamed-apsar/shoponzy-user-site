@@ -7,6 +7,7 @@ import { categoryUrl, reduceMotion } from "../../utils/shop";
 import { headerEffects } from "../../fx/fx";
 import { useCatalog } from "../../context/CatalogContext";
 import { useCustomer } from "../../context/CustomerContext";
+import ConfirmDialog from "../ConfirmDialog";
 
 export function AnnouncementBar() {
   const { store } = useCatalog();
@@ -125,6 +126,8 @@ export default function Header() {
   const [q, setQ] = useState("");
   const [scrolled, setScrolled] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [confirmLogout, setConfirmLogout] = useState(false);
+  const [logoutBusy, setLogoutBusy] = useState(false);
   const ref = useRef(null);
   const profileRef = useRef(null);
 
@@ -153,14 +156,19 @@ export default function Header() {
     };
   }, [profileOpen]);
 
-  const logout = async () => {
-    if (!window.confirm("Are you sure you want to log out?")) return;
+  const requestLogout = () => {
     setProfileOpen(false);
+    setConfirmLogout(true);
+  };
+
+  const logout = async () => {
+    setLogoutBusy(true);
     try { await signOut(); }
-    finally { navigate("/"); }
+    finally { setLogoutBusy(false); setConfirmLogout(false); navigate("/"); }
   };
 
   return (
+    <>
     <header className={`header${scrolled ? " scrolled" : ""}`} ref={ref}>
       <div className="container header-in">
         <button type="button" className="tool burger" aria-label="Open menu" onClick={() => openSheet("menuSheet")}><Icon name="i-menu" /></button>
@@ -182,7 +190,7 @@ export default function Header() {
               <div className="profile-menu" role="menu" aria-hidden={!profileOpen}>
                 <Link to="/account?section=orders" role="menuitem" tabIndex={profileOpen ? 0 : -1}>My Order</Link>
                 <Link to="/account?section=profile" role="menuitem" tabIndex={profileOpen ? 0 : -1}>My Profile</Link>
-                <button type="button" role="menuitem" tabIndex={profileOpen ? 0 : -1} onClick={logout}>Logout</button>
+                <button type="button" role="menuitem" tabIndex={profileOpen ? 0 : -1} onClick={requestLogout}>Logout</button>
               </div>
             </div>
           ) : <Link className="tool hide-m" to="/account" aria-label="My account"><Icon name="i-user" /></Link>}
@@ -190,5 +198,7 @@ export default function Header() {
         </div>
       </div>
     </header>
+    <ConfirmDialog open={confirmLogout} title="Log out?" message="Are you sure you want to log out of your Shoponzy account?" confirmLabel="Yes, log out" busy={logoutBusy} onCancel={() => setConfirmLogout(false)} onConfirm={logout} />
+    </>
   );
 }

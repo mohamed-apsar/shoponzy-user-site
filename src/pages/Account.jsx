@@ -6,6 +6,7 @@ import { useCustomer } from "../context/CustomerContext";
 import { storeRequest, storeUpload } from "../api/storeApi";
 import { money } from "../utils/shop";
 import usePageMeta from "../hooks/usePageMeta";
+import ConfirmDialog from "../components/ConfirmDialog";
 
 export const STATES = ["Tamil Nadu", "Kerala", "Karnataka", "Andhra Pradesh", "Telangana", "Puducherry", "Maharashtra", "Delhi", "Gujarat", "West Bengal", "Other"];
 export const STATUS_LABELS = {
@@ -124,7 +125,7 @@ function Orders() {
       <p className="tax">Order status updates refresh automatically.</p>
       {failure && <p className="err-t">{failure}</p>}
       {!orders ? !failure && <p className="tax">Loading…</p> : !orders.length ? (
-        <p className="tax">No orders yet. <Link to="/products" style={{ textDecoration: "underline" }}>Start shopping</Link></p>
+        <div className="tax"><p>No orders are linked to this account yet.</p><p>If you checked out as a guest, your account email and phone must match the checkout details for those orders to appear.</p><button type="button" className="view-all" onClick={load}>Refresh orders</button> <Link to="/products" style={{ textDecoration: "underline" }}>Start shopping</Link></div>
       ) : orders.map((o) => (
         <Link key={o.orderNumber} to={`/account/orders/${o.orderNumber}`} className="srow" style={{ borderBottom: "1px solid var(--line)", padding: "12px 0" }}>
           <span><b>{o.orderNumber}</b><br /><small className="tax">{new Date(o.placedAt || o.createdAt).toLocaleDateString("en-IN")} · {o.items.reduce((s, i) => s + i.qty, 0)} item(s)</small></span>
@@ -385,6 +386,8 @@ export default function Account() {
   const [params, setParams] = useSearchParams();
   const next = params.get("next");
   const [authMode, setAuthMode] = useState(() => params.get("mode") === "signup" ? "signup" : "login");
+  const [confirmLogout, setConfirmLogout] = useState(false);
+  const [logoutBusy, setLogoutBusy] = useState(false);
   const accountSections = [
     ["orders", "My Order", "i-box"],
     ["profile", "My Profile", "i-user"],
@@ -405,6 +408,11 @@ export default function Account() {
     setParams(updated, { replace: true });
   };
   const done = () => { if (next && next.startsWith("/") && !next.startsWith("//")) navigate(next); else scrollTo({ top: 0 }); };
+  const logout = async () => {
+    setLogoutBusy(true);
+    try { await signOut(); navigate("/"); }
+    finally { setLogoutBusy(false); setConfirmLogout(false); }
+  };
 
   return (
     <>
@@ -430,11 +438,12 @@ export default function Account() {
               {selectedSection === "profile" && <Profile />}
               {selectedSection === "orders" && <Orders />}
               {selectedSection === "support" && <SupportTickets />}
-              <button type="button" className="btn btn-ghost account-signout" onClick={async () => { if (!window.confirm("Are you sure you want to log out?")) return; await signOut(); navigate("/"); }}>Sign out</button>
+              <button type="button" className="btn btn-ghost account-signout" onClick={() => setConfirmLogout(true)}>Sign out</button>
             </main>
           </div>
         )}
       </div></section>
+      <ConfirmDialog open={confirmLogout} title="Log out?" message="Are you sure you want to log out of your Shoponzy account?" confirmLabel="Yes, log out" busy={logoutBusy} onCancel={() => setConfirmLogout(false)} onConfirm={logout} />
     </>
   );
 }

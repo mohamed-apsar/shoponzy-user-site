@@ -706,6 +706,18 @@ img.broken { visibility: hidden; }
 html, body { overflow-x: clip; }
 .section, .hero, main { overflow-x: clip; }
 .buy .btn { min-width: 0; padding-left: 14px; padding-right: 14px; }
+.confirm-backdrop { position: fixed; inset: 0; z-index: 1200; display: grid; place-items: center; padding: 20px; background: rgba(15, 17, 22, .55); backdrop-filter: blur(2px); }
+.confirm-dialog { width: min(512px, 100%); padding: 36px 34px 28px; border-radius: 12px; background: #fff; text-align: center; box-shadow: 0 24px 70px rgba(0, 0, 0, .24); animation: confirm-in .18s ease-out; }
+.confirm-dialog-icon { width: 78px; height: 78px; margin: 0 auto 24px; display: grid; place-items: center; border: 4px solid #f2b983; border-radius: 50%; color: #e9a96c; font-size: 52px; font-weight: 300; line-height: 1; }
+.confirm-dialog h2 { margin: 0 0 10px; color: #555; font-size: clamp(22px, 4vw, 29px); }
+.confirm-dialog p { margin: 0; color: #717171; font-size: 16px; line-height: 1.55; }
+.confirm-dialog-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+.confirm-dialog-actions button { min-width: 104px; min-height: 44px; padding: 0 18px; border: 0; border-radius: 5px; color: #fff; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+.confirm-cancel { background: #7b8792; }
+.confirm-accept { background: #e24352; }
+.confirm-dialog-actions button:disabled { opacity: .6; cursor: wait; }
+@keyframes confirm-in { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
+@media (max-width: 480px) { .confirm-dialog { padding: 28px 22px 22px; } }
 @media (max-width: 899px) {
   .banner { min-height: 460px; }
   .banner .art { width: 74%; right: -8%; top: 2%; bottom: auto; }

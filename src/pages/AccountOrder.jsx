@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { storeRequest } from "../api/storeApi";
 import { money } from "../utils/shop";
 import usePageMeta from "../hooks/usePageMeta";
 import { STATUS_LABELS } from "./Account";
 import OrderReturns from "../components/OrderReturns";
+import ConfirmDialog from "../components/ConfirmDialog";
+import { useStore } from "../context/StoreContext";
+import { useCatalog } from "../context/CatalogContext";
 
 const CANCELLABLE = ["placed", "confirmed"];
 
@@ -14,6 +17,10 @@ export default function AccountOrder() {
   const [order, setOrder] = useState(null);
   const [failure, setFailure] = useState("");
   const [busy, setBusy] = useState(false);
+  const [confirmCancel, setConfirmCancel] = useState(false);
+  const { addToCart, toast } = useStore();
+  const { products } = useCatalog();
+  const navigate = useNavigate();
 
   const load = useCallback(() => storeRequest(`/orders/${encodeURIComponent(orderNumber)}`)
     .then((r) => { setOrder(r.data.order); setFailure(""); })
@@ -32,16 +39,40 @@ export default function AccountOrder() {
   }, [load]);
 
   async function cancel() {
-    if (!window.confirm("Are you sure you want to cancel this order?")) return;
     setBusy(true);
     setFailure("");
     try {
       setOrder((await storeRequest(`/orders/${encodeURIComponent(orderNumber)}/cancel`, { method: "POST", body: {} })).data);
+      setConfirmCancel(false);
     } catch (error) {
       setFailure(error.message);
+      setConfirmCancel(false);
     } finally {
       setBusy(false);
     }
+  }
+
+  function reorder() {
+    if (!order) return;
+    setFailure("");
+    let added = 0;
+    order.items.forEach((item) => {
+      const itemProductId = typeof item.product === "object" ? item.product?.id || item.product?._id : item.product;
+      const product = products.find((candidate) => String(candidate.apiId) === String(itemProductId) || candidate.slug === item.slug);
+      const itemVariantId = typeof item.variant === "object" ? item.variant?.id || item.variant?._id : item.variant;
+      const variant = product?.variants.find((candidate) => String(candidate.id || candidate._id) === String(itemVariantId));
+      const colorName = item.color || variant?.color || product?.colors[0]?.[1];
+      const colorIndex = product?.colors.findIndex((color) => color[1] === colorName) ?? -1;
+      const size = String(item.size || variant?.size || product?.sizes[0] || "");
+      if (!product || !variant || colorIndex < 0 || !product.sizes.includes(size)) return;
+      addToCart(product.id, colorIndex, size, item.qty);
+      added += 1;
+    });
+    if (added) {
+      if (added < order.items.length) toast(`${order.items.length - added} unavailable item(s) were skipped.`);
+      navigate("/cart");
+    }
+    else setFailure("This order's products or variants are no longer available for reorder.");
   }
 
   const a = order?.shippingAddress || {};
@@ -79,13 +110,15 @@ export default function AccountOrder() {
               <div className="srow"><span>Delivery</span><span>{order.shippingFee ? money(order.shippingFee) : <span className="save">Free</span>}</span></div>
               <div className="srow total"><span>Total</span><span>{money(order.total)}</span></div>
               {order.refundedAmount > 0 && <div className="srow"><span>Refunded</span><span>{money(order.refundedAmount)}</span></div>}
+              <button type="button" className="btn btn-dark btn-block" style={{ marginTop: 14 }} onClick={reorder}>Reorder</button>
               {CANCELLABLE.includes(order.status) && (
-                <button type="button" className="btn btn-ghost btn-block" style={{ marginTop: 14 }} disabled={busy} onClick={cancel}>{busy ? "Cancelling…" : "Cancel order"}</button>
+                <button type="button" className="btn btn-ghost btn-block" style={{ marginTop: 10 }} disabled={busy} onClick={() => setConfirmCancel(true)}>{busy ? "Cancelling…" : "Cancel order"}</button>
               )}
             </aside>
           </div>
         )}
       </div></section>
+      <ConfirmDialog open={confirmCancel} title="Cancel this order?" message="This order will be cancelled. Are you sure you want to continue?" confirmLabel="Yes, cancel order" busy={busy} onCancel={() => setConfirmCancel(false)} onConfirm={cancel} />
     </>
   );
 }
