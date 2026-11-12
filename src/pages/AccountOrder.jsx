@@ -8,6 +8,7 @@ import OrderReturns from "../components/OrderReturns";
 import ConfirmDialog from "../components/ConfirmDialog";
 import { useStore } from "../context/StoreContext";
 import { useCatalog } from "../context/CatalogContext";
+import OrderProductImage from "../components/OrderProductImage";
 
 const CANCELLABLE = ["placed", "confirmed"];
 
@@ -79,8 +80,8 @@ export default function AccountOrder() {
   const f = order?.fulfilment || {};
   return (
     <>
-      <div className="container page-title"><h1>Order {orderNumber}</h1>
-        <p><Link to="/account" style={{ textDecoration: "underline" }}>← Back to my account</Link></p></div>
+      <div className="container page-title order-page-heading"><h1>Order {orderNumber}</h1>
+        <p><Link to="/account?section=orders" style={{ textDecoration: "underline" }}>← Back to my orders</Link></p></div>
       <section className="section" style={{ paddingTop: 12 }}><div className="container">
         {failure && <p className="err-t" role="alert">{failure}</p>}
         {!order ? !failure && <p className="tax">Loading…</p> : (
@@ -92,7 +93,7 @@ export default function AccountOrder() {
                 {f.trackingUrl && <> · <a href={f.trackingUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "underline" }}>Track parcel</a></>}</p>}
               {order.items.map((item, i) => (
                 <div className="line" key={i}>
-                  <div className="mini">{item.image ? <img src={item.image} alt="" /> : null}</div>
+                  <OrderProductImage item={item} className="mini order-product-thumb" />
                   <div><h3>{item.name}</h3><p className="meta">{[item.color, item.size].filter(Boolean).join(" · ")} · Qty {item.qty}</p>
                     <div className="row"><span /><b>{money(item.lineTotal)}</b></div></div>
                 </div>

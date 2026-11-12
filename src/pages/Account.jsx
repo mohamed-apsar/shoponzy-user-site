@@ -7,6 +7,7 @@ import { storeRequest, storeUpload } from "../api/storeApi";
 import { money } from "../utils/shop";
 import usePageMeta from "../hooks/usePageMeta";
 import ConfirmDialog from "../components/ConfirmDialog";
+import OrderProductImage from "../components/OrderProductImage";
 
 export const STATES = ["Tamil Nadu", "Kerala", "Karnataka", "Andhra Pradesh", "Telangana", "Puducherry", "Maharashtra", "Delhi", "Gujarat", "West Bengal", "Other"];
 export const STATUS_LABELS = {
@@ -127,7 +128,8 @@ function Orders() {
       {!orders ? !failure && <p className="tax">Loading…</p> : !orders.length ? (
         <div className="tax"><p>No orders are linked to this account yet.</p><p>If you checked out as a guest, your account email and phone must match the checkout details for those orders to appear.</p><button type="button" className="view-all" onClick={load}>Refresh orders</button> <Link to="/products" style={{ textDecoration: "underline" }}>Start shopping</Link></div>
       ) : orders.map((o) => (
-        <Link key={o.orderNumber} to={`/account/orders/${o.orderNumber}`} className="srow" style={{ borderBottom: "1px solid var(--line)", padding: "12px 0" }}>
+        <Link key={o.orderNumber} to={`/account/orders/${o.orderNumber}`} className="srow account-order-row" style={{ borderBottom: "1px solid var(--line)", padding: "12px 0" }}>
+          <OrderProductImage item={o.items?.[0]} className="account-order-thumb" />
           <span><b>{o.orderNumber}</b><br /><small className="tax">{new Date(o.placedAt || o.createdAt).toLocaleDateString("en-IN")} · {o.items.reduce((s, i) => s + i.qty, 0)} item(s)</small></span>
           <span style={{ textAlign: "right" }}>{money(o.total)}<br /><small className="tax">{STATUS_LABELS[o.status] || o.status}</small></span>
         </Link>

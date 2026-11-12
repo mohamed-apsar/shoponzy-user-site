@@ -420,6 +420,29 @@ body.pdp-page .tab-space { height: 80px; }
 .line h3 { font-size: .92rem; font-weight: 700; line-height: 1.35; }
 .line .meta { color: var(--muted); font-size: .8rem; }
 .line .row { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; gap: 10px; }
+.account-orders-list { display: grid; }
+.account-order-row { display: grid !important; grid-template-columns: 68px minmax(0, 1fr) 130px; align-items: center; gap: 16px; padding: 14px 0 !important; border-bottom: 1px solid var(--line); color: var(--ink); transition: background .18s, transform .18s; }
+.account-order-row:hover { background: var(--soft); transform: translateX(2px); }
+.account-order-thumb { display: block; width: 68px; height: 68px; overflow: hidden; border-radius: 12px; background: var(--soft); }
+.account-order-thumb img, .account-order-thumb svg { display: block; width: 100%; height: 100%; object-fit: cover; }
+.order-image-fallback { display: grid !important; place-items: center; color: var(--muted); }
+.order-image-fallback .icon { width: 25px; height: 25px; }
+.account-order-row > span:nth-child(2) { min-width: 0; }
+.account-order-row > span:nth-child(3) { min-width: 0; text-align: right !important; font-weight: 700; }
+.account-order-status { display: inline-flex; margin-top: 5px; padding: 3px 9px; border-radius: 999px; background: var(--soft); color: var(--muted); font-size: .75rem; font-weight: 700; }
+.order-page-heading { display: flex; flex-direction: column-reverse; align-items: flex-start; padding-bottom: 12px; }
+.order-page-heading p { margin-bottom: 10px; }
+.order-page-heading h1 { margin: 0; }
+.order-page-heading a { display: inline-flex; align-items: center; gap: 6px; }
+.cart-l #orderDetail { padding: clamp(20px, 3vw, 34px); }
+.cart-l #orderDetail > h2:first-child { font-size: 1.35rem; }
+.cart-l #orderDetail .line { align-items: center; }
+.cart-l #orderDetail .line h3 { font-size: 1rem; }
+@media (max-width: 600px) {
+  .account-order-row { grid-template-columns: 56px minmax(0, 1fr); gap: 12px; }
+  .account-order-thumb { width: 56px; height: 56px; }
+  .account-order-row > span:nth-child(3) { grid-column: 2; text-align: left !important; }
+}
 .qty { display: inline-flex; align-items: center; border: 1.5px solid var(--line); border-radius: 10px; }
 .qty button { width: 34px; height: 36px; display: grid; place-items: center; font-weight: 800; }
 .qty span { min-width: 26px; text-align: center; font-weight: 800; font-size: .9rem; }
