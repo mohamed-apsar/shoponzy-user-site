@@ -10,6 +10,7 @@ import { byId, linePrice, money, totals } from "../utils/shop";
 import { confetti } from "../fx/fx";
 import usePageMeta from "../hooks/usePageMeta";
 import { useCatalog } from "../context/CatalogContext";
+import CouponForm from "../components/CouponForm";
 
 const STATES = ["Tamil Nadu", "Kerala", "Karnataka", "Andhra Pradesh", "Telangana", "Puducherry", "Maharashtra", "Delhi", "Gujarat", "West Bengal", "Other"];
 const FIELDS = ["name", "phone", "email", "address", "city", "pincode", "state"];
@@ -42,6 +43,7 @@ function Summary({ cart, coupon, pay, products, store: STORE, submitting, formEr
         {t.disc > 0 && <div className="srow"><span>Coupon {coupon.code}</span><span className="save">−{money(t.disc)}</span></div>}
         {t.prepaid > 0 && <div className="srow"><span>Prepaid discount ({STORE.prepaidOffPct}%)</span><span className="save">−{money(t.prepaid)}</span></div>}
         <div className="srow"><span>Shipping</span><span>{t.ship ? money(t.ship) : <span className="save">Free</span>}</span></div>
+        <CouponForm />
         <div className="srow"><span>Tax ({STORE.taxRate}%)</span><span>{money(t.tax)}</span></div>
         <div className="srow total"><span>Total</span><span>{money(t.total)}</span></div>
       </div>

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import Icon from "../components/Icon";
 import Art from "../components/Art";
@@ -6,41 +5,8 @@ import ProductMedia from "../components/ProductMedia";
 import { FreeDeliveryMeter, QtyControl } from "../components/sheets/CartSheet";
 import { useStore } from "../context/StoreContext";
 import { byId, linePrice, money, productUrl, totals } from "../utils/shop";
-import { storeRequest } from "../api/storeApi";
 import usePageMeta from "../hooks/usePageMeta";
 import { useCatalog } from "../context/CatalogContext";
-
-function CouponForm() {
-  const { store: STORE, products } = useCatalog();
-  const { coupon, setCoupon, cart } = useStore();
-  const [code, setCode] = useState(coupon?.code || "");
-  const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
-  const t = totals(cart, coupon, "cod", products, STORE);
-
-  async function submit(event) {
-    event.preventDefault();
-    const c = code.trim().toUpperCase();
-    setError("");
-    if (!c) return setCoupon(null);
-    if (!/^[A-Z0-9_-]{3,30}$/.test(c)) return setError(`“${c}” isn’t a valid code.`);
-    setBusy(true);
-    try {
-      setCoupon((await storeRequest(`/coupons/${encodeURIComponent(c)}`)).data);
-    } catch (requestError) {
-      setError(requestError.status === 429 ? "Too many attempts. Please wait a minute." : requestError.message);
-    } finally {
-      setBusy(false);
-    }
-  }
-  const msg = error || (t.disc ? `${coupon.code} applied` : t.cmsg);
-  return (
-    <>
-      <form className="coupon" onSubmit={submit}><input placeholder="Coupon code" aria-label="Coupon code" value={code} onChange={(e) => setCode(e.target.value)} /><button disabled={busy}>{coupon ? "Change" : "Apply"}</button></form>
-      <p className={`cmsg ${!error && t.disc ? "ok" : msg ? "bad" : ""}`}>{msg}</p>
-    </>
-  );
-}
 
 export function EmptyBag({ heading = "Your bag is empty", text = "Explore new arrivals and bestsellers." }) {
   return (
@@ -81,7 +47,6 @@ export default function Cart() {
               {t.tax > 0 && <div className="srow"><span>Tax ({STORE.taxRate}%)</span><span>{money(t.tax)}</span></div>}
               <div className="srow total"><span>Total</span><span>{money(t.total)}</span></div>
               <p className="tax">Pay by UPI at checkout for an extra {STORE.prepaidOffPct}% off.</p>
-              <CouponForm />
               <Link className="btn btn-dark btn-block" to="/checkout" style={{ marginTop: 12 }}>Checkout <Icon name="i-arrow" /></Link>
             </aside>
           </div>
