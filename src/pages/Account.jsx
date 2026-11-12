@@ -6,7 +6,6 @@ import { useCustomer } from "../context/CustomerContext";
 import { storeRequest, storeUpload } from "../api/storeApi";
 import { money } from "../utils/shop";
 import usePageMeta from "../hooks/usePageMeta";
-import ConfirmDialog from "../components/ConfirmDialog";
 import OrderProductImage from "../components/OrderProductImage";
 
 export const STATES = ["Tamil Nadu", "Kerala", "Karnataka", "Andhra Pradesh", "Telangana", "Puducherry", "Maharashtra", "Delhi", "Gujarat", "West Bengal", "Other"];
@@ -383,13 +382,11 @@ function SupportTickets() {
 
 export default function Account() {
   usePageMeta("My Account | Shoponzy");
-  const { user, status, signOut } = useCustomer();
+  const { user, status } = useCustomer();
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const next = params.get("next");
   const [authMode, setAuthMode] = useState(() => params.get("mode") === "signup" ? "signup" : "login");
-  const [confirmLogout, setConfirmLogout] = useState(false);
-  const [logoutBusy, setLogoutBusy] = useState(false);
   const accountSections = [
     ["orders", "My Order", "i-box"],
     ["profile", "My Profile", "i-user"],
@@ -410,11 +407,6 @@ export default function Account() {
     setParams(updated, { replace: true });
   };
   const done = () => { if (next && next.startsWith("/") && !next.startsWith("//")) navigate(next); else scrollTo({ top: 0 }); };
-  const logout = async () => {
-    setLogoutBusy(true);
-    try { await signOut(); navigate("/"); }
-    finally { setLogoutBusy(false); setConfirmLogout(false); }
-  };
 
   return (
     <>
@@ -440,12 +432,10 @@ export default function Account() {
               {selectedSection === "profile" && <Profile />}
               {selectedSection === "orders" && <Orders />}
               {selectedSection === "support" && <SupportTickets />}
-              <button type="button" className="btn btn-ghost account-signout" onClick={() => setConfirmLogout(true)}>Sign out</button>
             </main>
           </div>
         )}
       </div></section>
-      <ConfirmDialog open={confirmLogout} title="Log out?" message="Are you sure you want to log out of your Shoponzy account?" confirmLabel="Yes, log out" busy={logoutBusy} onCancel={() => setConfirmLogout(false)} onConfirm={logout} />
     </>
   );
 }
