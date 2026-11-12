@@ -129,7 +129,7 @@ function mapSettings(settings) {
       categories: homeCategories.categories || [],
       showAllCategories: homeCategories.showAllCategories ?? true,
       showNewIn: homeCategories.showNewIn ?? true,
-      showDeals: homeCategories.showDeals ?? true,
+      newInImage: homeCategories.newInImage?.url || "",
     },
     logo: branding.logo?.url || headerFooter.headerLogo?.url || "",
     headerLogo: headerFooter.headerLogo?.url || "",

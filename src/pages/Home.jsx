@@ -81,13 +81,14 @@ export default function Home() {
   return (
     <>
       <nav className="stories" aria-label="Shop categories">
-        {stripSettings.showNewIn && <Link className="story" to="/products?sort=new"><span className="ring"><span><Art kind="sneaker" color="#FF4D2E" category="shoes" /></span></span>New in</Link>}
+        {stripSettings.showNewIn && <Link className="story" to="/products?sort=new"><span className="ring"><span>{stripSettings.newInImage
+          ? <img src={stripSettings.newInImage} alt="" loading="lazy" />
+          : <Art kind="sneaker" color="#FF4D2E" category="shoes" />}</span></span>New in</Link>}
         {stripCategories.map((c) => (
           <Link className="story" key={c.id} to={categoryUrl(c.id)}><span className="ring"><span>{c.image
             ? <img src={c.image} alt="" loading="lazy" />
             : <Art kind={c.icon[0]} color={c.icon[1]} category={c.id} />}</span></span>{c.name}</Link>
         ))}
-        {stripSettings.showDeals && <Link className="story" to="/products?sale=1"><span className="ring"><span><Art kind="bag" color="#F5A623" category="essentials" /></span></span>Deals</Link>}
       </nav>
 
       {HERO_SLIDES.length > 0 && <HeroSlider slides={HERO_SLIDES} />}
@@ -118,18 +119,6 @@ export default function Home() {
       </div></section>
 
       <div className="mq" aria-hidden="true"><div className="mq-track">{marquee.map((n, i) => <span key={i}>{n}</span>)}</div></div>
-
-      <section className="section"><div className="container">
-        <SectionHead title="Explore categories" />
-        <div className="cat-banners" data-stagger>
-          {CATS.map((c) => (
-            <Link className="cb" key={c.id} to={categoryUrl(c.id)} style={{ background: `linear-gradient(135deg,${c.gradient[0]},${c.gradient[1]})` }}>
-              <span className="art"><Art kind={c.bannerArt[0]} color={c.bannerArt[1]} category={c.id} /></span>
-              <small>{c.tag}</small><b>{c.name}</b><span className="go">Shop now <Icon name="i-arrow" /></span>
-            </Link>
-          ))}
-        </div>
-      </div></section>
 
       <section className="section soft"><div className="container">
         <SectionHead title={categorySection?.title || "Shoponzy shoes"} subtitle={categorySection?.subtitle} railId="shoeRail" viewAll={categorySection?.url || categoryUrl("shoes")} />
