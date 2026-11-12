@@ -24,7 +24,7 @@ export default function Footer() {
           <li><Link to="/help#cancel">Order cancellation</Link></li><li><Link to="/faqs">FAQs</Link></li><li><Link to="/contact">Contact us</Link></li>
         </ul></div>
         <div><h4>Information</h4><ul>
-          <li><Link to="/about">About us</Link></li><li><Link to="/shipping-policy">Shipping policy</Link></li>
+          <li><Link to="/policy">Policy</Link></li><li><Link to="/about">About us</Link></li><li><Link to="/shipping-policy">Shipping policy</Link></li>
           <li><Link to="/return-policy">Return &amp; refund policy</Link></li><li><Link to="/privacy-policy">Privacy policy</Link></li><li><Link to="/terms">Terms &amp; conditions</Link></li>
         </ul></div>
         <div><h4>Quick shop</h4><ul>

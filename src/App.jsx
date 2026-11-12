@@ -7,6 +7,7 @@ import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import Wishlist from "./pages/Wishlist";
 import Help, { HELP_SECTIONS } from "./pages/Help";
+import Policy from "./pages/Policy";
 import NotFound from "./pages/NotFound";
 import LegacyRedirect from "./pages/LegacyRedirect";
 import Account from "./pages/Account";
@@ -47,6 +48,7 @@ export default function App() {
         <Route path="forgot-password" element={<ForgotPassword />} />
         <Route path="reset-password" element={<ResetPassword />} />
         <Route path="help" element={<Help />} />
+        <Route path="policy" element={<Policy />} />
         {Object.keys(HELP_SECTIONS).map((path) => <Route key={path} path={path} element={<Help section={path} />} />)}
         <Route path="*" element={<LegacyRedirect fallback={<NotFound />} />} />
       </Route>
