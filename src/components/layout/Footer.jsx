@@ -21,7 +21,7 @@ export default function Footer() {
           </div></div>
         <div><h4>Help center</h4><ul>
           <li><Link to="/track-order">Order tracking</Link></li><li><Link to="/return-policy">Return / exchange</Link></li>
-          <li><Link to="/help#cancel">Order cancellation</Link></li><li><Link to="/faqs">FAQs</Link></li><li><Link to="/contact">Contact us</Link></li>
+          <li><Link to="/order-cancellation">Order cancellation</Link></li><li><Link to="/faqs">FAQs</Link></li><li><Link to="/contact">Contact us</Link></li>
         </ul></div>
         <div><h4>Information</h4><ul>
           <li><Link to="/policy">Policy</Link></li><li><Link to="/about">About us</Link></li><li><Link to="/shipping-policy">Shipping policy</Link></li>

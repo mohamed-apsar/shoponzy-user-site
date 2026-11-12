@@ -11,6 +11,7 @@ import { useCatalog } from "../context/CatalogContext";
    Phase 6 moves the text into Manage Site → Pages & Policies. */
 export const HELP_SECTIONS = {
   "track-order": ["track", "Order Tracking"], contact: ["contact", "Contact Us"], about: ["about", "About Us"],
+  "order-cancellation": ["cancel", "Order Cancellation"],
   "shipping-policy": ["shipping", "Shipping Policy"], "return-policy": ["returns", "Return & Refund Policy"],
   "privacy-policy": ["privacy", "Privacy Policy"], terms: ["terms", "Terms & Conditions"], faqs: ["faq", "FAQs"],
 };
@@ -157,6 +158,23 @@ export default function Help({ section }) {
     const t = setTimeout(() => document.getElementById(anchor)?.scrollIntoView({ behavior: "smooth" }), 80);
     return () => clearTimeout(t);
   }, [anchor]);
+
+  if (section) {
+    let content;
+    switch (section) {
+      case "track-order": content = <><p>Enter your order ID and the mobile number used at checkout to see the latest status and courier tracking.</p><TrackOrder /></>; break;
+      case "contact": content = <><p>Contact our team and we’ll get back to you shortly.</p><ContactForm /><p className="tax" style={{ marginTop: 12 }}>Email <a href={`mailto:${STORE.email}`} style={{ textDecoration: "underline" }}>{STORE.email}</a> · Call <a href={`tel:${STORE.phoneTel}`} style={{ textDecoration: "underline" }}>{STORE.phoneDisplay}</a></p></>; break;
+      case "about": content = <p>Shoponzy brings shoes, sunglasses, perfumes, clothing, watches and everyday essentials together in one easy store, with honest prices and quick delivery.</p>; break;
+      case "order-cancellation": content = <p>Orders can be cancelled before they are shipped. Contact us with your order ID to request a cancellation.</p>; break;
+      case "shipping-policy": content = <ul><li>Orders are dispatched within 1–2 working days.</li><li>{STORE.deliveryText}.</li><li>Free delivery on orders above ₹999; a flat ₹59 applies below that.</li><li>Cash on delivery is available on most PIN codes.</li></ul>; break;
+      case "return-policy": content = <ul><li>Return or exchange within 7 days of delivery, for unused items with original tags and packaging.</li><li>Perfumes, innerwear and items marked non-returnable can’t be returned once opened, for hygiene reasons.</li><li>Refunds for prepaid orders go back to the original payment method within 5–7 working days after the return is received.</li></ul>; break;
+      case "privacy-policy": content = <p>We collect only the details needed to process and deliver your order (name, phone, address, email). We don’t sell your data. Your wishlist is stored in your own browser.</p>; break;
+      case "terms": content = <p>Prices and offers can change without notice. Prices, stock and discounts are confirmed when the order is placed. Product colours may vary slightly from screen to screen.</p>; break;
+      case "faqs": content = <Faqs />; break;
+      default: content = <p>Find answers and contact options in our <a href="/help" style={{ textDecoration: "underline" }}>Help center</a>.</p>;
+    }
+    return <><div className="container page-title"><h1>{title}</h1><p>{section === "faqs" ? "Answers to common questions about shopping with Shoponzy." : "Shoponzy help and information."}</p></div><section className="section" style={{ paddingTop: 14 }}><div className="container prose" style={{ maxWidth: 860 }}>{content}</div></section></>;
+  }
 
   return (
     <>
