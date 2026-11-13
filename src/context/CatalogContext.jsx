@@ -18,16 +18,13 @@ function mapCategory(category) {
   const display = category.display || {};
   const firstChild = category.children?.[0]?.display || {};
   const descendants = [];
-  // Per-subcategory page media, keyed by category id. Only that subcategory's own uploads; never parent/product images.
+  // Per-subcategory page banner, keyed by category id. Only that subcategory's own upload; never parent/product images.
   const subMedia = {};
   function collectDescendants(children, ancestors = [], ancestorIds = [category.id]) {
     for (const child of children || []) {
       const pathNames = [...ancestors, child.name];
-      const images = ["image1", "image2", "image3"]
-        .map((slot, index) => child.images?.[slot]?.url ? { url: child.images[slot].url, alt: child.images[slot].alt || `${child.name} ${index + 1}` } : null)
-        .filter(Boolean);
-      if (child.bannerImage?.url || images.length) {
-        subMedia[child.id] = { name: child.name, banner: child.bannerImage?.url ? { url: child.bannerImage.url, alt: child.bannerImage.alt || child.name } : null, images };
+      if (child.bannerImage?.url) {
+        subMedia[child.id] = { name: child.name, banner: { url: child.bannerImage.url, alt: child.bannerImage.alt || child.name } };
       }
       descendants.push([
         child.slug,
@@ -108,6 +105,12 @@ function mapProduct(product, categoryById) {
     sizes,
     images,
     colorImages,
+    // Per-colour banner + up to three row images; only what the admin uploaded for that colour.
+    colorShowcase: (product.colors || []).map((color) => ({
+      banner: color.bannerImage?.url ? { url: color.bannerImage.url, alt: color.bannerImage.alt || "" } : null,
+      images: ["image1", "image2", "image3"].map((slot) => color.rowImages?.[slot]).filter((image) => image?.url)
+        .map((image) => ({ url: image.url, alt: image.alt || "" })),
+    })),
     seo: product.seo || {},
     specs: (product.specs || []).map(({ label, value }) => [label, value]),
     variants: product.variants || [],

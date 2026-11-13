@@ -71,6 +71,27 @@ function PinCheck({ deliveryText }) {
   );
 }
 
+/* The selected colour's own banner and three-image row (nothing is rendered for slots left empty). */
+function ColorShowcase({ showcase, colorName }) {
+  if (!showcase || (!showcase.banner && !showcase.images.length)) return null;
+  return (
+    <section className="product-content-section color-showcase" aria-label={`${colorName} images`}>
+      <div className="container">
+        <div className="product-content-stack">
+          {showcase.banner && <img className="product-content-banner color-showcase-banner" src={showcase.banner.url} alt={showcase.banner.alt || colorName} width="1920" height="600" loading="lazy" decoding="async" />}
+          {showcase.images.length > 0 && (
+            <div className={`product-content-image-row color-showcase-row n${showcase.images.length}`}>
+              {showcase.images.map((image) => (
+                <img key={image.url} src={image.url} alt={image.alt || colorName} width="800" height="1200" loading="lazy" decoding="async" />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function ProductContentBlocks({ blocks = [], error, onRetry }) {
   if (error) {
     return (
@@ -239,6 +260,7 @@ function Product({ p, products, categories, store: STORE }) {
         </div>
       </div></section>
 
+      <ColorShowcase key={opt.c} showcase={p.colorShowcase?.[opt.c]} colorName={selectedColor} />
       <ProductContentBlocks blocks={contentBlocks} error={contentLoadError} onRetry={() => setContentAttempt((attempt) => attempt + 1)} />
 
       <section className="section soft"><div className="container">

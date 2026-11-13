@@ -13,7 +13,7 @@ import { usePageFx } from "../fx/usePageFx";
 import usePageMeta from "../hooks/usePageMeta";
 import { useCatalog } from "../context/CatalogContext";
 import ComingSoon from "./ComingSoon";
-import { SubcategoryBanner, SubcategoryGallery } from "../components/SubcategoryMedia";
+import { SubcategoryBanner } from "../components/SubcategoryMedia";
 
 const SORTS = [["featured", "Featured"], ["new", "Newest first"], ["low", "Price: low to high"], ["high", "Price: high to low"], ["off", "Biggest discount"]];
 const SORTERS = { low: (a, b) => a.price - b.price, high: (a, b) => b.price - a.price, new: (a, b) => b.isNew - a.isNew, off: (a, b) => off(b) - off(a) };
@@ -153,7 +153,6 @@ function Listing({ pageCat }) {
           })}
         </nav>
       )}
-      {subMedia?.images.length > 0 && <SubcategoryGallery key={st.subs[0]} name={subMedia.name} images={subMedia.images} />}
       <section className="section" style={{ paddingTop: 18 }}><div className="container plp">
         <aside className="filters" id="filters" aria-label="Filters">
           <Filters {...filterProps} />
