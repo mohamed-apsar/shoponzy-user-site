@@ -5,7 +5,6 @@ import Art from "../components/Art";
 import HeroSlider from "../components/HeroSlider";
 import SectionHead from "../components/SectionHead";
 import { ProductList } from "../components/ProductCard";
-import { OCCASIONS } from "../data/catalog";
 import { categoryUrl, off } from "../utils/shop";
 import { storeRequest } from "../api/storeApi";
 import { usePageFx } from "../fx/usePageFx";
@@ -103,15 +102,6 @@ export default function Home() {
       <section className="section"><div className="container">
         <SectionHead title={newSection?.title || "New arrivals"} subtitle={newSection?.subtitle} railId="newRail" viewAll={newSection?.url || "/products?sort=new"} />
         <ProductList id="newRail" items={newIn} />
-      </div></section>
-
-      <section className="section soft"><div className="container">
-        <SectionHead title="Shop by occasion" />
-        <div className="occ" data-stagger>
-          {OCCASIONS.map((o) => (
-            <Link key={o.name} to={o.href}><span className="art"><Art kind={o.art} color={o.color} category={o.cat} /></span><b>{o.name}<Icon name="i-arrow" /></b></Link>
-          ))}
-        </div>
       </div></section>
 
       <section className="section"><div className="container">
