@@ -437,7 +437,7 @@ body.pdp-page .tab-space { height: 80px; }
 .product-content-image-row img { width: 100%; height: auto; }
 .product-content-error { padding-bottom: 20px; color: var(--muted); }
 .product-content-error button { margin-top: 6px; color: var(--ink); text-decoration: underline; }
-@media (max-width: 700px) { .product-content-image-row { grid-template-columns: 1fr; } }
+@media (max-width: 700px) { .product-content-image-row { gap: 8px; } .product-content-image-row img { border-radius: 8px; } }
 
 /* ---------- Cart / checkout ---------- */
 .page-title { padding-top: 20px; padding-bottom: 6px; }
