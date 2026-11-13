@@ -32,7 +32,7 @@ export default function ComingSoon({ category }) {
             </div>
           </div>
 
-          <div className="coming-soon-visual" aria-hidden="true">
+          <div className={`coming-soon-visual${category.bannerImage ? " has-banner" : ""}`} aria-hidden="true">
             {category.bannerImage
               ? <img className="coming-soon-banner" src={category.bannerImage} alt="" />
               : category.image

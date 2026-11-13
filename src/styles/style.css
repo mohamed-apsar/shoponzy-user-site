@@ -773,10 +773,11 @@ html, body { overflow-x: clip; }
 .coming-soon-button:hover span { transform: translateX(4px); }
 .coming-soon-note { color: rgba(255,255,255,.56); font-size: 11px; font-weight: 600; }
 .coming-soon-visual { position: relative; display: grid; place-items: center; min-height: 440px; overflow: hidden; background: radial-gradient(ellipse at 50% 42%, rgba(255,255,255,.19), transparent 57%); }
+.coming-soon-visual.has-banner { background: #171423; }
 .coming-soon-visual::before,.coming-soon-visual::after { position: absolute; content: ""; border: 1px solid rgba(255,255,255,.17); border-radius: 50%; }
 .coming-soon-visual::before { width: min(37vw, 450px); aspect-ratio: 1; }
 .coming-soon-visual::after { width: min(28vw, 340px); aspect-ratio: 1; }
-.coming-soon-banner { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; object-position: center center; opacity: .72; }
+.coming-soon-banner { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain; object-position: center center; opacity: .96; }
 .coming-soon-product { position: relative; z-index: 1; width: min(55%, 280px); aspect-ratio: 1; border: 9px solid rgba(255,255,255,.82); border-radius: 24px; object-fit: cover; box-shadow: 0 28px 75px rgba(0,0,0,.28); transform: rotate(4deg); }
 .coming-soon-orbit { position: relative; z-index: 1; display: grid; place-content: center; width: min(55%, 280px); aspect-ratio: 1; border: 1px solid rgba(255,255,255,.5); border-radius: 50%; background: rgba(255,255,255,.09); box-shadow: 0 25px 70px rgba(0,0,0,.15); text-align: center; text-transform: uppercase; }
 .coming-soon-orbit span { color: rgba(255,255,255,.76); font-size: 10px; font-weight: 850; letter-spacing: .17em; }
