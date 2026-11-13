@@ -265,6 +265,8 @@ ul, ol { list-style: none; }
 .cat-hero .bg { position: absolute; inset: -20% 0; z-index: -2; }
 .cat-hero .in { padding-top: 34px; padding-bottom: 40px; display: grid; gap: 10px; min-height: 230px; align-content: end; }
 @media (min-width: 900px) { .cat-hero .in { min-height: 340px; padding-top: 60px; padding-bottom: 60px; } }
+.cat-hero.has-banner .bg { inset: 0; }
+@media (min-width: 900px) { .cat-hero.has-banner .in { min-height: clamp(440px, 41.667vw, 760px); } }
 .cat-hero .crumbs { font-size: .8rem; opacity: .85; display: flex; gap: 6px; flex-wrap: wrap; }
 .cat-hero .crumbs a:hover { text-decoration: underline; }
 .cat-hero h1 { font-size: clamp(2.2rem, 6vw, 4.4rem); font-weight: 800; letter-spacing: -.035em; line-height: 1; }
@@ -750,6 +752,7 @@ html, body { overflow-x: clip; }
   .cat-hero .float:nth-of-type(2) { display: none; }
   .cat-hero p, .cat-hero h1 { max-width: 64%; }
   .cat-hero .in { min-height: 250px; }
+  .cat-hero.has-banner .in { min-height: clamp(270px, 72vw, 380px); }
 }
 .coming-soon-page { min-height: 66vh; padding: clamp(28px, 5vw, 64px) 0; background: radial-gradient(ellipse at 8% 12%, #fff0e9 0, transparent 32%), #faf9f7; }
 .coming-soon-shell { max-width: 1320px; }

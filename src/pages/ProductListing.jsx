@@ -64,7 +64,7 @@ function Hero({ c, q }) {
     { depth: "1.6", style: { right: -30, bottom: "10%", width: 140 } },
   ];
   return (
-    <section className="cat-hero"><div className="bg" style={c.bannerImage
+    <section className={`cat-hero${c.bannerImage ? " has-banner" : ""}`}><div className="bg" style={c.bannerImage
       ? { backgroundImage: `linear-gradient(90deg,rgba(0,0,0,.62),rgba(0,0,0,.12)),url("${c.bannerImage}")`, backgroundSize: "cover", backgroundPosition: "center" }
       : { background: `linear-gradient(135deg,${c.gradient[0]},${c.gradient[1]})` }} />
       {!c.bannerImage && floats.map((f, i) => (
