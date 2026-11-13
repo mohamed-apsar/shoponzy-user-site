@@ -41,6 +41,7 @@ function mapCategory(category) {
     icon: [firstChild.artKind || display.artKind || "bag", firstChild.artColor || display.artColor || display.color || "#999999"],
     id: category.slug,
     name: category.name,
+    comingSoon: Boolean(category.comingSoon),
     image: category.image?.url || "",
     exploreImage: category.exploreImage?.url || "",
     bannerImage: category.bannerImage?.url || "",

@@ -751,3 +751,9 @@ html, body { overflow-x: clip; }
   .cat-hero p, .cat-hero h1 { max-width: 64%; }
   .cat-hero .in { min-height: 250px; }
 }
+.coming-soon-page { min-height: 58vh; display: grid; place-items: center; padding: 64px 20px; background: #f7f7f5; }
+.coming-soon-card { width: min(100%, 660px); padding: clamp(32px, 7vw, 72px); border: 1px solid #e8e8e5; border-radius: 28px; background: #fff; text-align: center; box-shadow: 0 24px 70px rgba(17, 19, 24, .07); }
+.coming-soon-kicker { color: #777; font-size: 12px; font-weight: 800; letter-spacing: .16em; }
+.coming-soon-icon { width: 76px; height: 76px; display: grid; place-items: center; margin: 28px auto 20px; border-radius: 50%; background: #fff0eb; color: #ff4d2e; font-size: 34px; }
+.coming-soon-card h1 { margin: 0; font-size: clamp(38px, 8vw, 64px); letter-spacing: -.05em; }
+.coming-soon-card p { max-width: 440px; margin: 16px auto 28px; color: #777; font-size: 17px; line-height: 1.65; }

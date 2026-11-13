@@ -12,6 +12,7 @@ import { productMatchesCategory } from "../utils/categoryProducts";
 import { usePageFx } from "../fx/usePageFx";
 import usePageMeta from "../hooks/usePageMeta";
 import { useCatalog } from "../context/CatalogContext";
+import ComingSoon from "./ComingSoon";
 
 const SORTS = [["featured", "Featured"], ["new", "Newest first"], ["low", "Price: low to high"], ["high", "Price: high to low"], ["off", "Biggest discount"]];
 const SORTERS = { low: (a, b) => a.price - b.price, high: (a, b) => b.price - a.price, new: (a, b) => b.isNew - a.isNew, off: (a, b) => off(b) - off(a) };
@@ -201,7 +202,9 @@ export function CategoryPage() {
   const { slug } = useParams();
   const [params] = useSearchParams();
   if (status !== "ready") return null;
-  if (!cat(slug, categories)) return <NotFound />;
+  const category = cat(slug, categories);
+  if (!category) return <NotFound />;
+  if (category.comingSoon) return <ComingSoon category={category} />;
   return <Listing key={slug + params.toString()} pageCat={slug} />;
 }
 
