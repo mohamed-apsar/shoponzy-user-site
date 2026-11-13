@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import Icon from "../components/Icon";
 import Art from "../components/Art";
@@ -13,7 +13,6 @@ import { usePageFx } from "../fx/usePageFx";
 import usePageMeta from "../hooks/usePageMeta";
 import { useCatalog } from "../context/CatalogContext";
 import ComingSoon from "./ComingSoon";
-import { storeRequest } from "../api/storeApi";
 
 const SORTS = [["featured", "Featured"], ["new", "Newest first"], ["low", "Price: low to high"], ["high", "Price: high to low"], ["off", "Biggest discount"]];
 const SORTERS = { low: (a, b) => a.price - b.price, high: (a, b) => b.price - a.price, new: (a, b) => b.isNew - a.isNew, off: (a, b) => off(b) - off(a) };
@@ -202,26 +201,10 @@ export function CategoryPage() {
   const { categories, status } = useCatalog();
   const { slug } = useParams();
   const [params] = useSearchParams();
-  const [freshCategory, setFreshCategory] = useState({ slug: "", loading: true, comingSoon: false, error: false });
-
-  useEffect(() => {
-    let active = true;
-    setFreshCategory({ slug, loading: true, comingSoon: false, error: false });
-    storeRequest(`/categories/${encodeURIComponent(slug)}`)
-      .then(({ data }) => {
-        if (active) setFreshCategory({ slug, loading: false, comingSoon: Boolean(data.comingSoon), error: false });
-      })
-      .catch(() => {
-        if (active) setFreshCategory({ slug, loading: false, comingSoon: false, error: true });
-      });
-    return () => { active = false; };
-  }, [slug]);
-
   if (status !== "ready") return null;
   const category = cat(slug, categories);
   if (!category) return <NotFound />;
-  if (freshCategory.slug !== slug || freshCategory.loading) return <div className="container page-title"><p role="status">Loading category…</p></div>;
-  if (freshCategory.error ? category.comingSoon : freshCategory.comingSoon) return <ComingSoon category={category} />;
+  if (category.comingSoon) return <ComingSoon category={category} />;
   return <Listing key={slug + params.toString()} pageCat={slug} />;
 }
 

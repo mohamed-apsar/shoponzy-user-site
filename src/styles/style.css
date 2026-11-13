@@ -751,9 +751,28 @@ html, body { overflow-x: clip; }
   .cat-hero p, .cat-hero h1 { max-width: 64%; }
   .cat-hero .in { min-height: 250px; }
 }
-.coming-soon-page { min-height: 58vh; display: grid; place-items: center; padding: 64px 20px; background: #f7f7f5; }
-.coming-soon-card { width: min(100%, 660px); padding: clamp(32px, 7vw, 72px); border: 1px solid #e8e8e5; border-radius: 28px; background: #fff; text-align: center; box-shadow: 0 24px 70px rgba(17, 19, 24, .07); }
-.coming-soon-kicker { color: #777; font-size: 12px; font-weight: 800; letter-spacing: .16em; }
-.coming-soon-icon { width: 76px; height: 76px; display: grid; place-items: center; margin: 28px auto 20px; border-radius: 50%; background: #fff0eb; color: #ff4d2e; font-size: 34px; }
-.coming-soon-card h1 { margin: 0; font-size: clamp(38px, 8vw, 64px); letter-spacing: -.05em; }
-.coming-soon-card p { max-width: 440px; margin: 16px auto 28px; color: #777; font-size: 17px; line-height: 1.65; }
+.coming-soon-page { min-height: 62vh; padding: clamp(30px, 5vw, 68px) 0; background: radial-gradient(ellipse at 12% 15%, #fff0e9 0, transparent 34%), #f7f7f5; }
+.coming-soon-shell { max-width: 1320px; }
+.coming-soon-back { display: inline-block; margin-bottom: 18px; color: #777; font-size: 14px; font-weight: 650; text-decoration: none; }
+.coming-soon-back:hover { color: #111318; }
+.coming-soon-card { position: relative; display: grid; grid-template-columns: 1.05fr .95fr; min-height: 490px; overflow: hidden; border-radius: 30px; background: var(--coming-gradient); color: #fff; box-shadow: 0 26px 80px rgba(17, 19, 24, .16); }
+.coming-soon-copy { z-index: 1; align-self: center; padding: clamp(34px, 7vw, 90px); }
+.coming-soon-kicker { display: block; color: rgba(255,255,255,.74); font-size: 11px; font-weight: 800; letter-spacing: .19em; }
+.coming-soon-pill { display: inline-flex; align-items: center; gap: 8px; margin: 28px 0 14px; padding: 9px 13px; border: 1px solid rgba(255,255,255,.3); border-radius: 999px; background: rgba(255,255,255,.12); font-size: 12px; font-weight: 750; }
+.coming-soon-pill i { width: 7px; height: 7px; border-radius: 50%; background: #ffb159; box-shadow: 0 0 0 4px rgba(255,177,89,.18); }
+.coming-soon-card h1 { margin: 0; font-size: clamp(42px, 6vw, 76px); line-height: .98; letter-spacing: -.06em; }
+.coming-soon-card p { max-width: 440px; margin: 20px 0 28px; color: rgba(255,255,255,.78); font-size: 16px; line-height: 1.7; }
+.coming-soon-button { display: inline-flex; align-items: center; gap: 20px; padding: 14px 18px; border-radius: 999px; background: #fff; color: #111318; font-weight: 750; text-decoration: none; }
+.coming-soon-button span { font-size: 20px; transition: transform .18s ease; }
+.coming-soon-button:hover span { transform: translateX(4px); }
+.coming-soon-visual { position: relative; display: grid; place-items: center; min-height: 360px; overflow: hidden; background: radial-gradient(circle at 52% 48%, rgba(255,255,255,.23), transparent 53%); }
+.coming-soon-visual::before,.coming-soon-visual::after { position: absolute; content: ""; border: 1px solid rgba(255,255,255,.2); border-radius: 50%; }
+.coming-soon-visual::before { width: min(36vw, 420px); aspect-ratio: 1; }
+.coming-soon-visual::after { width: min(27vw, 320px); aspect-ratio: 1; }
+.coming-soon-banner { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .84; mix-blend-mode: screen; }
+.coming-soon-product { position: relative; z-index: 1; width: min(52%, 250px); aspect-ratio: 1; border: 10px solid rgba(255,255,255,.84); border-radius: 50%; object-fit: cover; box-shadow: 0 28px 80px rgba(0,0,0,.28); }
+.coming-soon-orbit { position: relative; z-index: 1; display: grid; place-items: center; width: min(52%, 250px); aspect-ratio: 1; border: 1px solid rgba(255,255,255,.55); border-radius: 50%; background: rgba(255,255,255,.1); box-shadow: 0 25px 70px rgba(0,0,0,.15); text-align: center; text-transform: uppercase; }
+.coming-soon-orbit span { color: rgba(255,255,255,.82); font-size: 13px; font-weight: 800; letter-spacing: .16em; }
+.coming-soon-orbit b { margin-top: -30px; font-size: 42px; letter-spacing: -.04em; }
+.coming-soon-stamp { position: absolute; right: 9%; bottom: 11%; z-index: 2; display: grid; width: 88px; height: 88px; place-content: center; transform: rotate(10deg); border-radius: 50%; background: #fff; color: var(--coming-accent); font-size: 10px; font-weight: 900; line-height: 1.35; text-align: center; letter-spacing: .08em; box-shadow: 0 12px 30px rgba(0,0,0,.14); }
+@media (max-width: 720px) { .coming-soon-page { padding: 24px 0 40px; }.coming-soon-card { grid-template-columns: 1fr; min-height: 0; border-radius: 22px; }.coming-soon-copy { padding: 34px 28px 8px; }.coming-soon-card h1 { font-size: clamp(42px, 12vw, 64px); }.coming-soon-visual { min-height: 270px; }.coming-soon-visual::before { width: 260px; }.coming-soon-visual::after { width: 190px; }.coming-soon-product,.coming-soon-orbit { width: 180px; }.coming-soon-stamp { right: 12%; bottom: 8%; } }

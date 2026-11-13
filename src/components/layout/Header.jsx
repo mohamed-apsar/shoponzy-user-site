@@ -77,13 +77,13 @@ function CategoryMenu({ category }) {
   if (!category) return null;
 
   return (
-    <div className={`dd category-dropdown${open ? " is-open" : ""}`} onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
+    <div className={`dd category-dropdown${open && !category.comingSoon ? " is-open" : ""}`} onMouseEnter={() => { if (!category.comingSoon) setOpen(true); }} onMouseLeave={() => setOpen(false)}>
       <NavLink to={categoryUrl(category.id)} onClick={blur}>{category.name}</NavLink>
-      <button type="button" className="category-toggle" aria-label={`Show ${category.name} subcategories`} aria-expanded={open}
+      {!category.comingSoon && <button type="button" className="category-toggle" aria-label={`Show ${category.name} subcategories`} aria-expanded={open}
         aria-controls={`category-menu-${category.id}`} onClick={() => setOpen((value) => !value)}>
         <Icon name="i-down" />
-      </button>
-      <div className="category-menu" id={`category-menu-${category.id}`} ref={menuRef}
+      </button>}
+      {!category.comingSoon && <div className="category-menu" id={`category-menu-${category.id}`} ref={menuRef}
         style={menuPosition || undefined}>
         <div className="category-menu-items">
           {menuCategories.map(([slug, name, kind, color, image, categoryId, pathName, depth]) => {
@@ -112,7 +112,7 @@ function CategoryMenu({ category }) {
           <strong>Shop all {category.name}</strong>
           <span className="category-menu-explore">Explore <Icon name="i-arrow" /></span>
         </Link>
-      </div>
+      </div>}
     </div>
   );
 }
