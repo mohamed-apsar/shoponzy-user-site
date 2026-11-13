@@ -48,7 +48,7 @@ export default function Footer() {
           );
         })}
       </div>
-      <div className="f-bottom"><div className="container"><p>© {new Date().getFullYear()} Shoponzy. Developed by BHive Technologies.</p>
+      <div className="f-bottom"><div className="container"><p>© {new Date().getFullYear()} Shoponzy. Developed by Bhive Technologies.</p>
         <div className="pay-chips"><span>UPI</span><span>GPay</span><span>PhonePe</span><span>COD</span></div></div></div>
     </footer>
   );
