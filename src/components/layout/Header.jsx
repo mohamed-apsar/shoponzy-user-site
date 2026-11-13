@@ -127,7 +127,6 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false);
-  const [logoutBusy, setLogoutBusy] = useState(false);
   const ref = useRef(null);
   const profileRef = useRef(null);
 
@@ -161,10 +160,10 @@ export default function Header() {
     setConfirmLogout(true);
   };
 
-  const logout = async () => {
-    setLogoutBusy(true);
-    try { await signOut(); }
-    finally { setLogoutBusy(false); setConfirmLogout(false); navigate("/"); }
+  const logout = () => {
+    setConfirmLogout(false);
+    void signOut();
+    navigate("/");
   };
 
   return (
@@ -198,7 +197,7 @@ export default function Header() {
         </div>
       </div>
     </header>
-    <ConfirmDialog open={confirmLogout} title="Log out?" message="Are you sure you want to log out of your Shoponzy account?" confirmLabel="Yes, log out" busy={logoutBusy} onCancel={() => setConfirmLogout(false)} onConfirm={logout} />
+    <ConfirmDialog open={confirmLogout} title="Log out?" message="Are you sure you want to log out of your Shoponzy account?" confirmLabel="Yes, log out" onCancel={() => setConfirmLogout(false)} onConfirm={logout} />
     </>
   );
 }

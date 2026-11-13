@@ -31,13 +31,11 @@ export function CustomerProvider({ children }) {
     return result.data.user;
   }, []);
 
-  const signOut = useCallback(async () => {
-    try {
-      await storeRequest("/auth/logout", { method: "POST" });
-    } finally {
-      setUser(null);
-      setStatus("guest");
-    }
+  const signOut = useCallback(() => {
+    // Update the storefront immediately; revoking the server session can finish in the background.
+    setUser(null);
+    setStatus("guest");
+    return storeRequest("/auth/logout", { method: "POST" }).catch(() => {});
   }, []);
 
   const value = { user, status, signedIn: status === "signed-in", setUser, signIn, register, signOut };
