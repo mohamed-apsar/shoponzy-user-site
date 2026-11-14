@@ -47,23 +47,25 @@ function StaticDoodleBanner() {
         <Link className="doodle-banner" to="/products" aria-label="Shop all styles">
           <div className="doodle-copy">
             <span className="doodle-kicker">A LITTLE SHOPONZY MAGIC</span>
-            <h2>Find your kind<br />of <em>happy.</em></h2>
-            <p>Good finds, great feels. Your next favourite is just around the corner.</p>
+            <h2>Good finds.<br /><em>Happy vibes.</em></h2>
+            <p>Shoes, shades and little everyday favourites — find something that feels like you.</p>
             <span className="doodle-cta">Shop all styles <span aria-hidden="true">↗</span></span>
           </div>
           <div className="doodle-art" aria-hidden="true">
-            <svg viewBox="0 0 540 300" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path className="doodle-squiggle" d="M27 232c25-24 42 17 68-4 20-16 8-39 28-46" />
-              <path className="doodle-shoe" d="M124 197c25-7 45-19 60-42l18-28c8-12 22-15 33-7l58 44c18 14 42 22 68 23 23 1 39 10 45 25l7 18c3 9-4 18-14 18H142c-19 0-30-16-18-33l0-18Z" />
-              <path className="doodle-detail" d="m185 161 45 9m-34 2 45 9m-34 2 45 9m-94 29h237m-167-85 16 14 12-15 16 15 13-14 17 15" />
-              <path className="doodle-glasses" d="M345 93c3-10 12-17 23-17h42l7 33c4 19-8 35-27 35h-7c-13 0-23-9-26-22l-3-14h-16l-3 14c-3 13-13 22-26 22h-7c-19 0-31-16-27-35l7-33h42c11 0 20 7 23 17Z" />
-              <path className="doodle-detail" d="M338 94h14m-81-1 8-17m134 17-8-17M440 170l9-14m-15 33 17-2M91 92l5-17m-12 44 18 3" />
-              <path className="doodle-star" d="m465 67 5 13 13 5-13 5-5 13-5-13-13-5 13-5 5-13Zm-386 83 4 10 10 4-10 4-4 10-4-10-10-4 10-4 4-10Z" />
-              <circle className="doodle-dot" cx="477" cy="222" r="5" />
-              <circle className="doodle-dot" cx="105" cy="66" r="4" />
+            <svg viewBox="0 0 600 340" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path className="doodle-squiggle" d="M30 252c34-37 55 28 91-4 24-22 5-55 40-67" />
+              <path className="doodle-shoe" d="M112 206c31-8 57-23 77-51l24-37c10-16 29-19 43-8l76 57c23 17 55 28 89 29 29 1 50 13 58 33l8 23c4 12-5 23-18 23H134c-25 0-39-21-16-43l-6-26Z" />
+              <path className="doodle-detail" d="m190 165 57 12m-43 2 57 12m-43 2 57 12m-117 27h309m-217-111 20 17 16-19 21 18 17-17 21 18" />
+              <path className="doodle-glasses" d="M390 92c4-13 15-21 29-21h52l9 40c5 23-10 43-34 43h-9c-16 0-29-11-33-27l-4-17h-20l-4 17c-4 16-17 27-33 27h-9c-24 0-39-20-34-43l9-40h52c14 0 25 8 29 21Z" />
+              <path className="doodle-detail" d="M382 94h17m-102 1 11-21m169 21-11-21M518 179l12-18m-19 41 22-3M85 99l7-22m-17 57 22 4" />
+              <path className="doodle-star" d="m530 66 7 17 17 7-17 7-7 17-7-17-17-7 17-7 7-17Zm-396 76 5 13 13 5-13 5-5 13-5-13-13-5 13-5 5-13Z" />
+              <circle className="doodle-dot" cx="545" cy="258" r="7" /><circle className="doodle-dot" cx="120" cy="68" r="6" />
+              <g className="doodle-bag" transform="rotate(-9 93 167)"><path d="M48 144h91l-8 93H57l-9-93Z"/><path d="M72 148v-16c0-12 9-21 21-21s21 9 21 21v16"/><path d="m82 186 12 12 21-25"/></g>
+              <g className="doodle-perfume" transform="rotate(8 493 220)"><path d="M471 197h45v65h-45z"/><path d="M480 183h27v14h-27zM486 172h15v11h-15z"/><path d="M482 220h23"/></g>
+              <path className="doodle-sparkle" d="m286 43 5 13 13 5-13 5-5 13-5-13-13-5 13-5 5-13Zm-222 92 3 9 9 3-9 3-3 9-3-9-9-3 9-3 3-9Zm376 169 4 11 11 4-11 4-4 11-4-11-11-4 11-4 4-11Z" />
             </svg>
           </div>
-          <span className="doodle-stamp" aria-hidden="true">GOOD<br />THINGS<br />INSIDE</span>
+          <span className="doodle-stamp" aria-hidden="true">STYLE<br />GOODIES<br />INSIDE</span>
         </Link>
       </div>
     </section>

@@ -241,27 +241,33 @@ ul, ol { list-style: none; }
 
 /* ---------- Marquee ---------- */
 .doodle-promo { padding-top: 8px; padding-bottom: 8px; }
-.doodle-banner { position: relative; display: grid; grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr); align-items: center; min-height: 310px; overflow: hidden; padding: clamp(26px, 5vw, 58px); border: 1px solid #f4c5a6; border-radius: 28px; background: #fff0e3; color: #171717; text-decoration: none; }
-.doodle-banner::before, .doodle-banner::after { position: absolute; border: 1px dashed rgb(255 77 46 / 28%); border-radius: 50%; content: ""; pointer-events: none; }
+.doodle-banner { position: relative; display: grid; grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr); align-items: center; min-height: 330px; overflow: hidden; padding: clamp(26px, 5vw, 58px); border: 1px solid #ffd1a7; border-radius: 28px; background: radial-gradient(ellipse at 83% 17%, #fff3a9 0, transparent 25%), radial-gradient(ellipse at 65% 90%, #ffd6e8 0, transparent 36%), linear-gradient(115deg, #fff0df, #fff8e8 53%, #e9f8f4); color: #171717; text-decoration: none; }
+.doodle-banner::before, .doodle-banner::after { position: absolute; border: 1px dashed rgb(255 77 46 / 38%); border-radius: 50%; content: ""; pointer-events: none; }
 .doodle-banner::before { width: 360px; height: 360px; right: 15%; top: -230px; }
 .doodle-banner::after { width: 250px; height: 250px; right: -90px; bottom: -185px; }
 .doodle-copy { position: relative; z-index: 1; max-width: 480px; }
-.doodle-kicker { display: inline-block; margin-bottom: 14px; color: #d94c32; font-size: .72rem; font-weight: 850; letter-spacing: .15em; }
+.doodle-kicker { display: inline-block; margin-bottom: 14px; color: #e94735; font-size: .72rem; font-weight: 850; letter-spacing: .15em; }
 .doodle-copy h2 { margin: 0; font-size: clamp(2.25rem, 5vw, 4.25rem); line-height: .98; letter-spacing: -.055em; }
-.doodle-copy h2 em { color: #f04f34; font-style: normal; }
+.doodle-copy h2 em { color: #ed4d86; font-style: normal; }
 .doodle-copy p { max-width: 360px; margin: 16px 0 22px; color: #69615e; font-size: clamp(.95rem, 1.5vw, 1.1rem); line-height: 1.55; }
 .doodle-cta { display: inline-flex; align-items: center; gap: 16px; padding: 12px 18px; border-radius: 999px; background: #171717; color: #fff; font-size: .9rem; font-weight: 750; transition: transform .2s ease, background .2s ease; }
-.doodle-banner:hover .doodle-cta { transform: translateY(-2px); background: #f04f34; }
+.doodle-banner:hover .doodle-cta { transform: translateY(-2px); background: #ed4d86; }
 .doodle-cta span { font-size: 1.1rem; }
 .doodle-art { position: relative; z-index: 1; width: 100%; max-width: 550px; justify-self: end; }
 .doodle-art svg { display: block; width: 100%; overflow: visible; }
 .doodle-shoe, .doodle-glasses { stroke: #211d1b; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
-.doodle-shoe { fill: #ffc68e; }
+.doodle-shoe { fill: #ffc36f; }
 .doodle-glasses { fill: #ff8063; }
 .doodle-detail { stroke: #211d1b; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
 .doodle-squiggle { stroke: #f04f34; stroke-width: 4; stroke-linecap: round; }
 .doodle-star { fill: #f04f34; }
 .doodle-dot { fill: #f04f34; }
+.doodle-bag, .doodle-perfume { stroke: #211d1b; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+.doodle-bag { fill: #8dddc5; }
+.doodle-bag path:last-child { fill: none; stroke: #e94735; }
+.doodle-perfume { fill: #b9a4ff; }
+.doodle-perfume path:last-child { fill: none; stroke: #fff0a0; stroke-width: 6; }
+.doodle-sparkle { fill: #6d55df; }
 .doodle-stamp { position: absolute; right: 26px; top: 22px; display: grid; width: 76px; height: 76px; place-content: center; transform: rotate(10deg); border: 1.5px solid #211d1b; border-radius: 50%; color: #211d1b; font-size: .57rem; font-weight: 850; line-height: 1.1; letter-spacing: .08em; text-align: center; }
 @media (max-width: 700px) {
   .doodle-promo { padding: 4px 0; }
