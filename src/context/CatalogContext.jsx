@@ -112,11 +112,16 @@ function mapProduct(product, categoryById) {
     sizes,
     images,
     colorImages,
-    // Per-colour banner + up to three row images; only what the admin uploaded for that colour.
+    // Variant-only content blocks; old one-banner/one-row data is normalized during migration.
     colorShowcase: (product.colors || []).map((color) => ({
-      banner: color.bannerImage?.url ? { url: color.bannerImage.url, alt: color.bannerImage.alt || "" } : null,
-      images: ["image1", "image2", "image3"].map((slot) => color.rowImages?.[slot]).filter((image) => image?.url)
-        .map((image) => ({ url: image.url, alt: image.alt || "" })),
+      blocks: (color.showcaseBlocks?.length ? color.showcaseBlocks : [
+        ...(color.bannerImage?.url ? [{ type: "banner", image: color.bannerImage }] : []),
+        ...(Object.values(color.rowImages || {}).some((image) => image?.url)
+          ? [{ type: "imageRow", images: ["image1", "image2", "image3"].map((slot) => color.rowImages?.[slot]).filter((image) => image?.url) }]
+          : []),
+      ]).map((block) => block.type === "banner"
+        ? { type: "banner", image: block.image?.url ? { url: block.image.url, alt: block.image.alt || "" } : null }
+        : { type: "imageRow", images: (block.images || []).filter((image) => image?.url).map((image) => ({ url: image.url, alt: image.alt || "" })) }),
     })),
     seo: product.seo || {},
     specs: (product.specs || []).map(({ label, value }) => [label, value]),
