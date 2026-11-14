@@ -241,40 +241,42 @@ ul, ol { list-style: none; }
 
 /* ---------- Marquee ---------- */
 .doodle-promo { padding-top: 8px; padding-bottom: 8px; }
-.doodle-banner { position: relative; display: grid; grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr); align-items: center; min-height: 330px; overflow: hidden; padding: clamp(26px, 5vw, 58px); border: 1px solid #ffd1a7; border-radius: 28px; background: radial-gradient(ellipse at 83% 17%, #fff3a9 0, transparent 25%), radial-gradient(ellipse at 65% 90%, #ffd6e8 0, transparent 36%), linear-gradient(115deg, #fff0df, #fff8e8 53%, #e9f8f4); color: #171717; text-decoration: none; }
-.doodle-banner::before, .doodle-banner::after { position: absolute; border: 1px dashed rgb(255 77 46 / 38%); border-radius: 50%; content: ""; pointer-events: none; }
-.doodle-banner::before { width: 360px; height: 360px; right: 15%; top: -230px; }
-.doodle-banner::after { width: 250px; height: 250px; right: -90px; bottom: -185px; }
+.doodle-banner { position: relative; display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); align-items: center; min-height: 340px; overflow: hidden; padding: clamp(30px, 5vw, 64px); border: 1px solid #f4e2db; border-radius: 30px; background: radial-gradient(ellipse at 82% 10%, rgb(255 221 111 / 48%) 0, transparent 24%), radial-gradient(ellipse at 71% 100%, rgb(255 124 167 / 25%) 0, transparent 34%), linear-gradient(115deg, #fff8f1 0%, #fffaf0 48%, #f0fbf7 100%); box-shadow: 0 20px 55px rgb(42 31 26 / 7%); color: #171717; text-decoration: none; isolation: isolate; }
+.doodle-banner::before, .doodle-banner::after { position: absolute; border: 1px solid rgb(255 104 85 / 20%); border-radius: 50%; content: ""; pointer-events: none; z-index: -1; }
+.doodle-banner::before { width: 420px; height: 420px; right: 17%; top: -280px; }
+.doodle-banner::after { width: 290px; height: 290px; right: -130px; bottom: -215px; }
 .doodle-copy { position: relative; z-index: 1; max-width: 480px; }
-.doodle-kicker { display: inline-block; margin-bottom: 14px; color: #e94735; font-size: .72rem; font-weight: 850; letter-spacing: .15em; }
-.doodle-copy h2 { margin: 0; font-size: clamp(2.25rem, 5vw, 4.25rem); line-height: .98; letter-spacing: -.055em; }
-.doodle-copy h2 em { color: #ed4d86; font-style: normal; }
-.doodle-copy p { max-width: 360px; margin: 16px 0 22px; color: #69615e; font-size: clamp(.95rem, 1.5vw, 1.1rem); line-height: 1.55; }
-.doodle-cta { display: inline-flex; align-items: center; gap: 16px; padding: 12px 18px; border-radius: 999px; background: #171717; color: #fff; font-size: .9rem; font-weight: 750; transition: transform .2s ease, background .2s ease; }
-.doodle-banner:hover .doodle-cta { transform: translateY(-2px); background: #ed4d86; }
+.doodle-kicker { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 18px; padding: 8px 12px; border: 1px solid rgb(239 80 76 / 20%); border-radius: 999px; background: rgb(255 255 255 / 72%); color: #dc4d42; font-size: .68rem; font-weight: 850; letter-spacing: .13em; }
+.doodle-kicker::before { width: 7px; height: 7px; border-radius: 50%; background: #ef654e; box-shadow: 0 0 0 4px rgb(239 101 78 / 13%); content: ""; }
+.doodle-copy h2 { margin: 0; font-size: clamp(2.15rem, 4.7vw, 4rem); line-height: 1.02; letter-spacing: -.06em; }
+.doodle-copy h2 em { color: #e94b79; font-style: normal; }
+.doodle-copy p { max-width: 370px; margin: 17px 0 24px; color: #716b70; font-size: clamp(.95rem, 1.4vw, 1.08rem); line-height: 1.65; }
+.doodle-cta { display: inline-flex; align-items: center; gap: 18px; padding: 14px 19px; border: 1px solid rgb(255 255 255 / 16%); border-radius: 14px; background: #211d2c; color: #fff; font-size: .9rem; font-weight: 750; box-shadow: 0 8px 20px rgb(33 29 44 / 18%); transition: transform .2s ease, background .2s ease, box-shadow .2s ease; }
+.doodle-banner:hover .doodle-cta { transform: translateY(-2px); background: #e94b79; box-shadow: 0 12px 25px rgb(233 75 121 / 24%); }
 .doodle-cta span { font-size: 1.1rem; }
-.doodle-art { position: relative; z-index: 1; width: 100%; max-width: 550px; justify-self: end; }
+.doodle-art { position: relative; z-index: 1; width: 100%; max-width: 550px; justify-self: end; padding: 13px; border: 1px solid rgb(255 255 255 / 75%); border-radius: 26px; background: linear-gradient(145deg, rgb(255 255 255 / 64%), rgb(255 255 255 / 22%)); box-shadow: 0 20px 45px rgb(50 40 48 / 9%), inset 0 1px 0 rgb(255 255 255 / 85%); backdrop-filter: blur(10px); }
 .doodle-art svg { display: block; width: 100%; overflow: visible; }
-.doodle-shoe, .doodle-glasses { stroke: #211d1b; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+.doodle-shoe, .doodle-glasses { stroke: #282331; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
 .doodle-shoe { fill: #ffc36f; }
 .doodle-glasses { fill: #ff8063; }
-.doodle-detail { stroke: #211d1b; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.doodle-detail { stroke: #282331; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
 .doodle-squiggle { stroke: #f04f34; stroke-width: 4; stroke-linecap: round; }
 .doodle-star { fill: #f04f34; }
 .doodle-dot { fill: #f04f34; }
-.doodle-bag, .doodle-perfume { stroke: #211d1b; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+.doodle-bag, .doodle-perfume { stroke: #282331; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
 .doodle-bag { fill: #8dddc5; }
 .doodle-bag path:last-child { fill: none; stroke: #e94735; }
 .doodle-perfume { fill: #b9a4ff; }
 .doodle-perfume path:last-child { fill: none; stroke: #fff0a0; stroke-width: 6; }
 .doodle-sparkle { fill: #6d55df; }
-.doodle-stamp { position: absolute; right: 26px; top: 22px; display: grid; width: 76px; height: 76px; place-content: center; transform: rotate(10deg); border: 1.5px solid #211d1b; border-radius: 50%; color: #211d1b; font-size: .57rem; font-weight: 850; line-height: 1.1; letter-spacing: .08em; text-align: center; }
+.doodle-stamp { position: absolute; right: 26px; top: 22px; display: grid; width: 86px; height: 86px; place-content: center; transform: rotate(7deg); border: 1px solid rgb(255 255 255 / 82%); border-radius: 50%; background: rgb(255 255 255 / 68%); color: #393241; font-size: .54rem; font-weight: 850; line-height: 1.15; letter-spacing: .08em; text-align: center; box-shadow: 0 8px 25px rgb(38 31 47 / 9%); backdrop-filter: blur(8px); }
+.doodle-stamp span { margin-bottom: 3px; color: #eb5975; font-size: 1rem; }
 @media (max-width: 700px) {
   .doodle-promo { padding: 4px 0; }
-  .doodle-banner { grid-template-columns: 1fr; min-height: auto; gap: 8px; padding: 28px 22px 14px; border-radius: 20px; }
+  .doodle-banner { grid-template-columns: 1fr; min-height: auto; gap: 8px; padding: 28px 22px 18px; border-radius: 22px; }
   .doodle-copy h2 { font-size: clamp(2.2rem, 12vw, 3.3rem); }
-  .doodle-art { width: 88%; margin: -5px auto 0; }
-  .doodle-stamp { top: 18px; right: 16px; width: 62px; height: 62px; font-size: .49rem; }
+  .doodle-art { width: 96%; margin: 2px auto 0; padding: 8px; border-radius: 20px; }
+  .doodle-stamp { top: 18px; right: 16px; width: 62px; height: 62px; font-size: .43rem; }
 }
 
 /* ---------- Newsletter ---------- */

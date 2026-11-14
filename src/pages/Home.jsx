@@ -65,7 +65,7 @@ function StaticDoodleBanner() {
               <path className="doodle-sparkle" d="m286 43 5 13 13 5-13 5-5 13-5-13-13-5 13-5 5-13Zm-222 92 3 9 9 3-9 3-3 9-3-9-9-3 9-3 3-9Zm376 169 4 11 11 4-11 4-4 11-4-11-11-4 11-4 4-11Z" />
             </svg>
           </div>
-          <span className="doodle-stamp" aria-hidden="true">STYLE<br />GOODIES<br />INSIDE</span>
+          <span className="doodle-stamp" aria-hidden="true"><span>✦</span> STYLE<br />YOUR<br />EVERYDAY</span>
         </Link>
       </div>
     </section>
