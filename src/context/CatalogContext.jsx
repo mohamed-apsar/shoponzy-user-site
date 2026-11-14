@@ -74,6 +74,13 @@ function mapCategory(category) {
   };
 }
 
+/* Products without any uploaded photo (seeded samples) would show placeholder artwork; they are not listed.
+   The admin requires a featured image for every colour, so real products always pass. */
+function hasUploadedImage(product) {
+  return Boolean(product.images?.some((image) => image?.url)
+    || product.colors?.some((color) => color.featuredImage?.url || color.images?.some((image) => image?.url)));
+}
+
 function mapProduct(product, categoryById) {
   const path = product.categoryPath || [];
   const category = categoryById.get(path[0]);
@@ -190,11 +197,12 @@ async function loadCatalog() {
     ),
   );
   const products = [...firstPage.data, ...remaining.flatMap((page) => page.data)]
+    .filter(hasUploadedImage)
     .map((product) => mapProduct(product, categoryById));
   const mapHomepageProduct = (product) => mapProduct(product, categoryById);
   const sections = homepageResponse.data.sections.map((section) => ({
     ...section,
-    products: (section.products || []).map(mapHomepageProduct),
+    products: (section.products || []).filter(hasUploadedImage).map(mapHomepageProduct),
   }));
   const slides = homepageResponse.data.banners.map((banner) => ({
     kick: banner.kicker,

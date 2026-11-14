@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import Icon from "../components/Icon";
 import Art from "../components/Art";
 import HeroSlider from "../components/HeroSlider";
 import SectionHead from "../components/SectionHead";
@@ -10,13 +9,6 @@ import { storeRequest } from "../api/storeApi";
 import { usePageFx } from "../fx/usePageFx";
 import usePageMeta from "../hooks/usePageMeta";
 import { useCatalog } from "../context/CatalogContext";
-
-const TRUST = [
-  ["/return-policy", "i-refresh", <>7-day easy returns<br />&amp; exchange</>],
-  ["/shipping-policy", "i-cash", <>Cash on delivery<br />available</>],
-  ["/shipping-policy", "i-truck", <>Free delivery<br />above ₹999</>],
-  ["/faqs", "i-tag", <>Extra 5% off<br />on prepaid orders</>],
-];
 
 function Newsletter() {
   const [email, setEmail] = useState("");
@@ -91,12 +83,6 @@ export default function Home() {
       </nav>
 
       {HERO_SLIDES.length > 0 && <HeroSlider slides={HERO_SLIDES} />}
-
-      <section className="section" style={{ paddingBottom: 10 }}><div className="container">
-        <div className="trust" data-stagger>
-          {TRUST.map(([to, icon, text], i) => <Link key={i} to={to}><span className="ic"><Icon name={icon} /></span><span>{text}</span></Link>)}
-        </div>
-      </div></section>
 
       <section className="section"><div className="container">
         <SectionHead title={newSection?.title || "New arrivals"} subtitle={newSection?.subtitle} railId="newRail" viewAll={newSection?.url || "/products?sort=new"} />

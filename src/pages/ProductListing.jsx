@@ -72,7 +72,7 @@ function Hero({ c, q }) {
         <span className="float" key={i} data-depth={f.depth} style={f.style}><span style={{ display: "block" }}><Art kind={c.heroArt[i][0]} color={c.heroArt[i][1]} category={c.id} /></span></span>
       ))}
       <div className="container in"><nav className="crumbs" aria-label="Breadcrumb"><Link to="/">Home</Link><span>/</span><span>{c.name}</span></nav>
-        <h1>{q ? `“${q}”` : c.name}</h1><p>{c.tag}. Free delivery above ₹999, COD and 7-day returns.</p></div>
+        <h1>{q ? `“${q}”` : c.name}</h1></div>
     </section>
   );
 }
