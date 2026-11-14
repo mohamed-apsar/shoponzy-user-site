@@ -25,7 +25,7 @@ const OptionPicker = forwardRef(function OptionPicker({ product: p, value, onCha
 
   return (
     <>
-      <div className="opt opt-colors">
+      {p.colors.length > 1 && <div className="opt opt-colors">
         <div className="opt-h">Colour <span>{p.colors[value.c][1]}</span></div>
         <div className="colors" role="group" aria-label="Colour">
           {p.colors.map((c, i) => (
@@ -40,7 +40,7 @@ const OptionPicker = forwardRef(function OptionPicker({ product: p, value, onCha
             </button>
           ))}
         </div>
-      </div>
+      </div>}
       <div className="opt opt-sizes">
         <div className="opt-h">Size {p.sizes.length > 1 && (
           <button className="view-all" type="button" onClick={() => openSheet("sizeSheet")}><Icon name="i-ruler" />Size guide</button>
