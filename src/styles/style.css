@@ -266,6 +266,10 @@ ul, ol { list-style: none; }
 .doodle-bag, .doodle-perfume { stroke: #282331; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
 .doodle-bag { fill: #8dddc5; }
 .doodle-bag path:last-child { fill: none; stroke: #e94735; }
+.doodle-clog { stroke: #282331; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.doodle-clog path:first-child { fill: #71d8d1; }
+.doodle-clog path:nth-child(2), .doodle-clog path:last-child { fill: none; }
+.doodle-clog path:last-child { stroke-width: 2.5; }
 .doodle-perfume { fill: #b9a4ff; }
 .doodle-perfume path:last-child { fill: none; stroke: #fff0a0; stroke-width: 6; }
 .doodle-sparkle { fill: #6d55df; }
