@@ -256,8 +256,15 @@ ul, ol { list-style: none; }
 .doodle-cta span { font-size: 1.1rem; }
 .doodle-art { position: relative; z-index: 1; width: 100%; max-width: 550px; justify-self: end; padding: 13px; border: 1px solid rgb(255 255 255 / 75%); border-radius: 26px; background: linear-gradient(145deg, rgb(255 255 255 / 64%), rgb(255 255 255 / 22%)); box-shadow: 0 20px 45px rgb(50 40 48 / 9%), inset 0 1px 0 rgb(255 255 255 / 85%); backdrop-filter: blur(10px); }
 .doodle-art svg { display: block; width: 100%; overflow: visible; }
-.doodle-shoe, .doodle-glasses { stroke: #282331; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
-.doodle-shoe { fill: #ffc36f; }
+.doodle-croc-body, .doodle-glasses { stroke: #282331; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
+.doodle-croc-body { fill: #8bdb45; }
+.doodle-croc-sole { fill: none; stroke: #4e9b2c; stroke-width: 4; stroke-linecap: round; }
+.doodle-croc-strap { fill: none; stroke: #66bb35; stroke-width: 12; stroke-linecap: round; stroke-linejoin: round; }
+.doodle-croc-holes circle { fill: #4b9828; stroke: #347a25; stroke-width: 1.5; }
+.doodle-flower circle { fill: #fffdf4; stroke: #61ae31; stroke-width: 1.7; }
+.doodle-flower .doodle-flower-center { fill: #ffcf4b; stroke: #f1a928; }
+.doodle-smile-tag rect { fill: #ff6b87; stroke: #282331; stroke-width: 2; }
+.doodle-smile-tag text { fill: #fff; font: 800 11px/1 sans-serif; letter-spacing: 1px; }
 .doodle-glasses { fill: #ff8063; }
 .doodle-detail { stroke: #282331; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
 .doodle-squiggle { stroke: #f04f34; stroke-width: 4; stroke-linecap: round; }
@@ -266,11 +273,6 @@ ul, ol { list-style: none; }
 .doodle-bag, .doodle-perfume { stroke: #282331; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
 .doodle-bag { fill: #8dddc5; }
 .doodle-bag path:last-child { fill: none; stroke: #e94735; }
-.doodle-clog { stroke: #282331; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
-.doodle-clog path:first-child { fill: #67d9d2; }
-.doodle-clog path:nth-child(2), .doodle-clog path:last-child { fill: none; }
-.doodle-clog path:nth-child(2) { stroke: #f05d78; stroke-width: 4; }
-.doodle-clog path:last-child { stroke: #6654d9; stroke-width: 4; }
 .doodle-perfume { fill: #b9a4ff; }
 .doodle-perfume path:last-child { fill: none; stroke: #fff0a0; stroke-width: 6; }
 .doodle-sparkle { fill: #6d55df; }

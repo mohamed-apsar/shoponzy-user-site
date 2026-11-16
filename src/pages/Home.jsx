@@ -54,19 +54,17 @@ function StaticDoodleBanner() {
           <div className="doodle-art" aria-hidden="true">
             <svg viewBox="0 0 600 340" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path className="doodle-squiggle" d="M30 252c34-37 55 28 91-4 24-22 5-55 40-67" />
-              <path className="doodle-shoe" d="M112 206c31-8 57-23 77-51l24-37c10-16 29-19 43-8l76 57c23 17 55 28 89 29 29 1 50 13 58 33l8 23c4 12-5 23-18 23H134c-25 0-39-21-16-43l-6-26Z" />
-              <path className="doodle-detail" d="m190 165 57 12m-43 2 57 12m-43 2 57 12m-117 27h309m-217-111 20 17 16-19 21 18 17-17 21 18" />
+              <path className="doodle-croc-body" d="M137 205c14-15 35-21 63-26 29-5 49-17 68-39l24-28c12-14 31-20 49-16l43 10c21 5 34 19 50 34 19 17 42 24 71 30 29 6 47 22 47 42v22c0 20-15 34-38 34H162c-25 0-40-14-38-34 1-12 5-21 13-29Z" />
+              <path className="doodle-croc-sole" d="M130 244c43 14 105 11 185 10 91-1 174 5 232-8" />
+              <path className="doodle-croc-strap" d="M204 181c-15-28-15-59 1-77 17-19 42-13 58 5l29 34" />
+              <g className="doodle-croc-holes"><circle cx="335" cy="169" r="5"/><circle cx="360" cy="177" r="5"/><circle cx="386" cy="184" r="5"/><circle cx="412" cy="190" r="5"/><circle cx="326" cy="190" r="4"/><circle cx="352" cy="198" r="4"/><circle cx="379" cy="204" r="4"/></g>
+              <g className="doodle-flower"><circle cx="461" cy="213" r="10"/><circle cx="461" cy="197" r="7"/><circle cx="475" cy="207" r="7"/><circle cx="470" cy="224" r="7"/><circle cx="452" cy="224" r="7"/><circle cx="447" cy="207" r="7"/><circle className="doodle-flower-center" cx="461" cy="213" r="5"/></g>
+              <g className="doodle-smile-tag"><rect x="250" y="211" width="63" height="24" rx="12"/><text x="281.5" y="227" textAnchor="middle">SMILE</text></g>
               <path className="doodle-glasses" d="M390 92c4-13 15-21 29-21h52l9 40c5 23-10 43-34 43h-9c-16 0-29-11-33-27l-4-17h-20l-4 17c-4 16-17 27-33 27h-9c-24 0-39-20-34-43l9-40h52c14 0 25 8 29 21Z" />
               <path className="doodle-detail" d="M382 94h17m-102 1 11-21m169 21-11-21M518 179l12-18m-19 41 22-3M85 99l7-22m-17 57 22 4" />
               <path className="doodle-star" d="m530 66 7 17 17 7-17 7-7 17-7-17-17-7 17-7 7-17Zm-396 76 5 13 13 5-13 5-5 13-5-13-13-5 13-5 5-13Z" />
               <circle className="doodle-dot" cx="545" cy="258" r="7" /><circle className="doodle-dot" cx="120" cy="68" r="6" />
               <g className="doodle-bag" transform="rotate(-9 93 167)"><path d="M48 144h91l-8 93H57l-9-93Z"/><path d="M72 148v-16c0-12 9-21 21-21s21 9 21 21v16"/><path d="m82 186 12 12 21-25"/></g>
-              <g className="doodle-clog" transform="rotate(-10 139 264)">
-                <path d="M42 259c5-24 24-39 52-42l40-4c15-2 27 4 34 16l21 33c8 12 3 25-12 28l-89 17c-28 5-49-6-47-24l1-24Z"/>
-                <path d="M54 264c25 8 65 2 119-15"/>
-                <path d="M83 237c2-3 7-3 9 0m14-8c2-3 7-3 9 0m14 3c2-3 7-3 9 0m13 8c2-3 7-3 9 0m-69 10c2-3 7-3 9 0m14-7c2-3 7-3 9 0m14 3c2-3 7-3 9 0"/>
-                <path d="M78 252c-9-22-2-38 18-44m68 2c17 7 24 20 19 36"/>
-              </g>
               <g className="doodle-perfume" transform="rotate(8 493 220)"><path d="M471 197h45v65h-45z"/><path d="M480 183h27v14h-27zM486 172h15v11h-15z"/><path d="M482 220h23"/></g>
               <path className="doodle-sparkle" d="m286 43 5 13 13 5-13 5-5 13-5-13-13-5 13-5 5-13Zm-222 92 3 9 9 3-9 3-3 9-3-9-9-3 9-3 3-9Zm376 169 4 11 11 4-11 4-4 11-4-11-11-4 11-4 4-11Z" />
             </svg>
