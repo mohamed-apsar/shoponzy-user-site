@@ -62,13 +62,10 @@ function StaticDoodleBanner({ products = [] }) {
             {photoProducts.map((photo, index) => (
               <figure className={`footwear-photo footwear-photo-${index + 1}`} key={photo.src}>
                 <img src={photo.src} alt={photo.name} loading="lazy" decoding="async" />
-                {index === 0 && <figcaption>MADE FOR EVERYDAY</figcaption>}
+                <figcaption>{photo.name}</figcaption>
               </figure>
             ))}
-            <span className="footwear-bubble footwear-bubble-one" aria-hidden="true">NEW<br />FAVOURITE</span>
-            <span className="footwear-bubble footwear-bubble-two" aria-hidden="true">STEP<br />IN STYLE</span>
           </div>
-          <span className="doodle-stamp" aria-hidden="true">REAL<br />STYLE<br />FINDS</span>
         </Link>
       </div>
     </section>
