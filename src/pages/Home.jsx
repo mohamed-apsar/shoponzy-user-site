@@ -61,7 +61,12 @@ function StaticDoodleBanner() {
               <path className="doodle-star" d="m530 66 7 17 17 7-17 7-7 17-7-17-17-7 17-7 7-17Zm-396 76 5 13 13 5-13 5-5 13-5-13-13-5 13-5 5-13Z" />
               <circle className="doodle-dot" cx="545" cy="258" r="7" /><circle className="doodle-dot" cx="120" cy="68" r="6" />
               <g className="doodle-bag" transform="rotate(-9 93 167)"><path d="M48 144h91l-8 93H57l-9-93Z"/><path d="M72 148v-16c0-12 9-21 21-21s21 9 21 21v16"/><path d="m82 186 12 12 21-25"/></g>
-              <g className="doodle-clog" transform="rotate(-12 107 263)"><path d="M49 260c2-13 17-24 39-26l32-3c12-1 22 5 27 15l13 23c4 7 0 15-8 17l-72 14c-20 4-35-4-34-18l3-22Z"/><path d="M54 270c18 5 46 1 91-13"/><path d="M75 253c2-2 5-2 7 0m9-5c2-2 5-2 7 0m9-4c2-2 5-2 7 0m8 4c2-2 5-2 7 0m-56 14c2-2 5-2 7 0m10-5c2-2 5-2 7 0m10-4c2-2 5-2 7 0"/></g>
+              <g className="doodle-clog" transform="rotate(-10 139 264)">
+                <path d="M42 259c5-24 24-39 52-42l40-4c15-2 27 4 34 16l21 33c8 12 3 25-12 28l-89 17c-28 5-49-6-47-24l1-24Z"/>
+                <path d="M54 264c25 8 65 2 119-15"/>
+                <path d="M83 237c2-3 7-3 9 0m14-8c2-3 7-3 9 0m14 3c2-3 7-3 9 0m13 8c2-3 7-3 9 0m-69 10c2-3 7-3 9 0m14-7c2-3 7-3 9 0m14 3c2-3 7-3 9 0"/>
+                <path d="M78 252c-9-22-2-38 18-44m68 2c17 7 24 20 19 36"/>
+              </g>
               <g className="doodle-perfume" transform="rotate(8 493 220)"><path d="M471 197h45v65h-45z"/><path d="M480 183h27v14h-27zM486 172h15v11h-15z"/><path d="M482 220h23"/></g>
               <path className="doodle-sparkle" d="m286 43 5 13 13 5-13 5-5 13-5-13-13-5 13-5 5-13Zm-222 92 3 9 9 3-9 3-3 9-3-9-9-3 9-3 3-9Zm376 169 4 11 11 4-11 4-4 11-4-11-11-4 11-4 4-11Z" />
             </svg>
