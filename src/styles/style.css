@@ -254,35 +254,27 @@ ul, ol { list-style: none; }
 .doodle-cta { display: inline-flex; align-items: center; gap: 18px; padding: 14px 19px; border: 1px solid rgb(255 255 255 / 16%); border-radius: 14px; background: #211d2c; color: #fff; font-size: .9rem; font-weight: 750; box-shadow: 0 8px 20px rgb(33 29 44 / 18%); transition: transform .2s ease, background .2s ease, box-shadow .2s ease; }
 .doodle-banner:hover .doodle-cta { transform: translateY(-2px); background: #e94b79; box-shadow: 0 12px 25px rgb(233 75 121 / 24%); }
 .doodle-cta span { font-size: 1.1rem; }
-.doodle-art { position: relative; z-index: 1; width: 100%; max-width: 550px; justify-self: end; padding: 13px; border: 1px solid rgb(255 255 255 / 75%); border-radius: 26px; background: linear-gradient(145deg, rgb(255 255 255 / 64%), rgb(255 255 255 / 22%)); box-shadow: 0 20px 45px rgb(50 40 48 / 9%), inset 0 1px 0 rgb(255 255 255 / 85%); backdrop-filter: blur(10px); }
-.doodle-art svg { display: block; width: 100%; overflow: visible; }
-.doodle-croc-body, .doodle-glasses { stroke: #282331; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
-.doodle-croc-body { fill: #8bdb45; }
-.doodle-croc-sole { fill: none; stroke: #4e9b2c; stroke-width: 4; stroke-linecap: round; }
-.doodle-croc-strap { fill: none; stroke: #66bb35; stroke-width: 12; stroke-linecap: round; stroke-linejoin: round; }
-.doodle-croc-holes circle { fill: #4b9828; stroke: #347a25; stroke-width: 1.5; }
-.doodle-flower circle { fill: #fffdf4; stroke: #61ae31; stroke-width: 1.7; }
-.doodle-flower .doodle-flower-center { fill: #ffcf4b; stroke: #f1a928; }
-.doodle-smile-tag rect { fill: #ff6b87; stroke: #282331; stroke-width: 2; }
-.doodle-smile-tag text { fill: #fff; font: 800 11px/1 sans-serif; letter-spacing: 1px; }
-.doodle-glasses { fill: #ff8063; }
-.doodle-detail { stroke: #282331; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
-.doodle-squiggle { stroke: #f04f34; stroke-width: 4; stroke-linecap: round; }
-.doodle-star { fill: #f04f34; }
-.doodle-dot { fill: #f04f34; }
-.doodle-bag, .doodle-perfume { stroke: #282331; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
-.doodle-bag { fill: #8dddc5; }
-.doodle-bag path:last-child { fill: none; stroke: #e94735; }
-.doodle-perfume { fill: #b9a4ff; }
-.doodle-perfume path:last-child { fill: none; stroke: #fff0a0; stroke-width: 6; }
-.doodle-sparkle { fill: #6d55df; }
-.doodle-stamp { position: absolute; right: 26px; top: 22px; display: grid; width: 86px; height: 86px; place-content: center; transform: rotate(7deg); border: 1px solid rgb(255 255 255 / 82%); border-radius: 50%; background: rgb(255 255 255 / 68%); color: #393241; font-size: .54rem; font-weight: 850; line-height: 1.15; letter-spacing: .08em; text-align: center; box-shadow: 0 8px 25px rgb(38 31 47 / 9%); backdrop-filter: blur(8px); }
-.doodle-stamp span { margin-bottom: 3px; color: #eb5975; font-size: 1rem; }
+.footwear-showcase { position: relative; z-index: 1; width: 100%; max-width: 570px; height: 330px; justify-self: end; }
+.footwear-photo { position: absolute; display: grid; place-items: center; overflow: hidden; margin: 0; border: 1px solid rgb(255 255 255 / 90%); border-radius: 24px; background: #fff; box-shadow: 0 22px 50px rgb(49 41 39 / 15%); }
+.footwear-photo img { width: 100%; height: 100%; object-fit: contain; }
+.footwear-photo-1 { inset: 9% 23% 8% 4%; z-index: 1; padding: 12px; transform: rotate(-3deg); }
+.footwear-photo-2 { top: 0; right: 0; z-index: 2; width: 43%; height: 48%; padding: 8px; transform: rotate(5deg); }
+.footwear-photo-3 { right: 0; bottom: 0; z-index: 3; width: 46%; height: 48%; padding: 8px; transform: rotate(-4deg); }
+.footwear-photo figcaption { position: absolute; left: 16px; bottom: 14px; padding: 8px 11px; border-radius: 999px; background: #211d2c; color: #fff; font-size: .62rem; font-weight: 850; letter-spacing: .11em; }
+.footwear-bubble { position: absolute; z-index: 4; display: grid; place-content: center; width: 68px; height: 68px; border: 1px solid rgb(255 255 255 / 85%); border-radius: 50%; background: #e94b79; color: #fff; font-size: .55rem; font-weight: 850; line-height: 1.15; letter-spacing: .08em; text-align: center; box-shadow: 0 8px 24px rgb(233 75 121 / 28%); }
+.footwear-bubble-one { top: 38%; left: 0; transform: rotate(-10deg); }
+.footwear-bubble-two { right: 5%; bottom: -2%; width: 58px; height: 58px; background: #6354d9; transform: rotate(8deg); }
+.doodle-stamp { position: absolute; right: 26px; top: 22px; display: grid; width: 86px; height: 86px; place-content: center; transform: rotate(7deg); border: 1px solid rgb(255 255 255 / 82%); border-radius: 50%; background: rgb(255 255 255 / 75%); color: #393241; font-size: .54rem; font-weight: 850; line-height: 1.15; letter-spacing: .08em; text-align: center; box-shadow: 0 8px 25px rgb(38 31 47 / 9%); backdrop-filter: blur(8px); }
 @media (max-width: 700px) {
   .doodle-promo { padding: 4px 0; }
   .doodle-banner { grid-template-columns: 1fr; min-height: auto; gap: 8px; padding: 28px 22px 18px; border-radius: 22px; }
   .doodle-copy h2 { font-size: clamp(2.2rem, 12vw, 3.3rem); }
-  .doodle-art { width: 96%; margin: 2px auto 0; padding: 8px; border-radius: 20px; }
+  .footwear-showcase { width: 96%; height: 270px; margin: 2px auto 0; }
+  .footwear-photo { border-radius: 18px; }
+  .footwear-photo-1 { padding: 7px; }
+  .footwear-photo-2, .footwear-photo-3 { padding: 5px; }
+  .footwear-bubble { width: 58px; height: 58px; font-size: .47rem; }
+  .footwear-bubble-two { width: 52px; height: 52px; }
   .doodle-stamp { top: 18px; right: 16px; width: 62px; height: 62px; font-size: .43rem; }
 }
 
