@@ -254,7 +254,6 @@ function Product({ p, products, categories, store: STORE }) {
                 {p.desc && <p style={{ marginBottom: 10 }}>{p.desc}</p>}
                 <table className="spec"><tbody>{specs.map((r) => <tr key={r[0]}><td>{r[0]}</td><td>{r[1]}</td></tr>)}<tr><td>Product code</td><td>{p.id}</td></tr></tbody></table>
               </div></details>
-              <details><summary>Delivery &amp; returns</summary><div className="body">{STORE.deliveryText}. Easy 7-day returns and exchanges on unused items with tags. <Link className="view-all" to="/return-policy">Read policy</Link></div></details>
             </div>
             <p style={{ marginTop: 14 }}><a className="view-all" target="_blank" rel="noopener" href={wa(`${p.name} ${location.href}`, STORE)}><Icon name="i-wa" />Share on WhatsApp</a></p>
           </div>
