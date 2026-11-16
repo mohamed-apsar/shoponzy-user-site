@@ -251,9 +251,6 @@ ul, ol { list-style: none; }
 .doodle-copy h2 { margin: 0; font-size: clamp(2.15rem, 4.7vw, 4rem); line-height: 1.02; letter-spacing: -.06em; }
 .doodle-copy h2 em { color: #e94b79; font-style: normal; }
 .doodle-copy p { max-width: 370px; margin: 17px 0 24px; color: #716b70; font-size: clamp(.95rem, 1.4vw, 1.08rem); line-height: 1.65; }
-.doodle-cta { display: inline-flex; align-items: center; gap: 18px; padding: 14px 19px; border: 1px solid rgb(255 255 255 / 16%); border-radius: 14px; background: #211d2c; color: #fff; font-size: .9rem; font-weight: 750; box-shadow: 0 8px 20px rgb(33 29 44 / 18%); transition: transform .2s ease, background .2s ease, box-shadow .2s ease; }
-.doodle-banner:hover .doodle-cta { transform: translateY(-2px); background: #e94b79; box-shadow: 0 12px 25px rgb(233 75 121 / 24%); }
-.doodle-cta span { font-size: 1.1rem; }
 .footwear-showcase { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: stretch; gap: 12px; width: 100%; max-width: 600px; justify-self: end; }
 .footwear-photo { display: grid; grid-template-rows: minmax(0, 1fr) auto; min-width: 0; min-height: 270px; overflow: hidden; margin: 0; border: 1px solid rgb(255 255 255 / 90%); border-radius: 21px; background: #fff; box-shadow: 0 16px 36px rgb(49 41 39 / 12%); }
 .footwear-photo img { display: block; width: 100%; height: 100%; min-height: 0; padding: 10px; object-fit: contain; }
@@ -822,3 +819,47 @@ html, body { overflow-x: clip; }
 .coming-soon-stamp { position: absolute; top: 11%; right: 10%; z-index: 2; display: grid; width: 78px; height: 78px; place-content: center; transform: rotate(9deg); border: 1px solid rgba(255,255,255,.55); border-radius: 50%; background: rgba(255,255,255,.9); color: var(--coming-accent); font-size: 9px; font-weight: 900; line-height: 1.35; text-align: center; letter-spacing: .1em; box-shadow: 0 12px 30px rgba(0,0,0,.14); }
 @media (max-width: 720px) { .coming-soon-page { padding: 24px 0 38px; }.coming-soon-card { grid-template-columns: 1fr; min-height: 0; border-radius: 22px; }.coming-soon-copy { padding: 34px 27px 12px; }.coming-soon-kicker { font-size: 9px; }.coming-soon-pill { margin: 27px 0 16px; }.coming-soon-card h1 { font-size: clamp(42px, 11.5vw, 62px); }.coming-soon-card p { margin: 18px 0 23px; font-size: 14px; }.coming-soon-actions { align-items: flex-start; gap: 11px; }.coming-soon-note { align-self: center; }.coming-soon-visual { min-height: 300px; }.coming-soon-visual::before { width: 270px; }.coming-soon-visual::after { width: 205px; }.coming-soon-product,.coming-soon-orbit { width: 180px; }.coming-soon-stamp { top: 9%; right: 9%; width: 68px; height: 68px; } }
 @media (prefers-reduced-motion: reduce) { .coming-soon-back span,.coming-soon-button,.coming-soon-button span { transition: none; } }
+
+/* Responsive layout refinements for the storefront across phones, tablets and desktops. */
+@media (max-width: 900px) {
+  .sec-head { align-items: flex-start; flex-wrap: wrap; }
+  .sec-head > :first-child { min-width: 0; }
+  .banner { min-height: clamp(380px, 62vw, 480px); }
+  .banner .txt { max-width: min(560px, 78%); }
+  .pdp, .cart-l, .pdp > *, .cart-l > * { min-width: 0; }
+  .footwear-showcase { max-width: 100%; }
+}
+@media (max-width: 700px) {
+  .section { padding: 30px 0; }
+  .sec-head { gap: 10px; margin-bottom: 16px; }
+  .sec-head .tools { margin-left: auto; }
+  .banner { min-height: clamp(390px, 118vw, 500px); border-radius: 16px; }
+  .banner .txt { max-width: 100%; padding: 22px 18px; }
+  .banner .art { width: 68%; right: -7%; top: 0; }
+  .doodle-banner { gap: 12px; padding: 24px 18px 18px; }
+  .doodle-copy { max-width: 100%; }
+  .doodle-copy h2 { overflow-wrap: anywhere; }
+  .doodle-copy p { margin: 12px 0 4px; }
+  .footwear-showcase { display: flex; overflow-x: auto; overflow-y: hidden; justify-self: stretch; gap: 10px; margin: 6px -4px 0; padding: 4px 4px 12px; scroll-snap-type: x mandatory; scrollbar-width: thin; }
+  .footwear-photo { flex: 0 0 min(48%, 210px); min-height: 190px; scroll-snap-align: start; }
+  .footwear-photo img { height: 150px; object-fit: contain; }
+  .footwear-photo figcaption { min-height: 42px; font-size: .68rem; }
+  .grid { gap: 10px; }
+  .pdp { gap: 18px; }
+  .f-grid { gap: 20px; }
+}
+@media (max-width: 420px) {
+  .container { padding-right: 12px; padding-left: 12px; }
+  .header-in { gap: 6px; }
+  .logo img { max-width: 128px; height: 36px; }
+  .tool { width: 38px; height: 40px; }
+  .banner { min-height: 390px; }
+  .banner h2 { font-size: clamp(1.85rem, 9vw, 2.5rem); }
+  .doodle-banner { padding: 20px 14px 14px; border-radius: 18px; }
+  .doodle-kicker { max-width: 100%; font-size: .59rem; letter-spacing: .09em; }
+  .doodle-copy h2 { font-size: clamp(2rem, 10vw, 2.65rem); }
+  .footwear-photo { flex-basis: 70%; }
+  .grid { gap: 8px; }
+  .card .meta { padding-right: 2px; padding-left: 2px; }
+  .btn { max-width: 100%; white-space: normal; }
+}

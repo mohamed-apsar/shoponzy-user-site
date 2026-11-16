@@ -51,12 +51,11 @@ function StaticDoodleBanner({ products = [] }) {
   return (
     <section className="section doodle-promo">
       <div className="container">
-        <Link className="doodle-banner" to="/products" aria-label="Shop all styles">
+        <div className="doodle-banner">
           <div className="doodle-copy">
             <span className="doodle-kicker">A LITTLE SHOPONZY MAGIC</span>
             <h2>Step into<br /><em>something good.</em></h2>
             <p>Everyday footwear, picked for comfort, made to go wherever you do.</p>
-            <span className="doodle-cta">Explore footwear <span aria-hidden="true">↗</span></span>
           </div>
           <div className="footwear-showcase" aria-label="Featured footwear">
             {photoProducts.map((photo, index) => (
@@ -66,7 +65,7 @@ function StaticDoodleBanner({ products = [] }) {
               </figure>
             ))}
           </div>
-        </Link>
+        </div>
       </div>
     </section>
   );
