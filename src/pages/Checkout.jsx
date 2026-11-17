@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useCustomer } from "../context/CustomerContext";
 import { Link, useSearchParams } from "react-router-dom";
-import { checkoutItems } from "../utils/checkout";
+import { checkoutItems, confirmedCheckoutTotals } from "../utils/checkout";
 import { storage } from "../utils/storage";
 import Icon from "../components/Icon";
 import ProductMedia from "../components/ProductMedia";
@@ -29,8 +29,8 @@ function validate(v) {
   return er;
 }
 
-function Summary({ cart, coupon, pay, products, store: STORE, submitting, formError, pincode }) {
-  const t = totals(cart, coupon, pay, products, STORE, pincode);
+function Summary({ cart, coupon, pay, products, store: STORE, submitting, formError, pincode, confirmedTotals }) {
+  const t = confirmedTotals || totals(cart, coupon, pay, products, STORE, pincode);
   return (
     <aside className="summary" id="coSum"><h2>Your order</h2>
       {cart.map((l) => {
@@ -106,6 +106,10 @@ export default function Checkout() {
   const [placed, setPlaced] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
+  const [confirmedQuote, setConfirmedQuote] = useState(null);
+  const checkoutSignature = JSON.stringify({ cart, coupon, values });
+  const confirmedTotals = confirmedQuote?.signature === checkoutSignature ? confirmedQuote.totals : null;
+  const attemptSignature = useRef(null);
   // One key per checkout attempt: a double click or retry returns the same order instead of a duplicate.
   const idempotencyKey = useRef(newKey());
   const { user, signedIn } = useCustomer();
@@ -176,6 +180,10 @@ export default function Checkout() {
       await flushCart();
       if (!cart.length) throw new Error("Choose at least one item to check out.");
       const items = checkoutItems(cart, products);
+      if (attemptSignature.current !== checkoutSignature) {
+        idempotencyKey.current = newKey();
+        attemptSignature.current = checkoutSignature;
+      }
       const result = await storeRequest("/orders", {
         method: "POST",
         body: {
@@ -190,6 +198,12 @@ export default function Checkout() {
       let order = result.data.order;
       if (order.paymentMethod === "razorpay" && order.paymentStatus !== "paid") {
         if (!result.data.payment) throw new Error("Online payment is unavailable right now. Please try again shortly.");
+        const confirmed = confirmedCheckoutTotals(order, result.data.payment);
+        setConfirmedQuote({ signature: checkoutSignature, totals: confirmed });
+        if (Math.round((confirmedTotals || delivery).total * 100) !== Math.round(confirmed.total * 100)) {
+          setFormError(`Your order total has been updated to ${money(confirmed.total)} with the latest prices, discounts, tax and delivery. Review the total and press Pay again to continue.`);
+          return;
+        }
         const paid = await payOnline(order, result.data.payment, STORE);
         if (!paid) {
           setFormError(`Payment was not completed. Your order ${order.orderNumber} is reserved for a short time — press Pay again to finish.`);
@@ -259,7 +273,7 @@ export default function Checkout() {
                 </div>
               </div>
             </form>
-            <Summary cart={cart} coupon={coupon} pay={values.pay} products={products} store={STORE} submitting={submitting} formError={formError} pincode={values.pincode} />
+            <Summary cart={cart} coupon={coupon} pay={values.pay} products={products} store={STORE} submitting={submitting} formError={formError} pincode={values.pincode} confirmedTotals={confirmedTotals} />
           </div>
         )}
       </div></section>

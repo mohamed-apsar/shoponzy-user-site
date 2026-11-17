@@ -1,5 +1,17 @@
 export const cartLineKey = (line) => [line.id, line.c, line.s].join("|");
 
+export function confirmedCheckoutTotals(order, payment) {
+  const amount = Math.round(Number(order.total) * 100);
+  if (!Number.isSafeInteger(amount) || amount <= 0 || payment?.amount !== amount || payment.currency !== "INR") {
+    throw new Error("The payment amount could not be confirmed. Please try again.");
+  }
+  return {
+    sub: order.subtotal, disc: order.couponDiscount, prepaid: order.prepaidDiscount,
+    ship: order.shippingFee, tax: order.tax, total: amount / 100,
+    shippingStatus: "ready",
+  };
+}
+
 export function subtractPurchasedLines(cart, purchased) {
   const quantities = new Map(purchased.map((line) => [cartLineKey(line), line.qty]));
   return cart.flatMap((line) => {
