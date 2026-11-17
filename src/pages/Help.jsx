@@ -164,7 +164,7 @@ function ContactForm() {
           <FormField label="Your name" required autoComplete="name" {...field("name")} />
           <FormField label="Mobile number" required inputMode="tel" {...field("phone")} />
           <FormField as="select" label="Topic" {...field("topic")}>
-            {["Order question", "Return / exchange", "Product question", "Something else"].map((t) => <option key={t}>{t}</option>)}
+            {["Order question", "Return / Refund", "Product question", "Something else"].map((t) => <option key={t}>{t}</option>)}
           </FormField>
           <FormField label="Order ID" placeholder="e.g. SZ100001" {...field("order")} />
           <FormField as="textarea" label="Message" required full {...field("msg")} />

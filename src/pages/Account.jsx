@@ -272,14 +272,14 @@ function ChangePassword() {
   );
 }
 
-const TICKET_TYPES = ["Website problem", "Order issue", "Payment issue", "Delivery issue", "Return / exchange", "Product question", "Other"];
+const TICKET_TYPES = ["Order issue", "Payment issue", "Delivery issue", "Return / Refund", "Product question", "Other"];
 const TICKET_STATUS = { new: "Submitted", read: "In progress", replied: "Replied", closed: "Closed" };
 
 function SupportTickets() {
   const [tickets, setTickets] = useState(null);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
-  const [values, setValues] = useState({ subject: "", type: "Website problem", priority: "", message: "" });
+  const [values, setValues] = useState({ subject: "", type: "Order issue", priority: "", message: "" });
   const [file, setFile] = useState(null);
   const [errors, setErrors] = useState({});
   const [failure, setFailure] = useState("");
@@ -319,7 +319,7 @@ function SupportTickets() {
       }
       await storeRequest("/account/tickets", { method: "POST", body: { ...values, attachment } });
       setModalOpen(false);
-      setValues({ subject: "", type: "Website problem", priority: "", message: "" });
+      setValues({ subject: "", type: "Order issue", priority: "", message: "" });
       setFile(null);
       await loadTickets();
     } catch (error) {
