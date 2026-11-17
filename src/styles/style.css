@@ -767,6 +767,14 @@ html, body { overflow-x: clip; }
 .confirm-dialog-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
 .confirm-dialog-actions button { min-width: 104px; min-height: 44px; padding: 0 18px; border: 0; border-radius: 5px; color: #fff; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
 .confirm-cancel { background: #7b8792; }
+.confirm-dialog-return { border-radius: 24px; text-align: left; }
+.confirm-dialog-return .confirm-dialog-icon { width: 60px; height: 60px; margin: 0 0 20px; border: 0; border-radius: 18px; background: #f3f4f4; color: var(--ink); font-size: 36px; }
+.confirm-dialog-return h2 { color: var(--ink); font-size: 25px; letter-spacing: -.5px; }
+.confirm-dialog-return p { font-size: 15px; }
+.confirm-dialog-return .confirm-dialog-actions { justify-content: stretch; }
+.confirm-dialog-return .confirm-dialog-actions button { flex: 1; min-height: 48px; border-radius: 12px; }
+.confirm-dialog-return .confirm-cancel { border: 1px solid var(--line); background: #fff; color: var(--ink); }
+.confirm-dialog-return .confirm-accept { background: var(--ink); }
 .confirm-accept { background: #e24352; }
 .confirm-dialog-actions button:disabled { opacity: .6; cursor: wait; }
 @keyframes confirm-in { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { storeRequest, storeUpload } from "../api/storeApi";
 import { money } from "../utils/shop";
+import ConfirmDialog from "./ConfirmDialog";
 
 /* Return requests for one order: what can still be returned, the request form, and existing requests. */
 /* Reasons come from the store (admins manage them); this list is only a fallback for an older API. */
@@ -26,6 +27,7 @@ function ReturnForm({ orderNumber, items, reasons, onDone, onCancel }) {
   const [uploading, setUploading] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const chosen = items.filter((i) => qty[i.variant] > 0);
   const needsComment = Boolean(reasons.find((r) => r.code === reason)?.requiresComment);
 
@@ -48,12 +50,18 @@ function ReturnForm({ orderNumber, items, reasons, onDone, onCancel }) {
     }
   }
 
-  async function submit(event) {
+  function submit(event) {
     event.preventDefault();
+    if (busy || uploading) return;
     if (!chosen.length) return setError("Choose at least one item and how many to return.");
     if (!reason) return setError("Choose a reason for the return.");
     if (needsComment && comments.trim().length < 5) return setError("Tell us a little about the reason for the return.");
-    if (!window.confirm(`Request a return for ${chosen.reduce((s, i) => s + qty[i.variant], 0)} item(s)?`)) return;
+    setError("");
+    setConfirmOpen(true);
+  }
+
+  async function submitRequest() {
+    if (busy || uploading) return;
     setBusy(true);
     setError("");
     try {
@@ -64,6 +72,7 @@ function ReturnForm({ orderNumber, items, reasons, onDone, onCancel }) {
       onDone();
     } catch (e) {
       setError(e.message);
+      setConfirmOpen(false);
       setBusy(false);
     }
   }
@@ -111,6 +120,16 @@ function ReturnForm({ orderNumber, items, reasons, onDone, onCancel }) {
         <button type="submit" className="btn btn-dark" disabled={busy || uploading}>{busy ? "Sending…" : "Submit return request"}</button>
         <button type="button" className="btn btn-ghost" onClick={onCancel} disabled={busy}>Cancel</button>
       </div>
+      <ConfirmDialog
+        open={confirmOpen}
+        title="Submit return request?"
+        message={`You're requesting a return for ${chosen.reduce((sum, item) => sum + qty[item.variant], 0)} item(s) from order ${orderNumber}. Reason: ${reasons.find((item) => item.code === reason)?.label || ""}. Our team will review your request and update you.`}
+        confirmLabel="Yes, submit request"
+        variant="return"
+        busy={busy}
+        onCancel={() => setConfirmOpen(false)}
+        onConfirm={submitRequest}
+      />
     </form>
   );
 }
