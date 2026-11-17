@@ -12,8 +12,15 @@ export default function CouponForm({ lines }) {
   const [busy, setBusy] = useState(false);
   const t = totals(lines || cart, coupon, "cod", products, store);
 
+  function removeCoupon() {
+    setCoupon(null);
+    setCode("");
+    setError("");
+  }
+
   async function submit(event) {
     event.preventDefault();
+    if (busy || coupon) return;
     const value = code.trim().toUpperCase();
     setError("");
     if (!value) return setCoupon(null);
@@ -31,14 +38,13 @@ export default function CouponForm({ lines }) {
   const message = error || (t.disc ? `${coupon.code} applied` : t.cmsg);
   return <div>
     <form className="coupon" onSubmit={submit}>
-      <input placeholder="Coupon code" aria-label="Coupon code" value={code} onChange={(event) => setCode(event.target.value)} />
-      <button disabled={busy}>{coupon ? "Change" : "Apply"}</button>
+      <input placeholder="Coupon code" aria-label="Coupon code" value={coupon?.code || code} readOnly={Boolean(coupon)} onChange={(event) => setCode(event.target.value)} />
+      {coupon ? (
+        <button type="button" disabled={busy} onClick={removeCoupon} aria-label={`Remove coupon ${coupon.code}`}>Remove</button>
+      ) : (
+        <button type="submit" disabled={busy}>{busy ? "Applying…" : "Apply"}</button>
+      )}
     </form>
-    {coupon && <button type="button" className="rm" disabled={busy} onClick={() => {
-      setCoupon(null);
-      setCode("");
-      setError("");
-    }}>Remove coupon</button>}
     {message && <p className={`cmsg ${!error && t.disc ? "ok" : "bad"}`} role={error ? "alert" : "status"}>{message}</p>}
   </div>;
 }
