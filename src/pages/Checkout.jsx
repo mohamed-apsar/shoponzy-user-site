@@ -80,19 +80,27 @@ function loadRazorpay() {
 async function payOnline(order, payment, store) {
   const Razorpay = await loadRazorpay();
   return new Promise((resolve, reject) => {
+    let settled = false;
     const rzp = new Razorpay({
       key: payment.keyId, order_id: payment.razorpayOrderId, amount: payment.amount, currency: payment.currency,
       name: store.name || payment.name, description: payment.description, prefill: payment.prefill,
       theme: { color: "#FF4D2E" },
       handler: (result) => {
+        if (settled) return;
+        settled = true;
         storeRequest("/payments/razorpay/verify", {
           method: "POST",
           body: { orderNumber: order.orderNumber, razorpayOrderId: result.razorpay_order_id, razorpayPaymentId: result.razorpay_payment_id, razorpaySignature: result.razorpay_signature },
         }).then((r) => resolve(r.data.order), reject);
       },
-      modal: { ondismiss: () => resolve(null) },
+      modal: { ondismiss: () => { if (!settled) { settled = true; resolve(null); } } },
     });
-    rzp.on("payment.failed", (r) => reject(new Error(r?.error?.description || "Payment failed. Please try again.")));
+    rzp.on("payment.failed", (r) => {
+      if (settled) return;
+      settled = true;
+      rzp.close();
+      reject(new Error(r?.error?.description || "Payment failed. Please try again."));
+    });
     rzp.open();
   });
 }
@@ -223,11 +231,25 @@ export default function Checkout() {
           setFormError(`Your order total has been updated to ${money(confirmed.total)} with the latest prices, discounts, tax and delivery. Review the total and press Pay again to continue.`);
           return;
         }
-        const paid = await payOnline(order, result.data.payment, STORE);
-        if (!paid) {
-          setFormError(`Payment was not completed. Your order ${order.orderNumber} is reserved for a short time — press Pay again to finish.`);
+        let paid;
+        try {
+          paid = await payOnline(order, result.data.payment, STORE);
+        } catch (paymentError) {
+          const released = await storeRequest(`/orders/${order.orderNumber}/abandon-payment`, { method: "POST" });
           idempotencyKey.current = newKey();
-          return;
+          setConfirmedQuote(null);
+          if (released.data.order.paymentStatus === "paid") paid = released.data.order;
+          else throw paymentError;
+        }
+        if (!paid) {
+          const released = await storeRequest(`/orders/${order.orderNumber}/abandon-payment`, { method: "POST" });
+          idempotencyKey.current = newKey();
+          setConfirmedQuote(null);
+          if (released.data.order.paymentStatus === "paid") paid = released.data.order;
+          else {
+            setFormError("Payment cancelled. Your items are still in checkout and the stock reservation has been released. You can try paying again.");
+            return;
+          }
         }
         order = paid;
       }
