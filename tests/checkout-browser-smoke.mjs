@@ -11,7 +11,7 @@ const products = [{"id":"a","apiId":"aaaaaaaaaaaaaaaaaaaaaaaa","slug":"a","name"
 const orders = [];
 const bundle = await build({stdin:{contents:"import React from 'react'; import {createRoot} from 'react-dom/client'; import {BrowserRouter, Routes, Route, useNavigate} from 'react-router-dom'; import {StoreProvider,useStore} from './src/context/StoreContext.jsx'; import Cart from './src/pages/Cart.jsx'; import Checkout from './src/pages/Checkout.jsx'; function Probe(){const store=useStore(); window.bag=store.cart; const nav=useNavigate(); return <><button id=\"buy\" onClick={()=>{store.startCheckout('buy-now',[{id:'b',c:0,s:'8',qty:1}]);nav('/checkout?mode=buy-now')}}>Buy now</button><button id=\"bag\" onClick={()=>nav('/cart')}>Bag</button></>;} createRoot(document.getElementById('root')).render(<BrowserRouter><StoreProvider><Probe/><Routes><Route path=\"/cart\" element={<Cart/>}/><Route path=\"/checkout\" element={<Checkout/>}/></Routes></StoreProvider></BrowserRouter>);",resolveDir:process.cwd(),loader:'jsx'},bundle:true,write:false,outfile:'smoke.js',jsx:'automatic',define:{'import.meta.env.DEV':'false','import.meta.env.VITE_API_BASE_URL':'"/api/v1"'},plugins:[{name:'fixtures',setup(b){b.onLoad({filter:/CatalogContext\.jsx$/},()=>({contents:'export const useCatalog=()=>({products:'+JSON.stringify(products)+',categories:[],status:"ready",store:{taxRate:0,shippingFee:59,freeShippingAbove:999,prepaidOffPct:5,shipping:{"states":[{"name":"Tamil Nadu","enabled":true,"districts":[{"name":"Chennai","enabled":true}]}],"pincodes":[{"code":"600040","state":"Tamil Nadu","district":"Chennai","enabled":true,"price":40},{"code":"600041","state":"Tamil Nadu","district":"Chennai","enabled":true,"price":0}]}}});',loader:'js'}));b.onLoad({filter:/CustomerContext\.jsx$/},()=>({contents:'export const useCustomer=()=>({signedIn:false,status:"ready",user:{}});',loader:'js'}));}}]});
 const assets=new Map(bundle.outputFiles.map(f=>[f.path.endsWith('.css')?'/smoke.css':'/smoke.js',f.text]));
-const server=createServer(async(req,res)=>{if(req.url.startsWith('/api/v1/')){let data={};if(req.url.endsWith('/csrf'))data={csrfToken:'test'};if(req.url.endsWith('/orders')){let raw='';for await(const chunk of req)raw+=chunk;const body=JSON.parse(raw);orders.push(body);data={order:{orderNumber:'SZ100001',total:759,paymentMethod:'cod'}};}res.setHeader('Content-Type','application/json');res.end(JSON.stringify({success:true,data}));}else if(assets.has(req.url)){res.setHeader('Content-Type',req.url.endsWith('.css')?'text/css':'text/javascript');res.end(assets.get(req.url));}else{res.setHeader('Content-Type','text/html');res.end('<!doctype html><div id="root"></div><script type="module" src="/smoke.js"></script>');}});
+const server=createServer(async(req,res)=>{if(req.url.startsWith('/api/v1/')){let data={};if(req.url.endsWith('/csrf'))data={csrfToken:'test'};if(req.url.endsWith('/coupons/SAVE10'))data={code:'SAVE10',type:'percent',value:10,minSubtotal:0};if(req.url.endsWith('/orders')){let raw='';for await(const chunk of req)raw+=chunk;const body=JSON.parse(raw);orders.push(body);data={order:{orderNumber:'SZ100001',total:759,paymentMethod:'cod'}};}res.setHeader('Content-Type','application/json');res.end(JSON.stringify({success:true,data}));}else if(assets.has(req.url)){res.setHeader('Content-Type',req.url.endsWith('.css')?'text/css':'text/javascript');res.end(assets.get(req.url));}else{res.setHeader('Content-Type','text/html');res.end('<!doctype html><div id="root"></div><script type="module" src="/smoke.js"></script>');}});
 await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
 const profile = await mkdtemp(join(tmpdir(), "shoponzy-popup-smoke-"));
 const browser = spawn(process.env.POPUP_TEST_BROWSER || "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe", ["--headless=new", "--disable-gpu", "--no-first-run", "--remote-debugging-port=0", `--user-data-dir=${profile}`, "about:blank"], { stdio: ["ignore", "ignore", "pipe"], windowsHide: true });
@@ -77,6 +77,18 @@ try {
   await changePin('600040');
   await waitFor('document.querySelector("[data-shipping-status]")?.textContent.includes("40")');
   console.log('PASS: PIN-specific shipping updates totals, supports zero rates, and blocks unsupported or incomplete PIN codes');
+  const beforeCoupon = await evaluate('document.querySelector("#coSum .total").textContent');
+  await evaluate('(() => { const input=document.querySelector(".coupon input"); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value").set.call(input,"SAVE10"); input.dispatchEvent(new Event("input",{bubbles:true})); })()');
+  await evaluate('document.querySelector(".coupon button").click()');
+  await waitFor('document.querySelector("#coSum .rm")?.textContent === "Remove coupon"');
+  assert.notEqual(await evaluate('document.querySelector("#coSum .total").textContent'),beforeCoupon);
+  await evaluate('document.querySelector("#coSum .rm").click()');
+  await waitFor('!document.querySelector("#coSum .rm")');
+  assert.equal(await evaluate('document.querySelector("#coSum .total").textContent'),beforeCoupon);
+  assert.equal(await evaluate('document.querySelector(".coupon input").value'),'');
+  assert.equal(await evaluate('JSON.parse(localStorage.getItem("snz:coupon"))'),null);
+  console.log('PASS: removing an applied coupon clears its code and saved discount and restores the total');
+
 
   await evaluate('document.querySelector("#buy").click()');
   await waitFor('document.querySelector("#coSum .meta")?.textContent.includes("Qty 1")');

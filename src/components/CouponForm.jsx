@@ -34,6 +34,11 @@ export default function CouponForm({ lines }) {
       <input placeholder="Coupon code" aria-label="Coupon code" value={code} onChange={(event) => setCode(event.target.value)} />
       <button disabled={busy}>{coupon ? "Change" : "Apply"}</button>
     </form>
+    {coupon && <button type="button" className="rm" disabled={busy} onClick={() => {
+      setCoupon(null);
+      setCode("");
+      setError("");
+    }}>Remove coupon</button>}
     {message && <p className={`cmsg ${!error && t.disc ? "ok" : "bad"}`} role={error ? "alert" : "status"}>{message}</p>}
   </div>;
 }
