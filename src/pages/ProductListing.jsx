@@ -49,11 +49,17 @@ function Filters({ st, base, subsAll, sizes, colors, sliderMax, pageCat, toggle,
 }
 
 function Hero({ c, q }) {
+  const { store } = useCatalog();
+  const shopAllBanner = store.homeCategories?.shopAllBanner;
   if (!c) {
     return (
-      <section className="cat-hero"><div className="bg" style={{ background: "linear-gradient(120deg,#111318,#3A3D48)" }} />
+      <section className={`cat-hero${shopAllBanner ? " has-banner" : ""}`}><div className="bg" style={shopAllBanner
+        ? { backgroundImage: `linear-gradient(90deg,rgba(0,0,0,.62),rgba(0,0,0,.12)),url("${shopAllBanner}")`, backgroundSize: "cover", backgroundPosition: "center" }
+        : { background: "linear-gradient(120deg,#111318,#3A3D48)" }} />
+        {!shopAllBanner && <>
         <span className="float" data-depth="1.2" style={{ right: "5%", top: "16%", width: 170 }}><span style={{ display: "block" }}><Art kind="sneaker" color="#FF4D2E" category="shoes" /></span></span>
         <span className="float" data-depth=".8" style={{ right: "24%", bottom: -20, width: 120 }}><span style={{ display: "block" }}><Art kind="analog" color="#5E35B1" category="watches" /></span></span>
+        </>}
         <div className="container in"><nav className="crumbs" aria-label="Breadcrumb"><Link to="/">Home</Link><span>/</span><span>Shop</span></nav>
           <h1>{q ? `“${q}”` : "Shop all"}</h1><p>Everything in one place. Filter by category, size, colour and price.</p></div>
       </section>

@@ -155,6 +155,7 @@ function mapSettings(settings) {
       showAllCategories: homeCategories.showAllCategories ?? true,
       showNewIn: homeCategories.showNewIn ?? true,
       newInImage: homeCategories.newInImage?.url || "",
+      shopAllBanner: homeCategories.shopAllBanner?.url || "",
     },
     logo: branding.logo?.url || headerFooter.headerLogo?.url || "",
     headerLogo: headerFooter.headerLogo?.url || "",
