@@ -22,8 +22,8 @@ export default function Cart() {
   const { products, store: STORE } = useCatalog();
   const { cart, coupon, setQty, removeLine, startCheckout } = useStore();
   const navigate = useNavigate();
-  const [excluded, setExcluded] = useState([]);
-  const selected = cart.filter((line) => !excluded.includes(cartLineKey(line)));
+  const [selectedKeys, setSelectedKeys] = useState([]);
+  const selected = cart.filter((line) => selectedKeys.includes(cartLineKey(line)));
   const t = totals(selected, coupon, "cod", products, STORE);
 
   return (
@@ -32,12 +32,12 @@ export default function Cart() {
       <section className="section" style={{ paddingTop: 10 }}><div className="container" id="cartWrap">
         {!cart.length ? <EmptyBag /> : (
           <div className="cart-l">
-            <div><label style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}><input type="checkbox" checked={selected.length === cart.length} onChange={(event) => setExcluded(event.target.checked ? [] : cart.map(cartLineKey))} />Select all ({selected.length} of {cart.length})</label>{cart.map((l, i) => {
+            <div><label style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}><input type="checkbox" checked={selected.length === cart.length} onChange={(event) => setSelectedKeys(event.target.checked ? cart.map(cartLineKey) : [])} />Select all ({selected.length} of {cart.length})</label>{cart.map((l, i) => {
               const p = byId(l.id, products);
               return (
                 <div className="line" key={`${l.id}|${l.c}|${l.s}`}>
                   <ProductMedia as={Link} to={productUrl(p)} className="mini" product={p} ci={l.c} />
-                  <div><label style={{ display: "flex", alignItems: "center", gap: 10 }}><input type="checkbox" aria-label={`Select ${p.name}, ${p.colors[l.c][1]}, size ${l.s}`} checked={!excluded.includes(cartLineKey(l))} onChange={(event) => setExcluded((current) => event.target.checked ? current.filter((key) => key !== cartLineKey(l)) : [...current, cartLineKey(l)])} /><h3><Link to={productUrl(p)}>{p.name}</Link></h3></label><p className="meta">{p.colors[l.c][1]} · Size {l.s}</p>
+                  <div><label style={{ display: "flex", alignItems: "center", gap: 10 }}><input type="checkbox" aria-label={`Select ${p.name}, ${p.colors[l.c][1]}, size ${l.s}`} checked={selectedKeys.includes(cartLineKey(l))} onChange={(event) => setSelectedKeys((current) => event.target.checked ? [...current, cartLineKey(l)] : current.filter((key) => key !== cartLineKey(l)))} /><h3><Link to={productUrl(p)}>{p.name}</Link></h3></label><p className="meta">{p.colors[l.c][1]} · Size {l.s}</p>
                     <div className="row"><QtyControl qty={l.qty} onChange={(d) => setQty(i, d)} onRemove={() => removeLine(i)} /><b>{money(linePrice(p, l) * l.qty)}</b></div>
                     <button type="button" className="rm" onClick={() => removeLine(i)}>Remove</button></div>
                 </div>

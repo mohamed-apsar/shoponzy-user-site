@@ -47,7 +47,14 @@ try {
   await command('Page.addScriptToEvaluateOnNewDocument',{source:'if (!localStorage.getItem("seeded")) {localStorage.setItem("snz:cart",JSON.stringify([{id:"a",c:0,s:"8",qty:1},{id:"b",c:0,s:"8",qty:2}]));localStorage.setItem("snz:addr",JSON.stringify({name:"Asha Kumar",phone:"9876543210",email:"asha@example.com",address:"12 Test Street",city:"Chennai",pincode:"600040",state:"Tamil Nadu"}));localStorage.setItem("seeded","1");}'});
   await navigate('/cart');
   await waitFor('document.querySelectorAll(".line").length===2');
-  await evaluate('document.querySelectorAll(".line input[type=checkbox]")[0].click()');
+  assert.equal(await evaluate('document.querySelectorAll("#cartWrap input[type=checkbox]:checked").length'), 0);
+  assert.equal(await evaluate('document.querySelector(".summary button").disabled'), true);
+  await evaluate('document.querySelector("#cartWrap input[type=checkbox]").click()');
+  assert.equal(await evaluate('document.querySelectorAll(".line input[type=checkbox]:checked").length'), 2);
+  await evaluate('document.querySelector("#cartWrap input[type=checkbox]").click()');
+  assert.equal(await evaluate('document.querySelectorAll(".line input[type=checkbox]:checked").length'), 0);
+  console.log('PASS: bag opens with no selection; only an explicit Select all selects every item');
+  await evaluate('document.querySelectorAll(".line input[type=checkbox]")[1].click()');
   await evaluate('document.querySelector(".summary button").click()');
   await waitFor('document.querySelectorAll("#coSum .dline").length===1');
   assert.equal(await evaluate('document.querySelector("#coSum h4").textContent'),'Buy now product');
@@ -70,7 +77,7 @@ try {
   console.log('PASS: Buy Now survives refresh, orders one unit, and keeps existing bag quantities');
   await evaluate('document.querySelector("#bag").click()');
   await waitFor('document.querySelectorAll(".line").length===2');
-  await evaluate('document.querySelectorAll(".line input[type=checkbox]")[0].click()');
+  await evaluate('document.querySelectorAll(".line input[type=checkbox]")[1].click()');
   await evaluate('document.querySelector(".summary button").click()');
   await waitFor('document.querySelector("#coSum .meta")?.textContent.includes("Qty 2")');
   await evaluate('document.querySelector("input[value=cod]").click()');
