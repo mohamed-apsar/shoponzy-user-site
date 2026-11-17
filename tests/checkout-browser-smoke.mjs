@@ -88,6 +88,21 @@ try {
   assert.equal(await evaluate('document.querySelector(".coupon input").value'),'');
   assert.equal(await evaluate('JSON.parse(localStorage.getItem("snz:coupon"))'),null);
   console.log('PASS: removing an applied coupon clears its code and saved discount and restores the total');
+  const changeAddressField = async (name, value) => evaluate('(() => { const input = document.querySelector("[name=' + name + ']"); const prototype = input.tagName === "TEXTAREA" ? HTMLTextAreaElement.prototype : input.tagName === "SELECT" ? HTMLSelectElement.prototype : HTMLInputElement.prototype; Object.getOwnPropertyDescriptor(prototype,"value").set.call(input,' + JSON.stringify(value) + '); input.dispatchEvent(new Event(input.tagName === "SELECT" ? "change" : "input",{bubbles:true})); })()');
+  const changedAddress = {address:'45 New Delivery Street',city:'New Chennai',pincode:'600041',state:'Kerala',name:'Updated Shopper',phone:'9876543211',email:'updated@example.com'};
+  for (const [name,value] of Object.entries(changedAddress)) await changeAddressField(name,value);
+  await command('Page.reload');
+  await waitFor('document.querySelector("#coSum .dline")');
+  for (const [name,value] of Object.entries(changedAddress)) assert.equal(await evaluate('document.querySelector("[name=' + name + ']").value'),value);
+  assert.ok(await evaluate('document.querySelector("[data-shipping-status]").textContent.includes("Free")'));
+  await changeAddressField('address','');
+  await command('Page.reload');
+  await waitFor('document.querySelector("#coSum .dline")');
+  assert.equal(await evaluate('document.querySelector("textarea[name=address]").value'),'');
+  await changeAddressField('address',changedAddress.address);
+  await changePin('600040');
+  console.log('PASS: edited contact and address fields, including cleared values, survive refresh and shipping follows the restored PIN code');
+
 
 
   await evaluate('document.querySelector("#buy").click()');

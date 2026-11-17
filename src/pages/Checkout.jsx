@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useCustomer } from "../context/CustomerContext";
 import { Link, useSearchParams } from "react-router-dom";
 import { checkoutItems } from "../utils/checkout";
+import { storage } from "../utils/storage";
 import Icon from "../components/Icon";
 import ProductMedia from "../components/ProductMedia";
 import FormField, { EMAIL_RE, PHONE_RE } from "../components/FormField";
@@ -100,6 +101,7 @@ export default function Checkout() {
   const mode = params.get("mode") || "cart";
   const cart = params.has("mode") ? (checkoutDraft?.mode === mode ? checkoutDraft.lines : []) : bag;
   const [values, setValues] = useState(() => ({ name: "", phone: "", email: "", address: "", city: "", pincode: "", state: "", ...(address || {}), pay: "upi" }));
+  const editedFields = useRef(new Set(Object.keys(address || {})));
   const [errors, setErrors] = useState({});
   const [placed, setPlaced] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -116,7 +118,7 @@ export default function Checkout() {
     let active = true;
     const fill = (extra) => setValues((v) => {
       const next = { ...v };
-      for (const [k, x] of Object.entries({ name: user.name, email: user.email, phone: user.phone, ...extra })) if (x && !next[k]) next[k] = x;
+      for (const [k, x] of Object.entries({ name: user.name, email: user.email, phone: user.phone, ...extra })) if (x && !next[k] && !editedFields.current.has(k)) next[k] = x;
       return next;
     });
     fill({});
@@ -131,7 +133,14 @@ export default function Checkout() {
 
   const update = (event) => {
     const { name, value } = event.target;
-    setValues((v) => ({ ...v, [name]: value }));
+    const next = { ...values, [name]: value };
+    setValues(next);
+    if (FIELDS.includes(name)) {
+      editedFields.current.add(name);
+      const draft = Object.fromEntries(FIELDS.map((key) => [key, next[key]]));
+      setAddress(draft);
+      storage.set("addr", draft);
+    }
     if (name === "phone") {
       const phoneError = value.length > 10
           ? "Mobile number must be exactly 10 digits."
