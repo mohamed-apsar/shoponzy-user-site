@@ -166,6 +166,7 @@ function mapSettings(settings) {
     shareImage: seo.shareImage?.url || "",
     freeShippingAbove: commerce.freeShippingAbove ?? DEFAULT_STORE.freeShippingAbove,
     shippingFee: commerce.shippingFee ?? DEFAULT_STORE.shippingFee,
+    shipping: settings.shipping || { states: [], pincodes: [] },
     prepaidOffPct: commerce.prepaidOffPct ?? DEFAULT_STORE.prepaidOffPct,
     deliveryText: commerce.deliveryText || DEFAULT_STORE.deliveryText,
     phoneDisplay: contact.phone || DEFAULT_STORE.phoneDisplay,

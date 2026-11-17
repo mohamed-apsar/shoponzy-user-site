@@ -48,9 +48,9 @@ export default function Cart() {
               <div className="srow"><span>MRP total</span><span>{money(t.mrp)}</span></div>
               {t.mrp > t.sub && <div className="srow"><span>Discount on MRP</span><span className="save">−{money(t.mrp - t.sub)}</span></div>}
               {t.disc > 0 && <div className="srow"><span>Coupon {coupon.code}</span><span className="save">−{money(t.disc)}</span></div>}
-              <div className="srow"><span>Delivery</span><span>{t.ship ? money(t.ship) : <span className="save">Free</span>}</span></div>
+              <div className="srow"><span>Delivery</span><span>{t.ship == null ? "Calculated at checkout" : t.ship ? money(t.ship) : <span className="save">Free</span>}</span></div>
               {t.tax > 0 && <div className="srow"><span>Tax ({STORE.taxRate}%)</span><span>{money(t.tax)}</span></div>}
-              <div className="srow total"><span>Total</span><span>{money(t.total)}</span></div>
+              <div className="srow total"><span>{t.ship == null ? "Total before delivery" : "Total"}</span><span>{money(t.total)}</span></div>
               <p className="tax">Pay by UPI at checkout for an extra {STORE.prepaidOffPct}% off.</p>
               {!selected.length && <p role="status">Select at least one item to check out.</p>}
               <button type="button" className="btn btn-dark btn-block" disabled={!selected.length} onClick={() => { startCheckout("cart", selected); navigate("/checkout?mode=cart"); }} style={{ marginTop: 12 }}>Checkout ({selected.length}) <Icon name="i-arrow" /></button>

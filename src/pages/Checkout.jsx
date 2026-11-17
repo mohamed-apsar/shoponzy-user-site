@@ -28,8 +28,8 @@ function validate(v) {
   return er;
 }
 
-function Summary({ cart, coupon, pay, products, store: STORE, submitting, formError }) {
-  const t = totals(cart, coupon, pay, products, STORE);
+function Summary({ cart, coupon, pay, products, store: STORE, submitting, formError, pincode }) {
+  const t = totals(cart, coupon, pay, products, STORE, pincode);
   return (
     <aside className="summary" id="coSum"><h2>Your order</h2>
       {cart.map((l) => {
@@ -43,13 +43,14 @@ function Summary({ cart, coupon, pay, products, store: STORE, submitting, formEr
         <div className="srow"><span>Subtotal</span><span>{money(t.sub)}</span></div>
         {t.disc > 0 && <div className="srow"><span>Coupon {coupon.code}</span><span className="save">−{money(t.disc)}</span></div>}
         {t.prepaid > 0 && <div className="srow"><span>Prepaid discount ({STORE.prepaidOffPct}%)</span><span className="save">−{money(t.prepaid)}</span></div>}
-        <div className="srow"><span>Shipping</span><span>{t.ship ? money(t.ship) : <span className="save">Free</span>}</span></div>
+        <div className="srow" data-shipping-status={t.shippingStatus}><span>Shipping</span><span>{t.ship == null ? (t.shippingStatus === "pending" ? "Enter PIN code" : "Unavailable") : t.ship ? money(t.ship) : <span className="save">Free</span>}</span></div>
+        {t.shippingStatus === "unavailable" && <p className="err-t" role="alert">{t.shippingMessage}</p>}
         <CouponForm lines={cart} />
         <div className="srow"><span>Tax ({STORE.taxRate}%)</span><span>{money(t.tax)}</span></div>
-        <div className="srow total"><span>Total</span><span>{money(t.total)}</span></div>
+        <div className="srow total"><span>Total</span><span>{t.shippingStatus === "ready" ? money(t.total) : "—"}</span></div>
       </div>
       {formError && <p className="err-t" role="alert">{formError}</p>}
-      <button className="btn btn-dark btn-block" type="submit" form="coForm" style={{ marginTop: 16, minHeight: 54 }} disabled={submitting}>
+      <button className="btn btn-dark btn-block" type="submit" form="coForm" style={{ marginTop: 16, minHeight: 54 }} disabled={submitting || t.shippingStatus !== "ready"}>
         {submitting ? "Placing your order…" : pay === "upi" ? "Pay & place order" : "Place order"}
       </button>
       <p className="tax" style={{ textAlign: "center", marginTop: 8 }}>Final prices, stock and discounts are confirmed when you place the order.</p>
@@ -152,6 +153,11 @@ export default function Checkout() {
     setFormError("");
     const first = Object.keys(er)[0];
     if (first) return event.target.elements[first].focus();
+    const delivery = totals(cart, coupon, values.pay, products, STORE, values.pincode);
+    if (delivery.shippingStatus !== "ready") {
+      setFormError(delivery.shippingMessage);
+      return;
+    }
 
     setAddress(Object.fromEntries(FIELDS.map((k) => [k, values[k]])));
     const v = values;
@@ -245,7 +251,7 @@ export default function Checkout() {
                 </div>
               </div>
             </form>
-            <Summary cart={cart} coupon={coupon} pay={values.pay} products={products} store={STORE} submitting={submitting} formError={formError} />
+            <Summary cart={cart} coupon={coupon} pay={values.pay} products={products} store={STORE} submitting={submitting} formError={formError} pincode={values.pincode} />
           </div>
         )}
       </div></section>

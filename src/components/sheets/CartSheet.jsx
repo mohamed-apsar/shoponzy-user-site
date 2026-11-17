@@ -9,6 +9,7 @@ import { useCatalog } from "../../context/CatalogContext";
 
 export function FreeDeliveryMeter({ t, short = false }) {
   const { store } = useCatalog();
+  if (t.shippingByPincode) return null;
   const net = t.sub - t.disc, left = store.freeShippingAbove - net;
   const width = `${Math.min(100, (net / store.freeShippingAbove) * 100)}%`;
   return (

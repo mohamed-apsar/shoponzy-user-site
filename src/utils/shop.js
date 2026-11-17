@@ -1,4 +1,5 @@
 import { CATS, PRODUCTS, STORE } from "../data/catalog";
+import { shippingForPincode } from "./shipping";
 
 export const money = (n) => STORE.currency + Number(n).toLocaleString("en-IN");
 export const off = (p) => (p.mrp > p.price ? Math.round((1 - p.price / p.mrp) * 100) : 0);
@@ -39,7 +40,7 @@ export function linePrice(p, l) {
 
 /* Display totals only — the backend recalculates every amount at checkout.
    `coupon` is the applied coupon's rules ({ code, type, value, minSubtotal, maxDiscount }), as the API returns them. */
-export function totals(cart, coupon, pay = "cod", products = PRODUCTS, store = STORE) {
+export function totals(cart, coupon, pay = "cod", products = PRODUCTS, store = STORE, pincode) {
   const lines = cart.map((l) => ({ l, p: byId(l.id, products) })).filter((x) => x.p);
   const sub = lines.reduce((s, { l, p }) => s + linePrice(p, l) * l.qty, 0);
   const mrp = lines.reduce((s, { l, p }) => s + Math.max(p.mrp, linePrice(p, l)) * l.qty, 0);
@@ -53,7 +54,9 @@ export function totals(cart, coupon, pay = "cod", products = PRODUCTS, store = S
     } else cmsg = `Add ${money(c.minSubtotal - sub)} more to use ${c.code}`;
   }
   const prepaid = pay === "upi" ? Math.round(((sub - disc) * store.prepaidOffPct) / 100) : 0;
-  const ship = sub === 0 || sub - disc >= store.freeShippingAbove ? 0 : store.shippingFee;
+  const defaultShipping = sub === 0 || sub - disc >= store.freeShippingAbove ? 0 : store.shippingFee;
+  const delivery = shippingForPincode(store.shipping, pincode, defaultShipping);
+  const ship = delivery.fee;
   const tax = Math.round(Math.max(0, sub - disc - prepaid) * (Number(store.taxRate) || 0) / 100 * 100) / 100;
-  return { sub, mrp, disc, prepaid, ship, tax, total: sub - disc - prepaid + ship + tax, cmsg };
+  return { sub, mrp, disc, prepaid, ship, tax, total: sub - disc - prepaid + (ship ?? 0) + tax, cmsg, shippingStatus: delivery.status, shippingMessage: delivery.message, shippingByPincode: delivery.byPincode };
 }
