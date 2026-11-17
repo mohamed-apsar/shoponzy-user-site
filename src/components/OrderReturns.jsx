@@ -9,6 +9,7 @@ const FALLBACK_REASONS = [
   { code: "defective", label: "Defective product" }, { code: "size_fit", label: "Size or fit issue" },
   { code: "not_as_described", label: "Product not as described" }, { code: "missing_items", label: "Missing items" },
   { code: "changed_mind", label: "Changed mind" }, { code: "other", label: "Other", requiresComment: true },
+  { code: "return_refund", label: "Return/Refund" },
 ];
 const RETURN_STATUS = {
   requested: "Requested — under review", approved: "Approved", rejected: "Rejected", pickup_scheduled: "Pickup scheduled",
