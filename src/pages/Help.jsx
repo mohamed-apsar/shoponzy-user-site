@@ -6,6 +6,8 @@ import { storeRequest } from "../api/storeApi";
 import { usePageFx } from "../fx/usePageFx";
 import usePageMeta from "../hooks/usePageMeta";
 import { useCatalog } from "../context/CatalogContext";
+import { usePublishedPages } from "../context/PublishedPagesContext";
+import NotFound from "./NotFound";
 
 /* Policy routes (/about, /shipping-policy, …) render this page scrolled to their section.
    Phase 6 moves the text into Manage Site → Pages & Policies. */
@@ -22,17 +24,11 @@ const STATUS_LABELS = {
 };
 const ORDER_ID_RE = /^SZ\d{6,9}$/;
 
-/* FAQs are managed in the admin panel (FAQ Management); these show until any are added there. */
-const FALLBACK_FAQS = [
-  { id: "f1", question: "How do I place an order?", answer: "Add items to your bag, check out, and pay online or choose cash on delivery. You get an order ID straight away." },
-  { id: "f2", question: "Is cash on delivery available?", answer: "Yes, on most PIN codes. Paying online gets you an extra 5% off." },
-  { id: "f3", question: "How do I find my size?", answer: "Tap “Size guide” on any product page. If you’re between sizes, pick the larger one or ask us on WhatsApp." },
-];
 function Faqs() {
-  const [faqs, setFaqs] = useState(FALLBACK_FAQS);
+  const [faqs, setFaqs] = useState([]);
   useEffect(() => {
     let live = true;
-    storeRequest("/faqs").then((r) => { if (live && r.data?.length) setFaqs(r.data); }).catch(() => {});
+    storeRequest("/faqs").then((r) => { if (live) setFaqs(r.data || []); }).catch(() => {});
     return () => { live = false; };
   }, []);
   const groups = [...new Set(faqs.map((f) => f.category || ""))];
@@ -182,6 +178,8 @@ function ContactForm() {
 
 export default function Help({ section }) {
   const { store: STORE } = useCatalog();
+  const { pages, loading: pagesLoading, error: pagesError } = usePublishedPages();
+  const faqsPublished = pages.some((page) => page.slug === "faqs");
   const [anchor, title] = HELP_SECTIONS[section] || [];
   usePageMeta(title ? `${title} | Shoponzy` : "Help, Policies & Contact | Shoponzy");
   usePageFx([]);
@@ -193,6 +191,11 @@ export default function Help({ section }) {
     return () => clearTimeout(t);
   }, [anchor]);
 
+  if (section === "faqs") {
+    if (pagesLoading) return <div className="container page-title"><p role="status">Loading page...</p></div>;
+    if (pagesError) return <div className="container page-title"><p role="alert">Could not load this page. Please try again.</p></div>;
+    if (!faqsPublished) return <NotFound />;
+  }
   if (section) {
     let content;
     switch (section) {
@@ -231,9 +234,9 @@ export default function Help({ section }) {
           <h2 id="privacy">Privacy policy</h2><p>We collect only the details needed to process and deliver your order (name, phone, address, email). We don’t sell your data. Your wishlist is stored in your own browser.</p>
           <h2 id="terms">Terms &amp; conditions</h2><p>Prices and offers can change without notice. Prices, stock and discounts are confirmed when the order is placed. Product colours may vary slightly from screen to screen.</p>
           <h2 id="about">About Shoponzy</h2><p>Shoponzy brings shoes, sunglasses, perfumes, clothing, watches and everyday essentials together in one easy store, with honest prices and quick delivery.</p>
-          <h2 id="faq">FAQs</h2>
+          {faqsPublished && <h2 id="faq">FAQs</h2>}
         </div>
-        <Faqs />
+        {faqsPublished && <Faqs />}
         <div style={{ maxWidth: 860, marginTop: 30 }} id="contact"><h2 style={{ fontSize: "1.3rem", fontWeight: 800, marginBottom: 12 }}>Contact us</h2>
           <ContactForm />
           <p className="tax" style={{ marginTop: 12 }}>Email <a href={`mailto:${STORE.email}`} style={{ textDecoration: "underline" }}>{STORE.email}</a> · Call <a href={`tel:${STORE.phoneTel}`} style={{ textDecoration: "underline" }}>{STORE.phoneDisplay}</a></p>

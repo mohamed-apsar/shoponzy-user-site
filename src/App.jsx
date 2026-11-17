@@ -14,6 +14,7 @@ import Account from "./pages/Account";
 import AccountOrder from "./pages/AccountOrder";
 import { ForgotPassword, ResetPassword } from "./pages/PasswordReset";
 import { useCustomer } from "./context/CustomerContext";
+import { PublishedPagesProvider } from "./context/PublishedPagesContext";
 
 function SearchRedirect() {
   const [params] = useSearchParams();
@@ -33,7 +34,7 @@ function CustomerCheckout() {
 
 export default function App() {
   return (
-    <Routes>
+    <PublishedPagesProvider><Routes>
       <Route element={<Layout />}>
         <Route index element={<Home />} />
         <Route path="products" element={<ShopPage />} />
@@ -52,6 +53,6 @@ export default function App() {
         {Object.keys(HELP_SECTIONS).map((path) => <Route key={path} path={path} element={<Help section={path} />} />)}
         <Route path="*" element={<LegacyRedirect fallback={<NotFound />} />} />
       </Route>
-    </Routes>
+    </Routes></PublishedPagesProvider>
   );
 }
