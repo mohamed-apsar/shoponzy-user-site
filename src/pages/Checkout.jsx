@@ -52,7 +52,7 @@ function Summary({ cart, coupon, pay, products, store: STORE, submitting, formEr
       </div>
       {formError && <p className="err-t" role="alert">{formError}</p>}
       <button className="btn btn-dark btn-block" type="submit" form="coForm" style={{ marginTop: 16, minHeight: 54 }} disabled={submitting || t.shippingStatus !== "ready"}>
-        {submitting ? "Placing your order…" : pay === "upi" ? "Pay & place order" : "Place order"}
+        {submitting ? "Placing your order…" : "Pay & place order"}
       </button>
       <p className="tax" style={{ textAlign: "center", marginTop: 8 }}>Final prices, stock and discounts are confirmed when you place the order.</p>
     </aside>
@@ -182,17 +182,17 @@ export default function Checkout() {
           items, checkoutMode: mode, couponCode: coupon?.code || null,
           contact: { name: v.name.trim(), phone: v.phone, email: v.email.trim() },
           shippingAddress: { name: v.name.trim(), phone: v.phone, line1: v.address.trim(), city: v.city.trim(), state: v.state, pincode: v.pincode },
-          paymentMethod: v.pay === "upi" ? "razorpay" : "cod",
+          paymentMethod: "razorpay",
           ...(signedIn && saveAddress && !hasSavedAddress ? { saveAddress: true } : {}),
           idempotencyKey: idempotencyKey.current,
         },
       });
       let order = result.data.order;
       if (order.paymentMethod === "razorpay" && order.paymentStatus !== "paid") {
-        if (!result.data.payment) throw new Error("Online payment is unavailable right now. Please choose cash on delivery.");
+        if (!result.data.payment) throw new Error("Online payment is unavailable right now. Please try again shortly.");
         const paid = await payOnline(order, result.data.payment, STORE);
         if (!paid) {
-          setFormError(`Payment was not completed. Your order ${order.orderNumber} is reserved for a short time — press Pay again to finish, or choose cash on delivery.`);
+          setFormError(`Payment was not completed. Your order ${order.orderNumber} is reserved for a short time — press Pay again to finish.`);
           idempotencyKey.current = newKey();
           return;
         }
@@ -213,13 +213,13 @@ export default function Checkout() {
 
   return (
     <>
-      <div className="container page-title"><h1>Checkout</h1><p>Pay online for an extra {STORE.prepaidOffPct}% off, or pay cash on delivery.</p></div>
+      <div className="container page-title"><h1>Checkout</h1><p>Pay online for an extra {STORE.prepaidOffPct}% off.</p></div>
       <section className="section" style={{ paddingTop: 12 }}><div className="container" id="coWrap">
         {placed ? (
           <div className="success box" role="status"><div className="tick"><Icon name="i-check" /></div>
             <h1 style={{ fontSize: "1.6rem", fontWeight: 800 }}>Order placed!</h1>
             <p className="tax" style={{ fontSize: ".95rem" }}>
-              {placed.method === "cod" ? <>Please keep <b>{money(placed.total)}</b> ready for cash on delivery.</> : <>We’ve received your payment of <b>{money(placed.total)}</b>.</>}
+              We have received your payment of <b>{money(placed.total)}</b>.
               {" "}Keep your order ID to track your order.
             </p>
             <span className="oid">Order {placed.id}</span>
@@ -256,7 +256,6 @@ export default function Checkout() {
               <div className="box"><h2><span className="n">3</span>Payment</h2>
                 <div style={{ display: "grid", gap: 10 }}>
                   <label className="pay"><input type="radio" name="pay" value="upi" checked={values.pay === "upi"} onChange={update} /><span><b>Pay online (extra {STORE.prepaidOffPct}% off)</b><small>UPI, cards, netbanking or wallets — secured by Razorpay.</small></span></label>
-                  <label className="pay"><input type="radio" name="pay" value="cod" checked={values.pay === "cod"} onChange={update} /><span><b>Cash on delivery</b><small>Pay when your parcel arrives.</small></span></label>
                 </div>
               </div>
             </form>
