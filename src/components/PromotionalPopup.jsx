@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { API_BASE } from "../api/config";
-import { popupCanShow, popupDestination, popupIsActive, popupKey } from "../utils/popups";
+import { popupCanShow, popupDestination, popupIsActive, popupKey, rememberPopupDismissal } from "../utils/popups";
 import "./PromotionalPopup.css";
 
 const fallback = new Map();
@@ -84,15 +84,17 @@ export default function PromotionalPopup() {
     const previousOverflow = document.body.style.overflow;
     dialog.showModal();
     document.body.style.overflow = "hidden";
-    shown.current.add(popupKey(popup));
-    const store = popup.frequency === "session" ? stores.session : stores.persistent;
-    if (popup.frequency !== "always") store.setItem(popupKey(popup), String(Date.now()));
     return () => { dialog.close(); document.body.style.overflow = previousOverflow; previousFocus?.focus(); };
   }, [visible, popup, closed]);
 
   if (!popup || closed || !visible) return null;
   const destination = popupDestination(popup.url);
-  const close = () => { setClosed(true); setVisible(false); };
+  const close = () => {
+    rememberPopupDismissal(popup, stores);
+    shown.current.add(popupKey(popup));
+    setClosed(true);
+    setVisible(false);
+  };
   return <dialog className={`store-promo${popup.image?.url ? " store-promo-with-image" : ""}`} ref={dialogRef} aria-labelledby="store-promo-title" aria-describedby={popup.description ? "store-promo-description" : undefined} onCancel={(event) => { event.preventDefault(); close(); }} onClick={(event) => {
     const bounds = event.currentTarget.getBoundingClientRect();
     if (event.target === event.currentTarget && (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom)) close();

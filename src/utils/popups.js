@@ -1,5 +1,12 @@
 const DAY = 24 * 60 * 60 * 1000;
-export const popupKey = (popup) => `snz:popup:${popup.id}:${popup.updatedAt || "original"}`;
+// A redesigned popup must not inherit an impression recorded by the old renderer.
+export const popupKey = (popup) => `snz:popup:v2:${popup.id}:${popup.updatedAt || "original"}`;
+
+export function rememberPopupDismissal(popup, stores, now = Date.now()) {
+  if (popup.frequency === "always") return;
+  const store = popup.frequency === "session" ? stores.session : stores.persistent;
+  try { store?.setItem(popupKey(popup), String(now)); } catch { /* Storage can be unavailable. */ }
+}
 
 export function popupIsActive(popup, now = Date.now()) {
   return popup.status === "active" && (!popup.startsAt || Date.parse(popup.startsAt) <= now) && (!popup.endsAt || Date.parse(popup.endsAt) >= now);

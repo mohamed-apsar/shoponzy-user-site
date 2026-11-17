@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { popupCanShow, popupDestination, popupIsActive, popupKey } from "../src/utils/popups.js";
+import { popupCanShow, popupDestination, popupIsActive, popupKey, rememberPopupDismissal } from "../src/utils/popups.js";
 
 const now = Date.parse("2026-11-17T10:00:00Z");
 const popup = { id: "new-arrival", status: "active", frequency: "session" };
@@ -18,6 +18,22 @@ test("session frequency is isolated from persistent browser history", () => {
   stores.session.setItem(popupKey(popup), String(now));
   assert.equal(popupCanShow(popup, stores, now), false);
   assert.equal(popupCanShow(popup, { ...stores, session: makeStore() }, now), true);
+});
+test("old renderer history cannot suppress the redesigned popup", () => {
+  const stores = { session: makeStore(), persistent: makeStore() };
+  stores.session.setItem(`snz:popup:${popup.id}:original`, String(now));
+  assert.equal(popupCanShow(popup, stores, now), true);
+});
+test("only a dismissal consumes the frequency limit; always popups remain eligible", () => {
+  const stores = { session: makeStore(), persistent: makeStore() };
+  assert.equal(popupCanShow(popup, stores, now), true);
+  // A render, refresh or interrupted timer does not write to history.
+  assert.equal(popupCanShow(popup, stores, now + 1000), true);
+  rememberPopupDismissal(popup, stores, now);
+  assert.equal(popupCanShow(popup, stores, now), false);
+  const always = { ...popup, frequency: "always" };
+  rememberPopupDismissal(always, stores, now);
+  assert.equal(popupCanShow(always, stores, now), true);
 });
 test("daily and weekly limits expire at their configured interval; always stays eligible", () => {
   for (const [frequency, days] of [["day", 1], ["week", 7]]) {
