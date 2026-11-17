@@ -15,8 +15,14 @@ const bundle = await build({
   define: { "import.meta.env.DEV": "false", "import.meta.env.VITE_API_BASE_URL": '"/api/v1"' },
 });
 const assets = new Map(bundle.outputFiles.map((file) => [file.path.endsWith(".css") ? "/smoke.css" : "/smoke.js", file.text]));
+let failedRequests = 0;
+let successfulRequests = 0;
 const server = createServer((req, res) => {
-  if (req.url === "/api/v1/popups") { res.setHeader("Content-Type", "application/json"); res.end(JSON.stringify({ success: true, data: [fixture] })); }
+  if (req.url === "/api/v1/popups") {
+    res.setHeader("Content-Type", "application/json");
+    if (!failedRequests) { failedRequests++; res.writeHead(503); res.end(JSON.stringify({ success: false })); }
+    else { successfulRequests++; res.end(JSON.stringify({ success: true, data: [fixture] })); }
+  }
   else if (assets.has(req.url)) { res.setHeader("Content-Type", req.url.endsWith(".css") ? "text/css" : "text/javascript"); res.end(assets.get(req.url)); }
   else { res.setHeader("Content-Type", "text/html"); res.end('<!doctype html><link rel="stylesheet" href="/smoke.css"><button id="prior">Shop</button><div id="root"></div><script type="module" src="/smoke.js"></script>'); }
 });
@@ -48,11 +54,14 @@ try {
   const command = (method, params = {}) => new Promise((resolve, reject) => { const id = ++sequence; pending.set(id, { resolve, reject }); socket.send(JSON.stringify({ id, method, params })); });
   const evaluate = async (expression) => { const result = await command("Runtime.evaluate", { expression, returnByValue: true, awaitPromise: true }); if (result.exceptionDetails) throw new Error(JSON.stringify(result.exceptionDetails)); return result.result.value; };
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-  const waitForPopup = async () => { for (let i = 0; i < 40; i++) { if (await evaluate('Boolean(document.querySelector("dialog[open]"))')) return; await sleep(100); } throw new Error("Popup did not become visible"); };
+  const waitForPopup = async () => { for (let i = 0; i < 100; i++) { if (await evaluate('Boolean(document.querySelector("dialog[open]"))')) return; await sleep(100); } throw new Error("Popup did not become visible"); };
   await command("Page.enable");
   await command("Page.addScriptToEvaluateOnNewDocument", { source: 'sessionStorage.setItem("snz:popup:smoke-popup:smoke-version", String(Date.now()))' });
   await command("Page.navigate", { url: `http://127.0.0.1:${server.address().port}/` });
   await waitForPopup();
+  assert.equal(failedRequests, 1);
+  assert.ok(successfulRequests > 0);
+  console.log("PASS: popup recovers promptly after an initial API failure");
   await command("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 1, mobile: false });
   assert.ok(await evaluate('(() => { const box = document.querySelector("dialog[open]").getBoundingClientRect(); return box.width > 0 && box.left >= 0 && box.right <= innerWidth && box.bottom <= innerHeight; })()'));
   await command("Emulation.clearDeviceMetricsOverride");
@@ -68,6 +77,12 @@ try {
   await sleep(2200);
   assert.equal(await evaluate('Boolean(document.querySelector("dialog[open]"))'), false);
   console.log("PASS: reload before dismissal displays again; dismissal respects once-per-session frequency");
+  if (process.env.POPUP_LIVE_URL) {
+    await command("Page.navigate", { url: process.env.POPUP_LIVE_URL });
+    await waitForPopup();
+    assert.ok(await evaluate('document.querySelector("#store-promo-title").textContent.trim()'));
+    console.log("PASS: deployed storefront displays an active popup in a fresh browser session");
+  }
 } finally {
   clearTimeout(watchdog);
   socket?.close();

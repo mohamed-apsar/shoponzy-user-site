@@ -121,7 +121,7 @@ export default function Layout() {
       <CategorySheet />
       <MenuSheet />
       <SizeGuideSheet />
-      {status === "ready" && <PromotionalPopup />}
+      <PromotionalPopup />
     </MainRefContext.Provider>
   );
 }

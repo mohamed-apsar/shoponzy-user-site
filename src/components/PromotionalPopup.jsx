@@ -26,18 +26,33 @@ export default function PromotionalPopup() {
   useEffect(() => {
     let active = true;
     let sequence = 0;
+    let timer;
+    let controller;
     async function refresh() {
+      clearTimeout(timer);
+      controller?.abort();
+      controller = new AbortController();
+      const requestController = controller;
       const request = ++sequence;
+      const timeout = window.setTimeout(() => requestController.abort(), 10000);
+      let retryAfter = 3000;
       try {
-        const response = await fetch(`${API_BASE}/popups`, { cache: "no-store" });
+        const response = await fetch(`${API_BASE}/popups`, { cache: "no-store", signal: requestController.signal });
         const result = await response.json();
-        if (response.ok && result.success && active && request === sequence) setPopups(result.data || []);
-      } catch { /* Try again on focus or the next refresh. */ }
+        if (response.ok && result.success && Array.isArray(result.data)) {
+          retryAfter = 60000;
+          if (active && request === sequence) setPopups(result.data);
+        }
+      } catch { /* Retry transient failures without waiting a full minute. */ }
+      finally {
+        clearTimeout(timeout);
+        if (active && request === sequence) timer = window.setTimeout(refresh, retryAfter);
+      }
     }
     refresh();
-    const timer = window.setInterval(refresh, 60000);
     window.addEventListener("focus", refresh);
-    return () => { active = false; clearInterval(timer); window.removeEventListener("focus", refresh); };
+    window.addEventListener("online", refresh);
+    return () => { active = false; controller?.abort(); clearTimeout(timer); window.removeEventListener("focus", refresh); window.removeEventListener("online", refresh); };
   }, []);
 
   useEffect(() => { setClosed(false); setVisible(false); }, [pathname]);
