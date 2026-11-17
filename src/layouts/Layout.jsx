@@ -12,6 +12,7 @@ import { useStore } from "../context/StoreContext";
 import { MainRefContext } from "../fx/usePageFx";
 import { useCatalog } from "../context/CatalogContext";
 import SiteSkeleton from "../components/SiteSkeleton";
+import PromotionalPopup from "../components/PromotionalPopup";
 
 function Toasts() {
   const { toasts } = useStore();
@@ -120,6 +121,7 @@ export default function Layout() {
       <CategorySheet />
       <MenuSheet />
       <SizeGuideSheet />
+      {status === "ready" && <PromotionalPopup />}
     </MainRefContext.Provider>
   );
 }
