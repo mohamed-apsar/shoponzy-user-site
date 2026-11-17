@@ -10,7 +10,7 @@ import { useStore } from "../context/StoreContext";
 import { useCatalog } from "../context/CatalogContext";
 import OrderProductImage from "../components/OrderProductImage";
 
-const CANCELLABLE = ["placed", "confirmed"];
+const CANCELLABLE = ["placed", "confirmed", "delivered"];
 
 export default function AccountOrder() {
   const { orderNumber } = useParams();
@@ -115,11 +115,12 @@ export default function AccountOrder() {
               {CANCELLABLE.includes(order.status) && (
                 <button type="button" className="btn btn-ghost btn-block" style={{ marginTop: 10 }} disabled={busy} onClick={() => setConfirmCancel(true)}>{busy ? "Cancelling…" : "Cancel order"}</button>
               )}
+              {order.status === "cancelled" && <p className="tax" role="status">This order has been cancelled.{order.refundRequired && " Your payment will be reviewed by the store for a refund."}</p>}
             </aside>
           </div>
         )}
       </div></section>
-      <ConfirmDialog open={confirmCancel} title="Cancel this order?" message="This order will be cancelled. Are you sure you want to continue?" confirmLabel="Yes, cancel order" busy={busy} onCancel={() => setConfirmCancel(false)} onConfirm={cancel} />
+      <ConfirmDialog open={confirmCancel} title="Cancel this order?" message={`This order will be cancelled.${order?.status === "delivered" ? " Please contact the store to arrange returning the delivered items." : ""}${order?.paymentStatus === "paid" ? " Your payment will be flagged for refund review by the store." : ""} Are you sure you want to continue?`} confirmLabel="Yes, cancel order" busy={busy} onCancel={() => setConfirmCancel(false)} onConfirm={cancel} />
     </>
   );
 }
