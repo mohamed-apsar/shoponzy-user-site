@@ -1,5 +1,18 @@
 export const cartLineKey = (line) => [line.id, line.c, line.s].join("|");
 
+export function checkoutQuantityLimit(product, line) {
+  const color = product?.colors?.[line.c]?.[1];
+  const variant = product?.variants?.find((v) => (v.color ?? "Default") === color && (v.size ?? "One size") === line.s);
+  if (!variant || variant.inStock === false) return 1;
+  return Number.isFinite(variant.stock) ? Math.max(1, Math.min(10, variant.stock)) : 10;
+}
+
+export function changeCheckoutQuantity(lines, target, delta, product) {
+  return lines.map((line) => cartLineKey(line) === cartLineKey(target)
+    ? { ...line, qty: Math.max(1, Math.min(checkoutQuantityLimit(product, line), line.qty + delta)) }
+    : line);
+}
+
 export function confirmedCheckoutTotals(order, payment) {
   const amount = Math.round(Number(order.total) * 100);
   if (!Number.isSafeInteger(amount) || amount <= 0 || payment?.amount !== amount || payment.currency !== "INR") {

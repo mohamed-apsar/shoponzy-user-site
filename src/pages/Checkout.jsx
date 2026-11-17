@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useCustomer } from "../context/CustomerContext";
 import { Link, useSearchParams } from "react-router-dom";
-import { checkoutItems, confirmedCheckoutTotals } from "../utils/checkout";
+import { checkoutItems, confirmedCheckoutTotals, cartLineKey, checkoutQuantityLimit, changeCheckoutQuantity } from "../utils/checkout";
 import { storage } from "../utils/storage";
 import Icon from "../components/Icon";
 import ProductMedia from "../components/ProductMedia";
@@ -29,7 +29,7 @@ function validate(v) {
   return er;
 }
 
-function Summary({ cart, coupon, pay, products, store: STORE, submitting, formError, pincode, confirmedTotals }) {
+function Summary({ cart, coupon, pay, products, store: STORE, submitting, formError, pincode, confirmedTotals, onQuantityChange }) {
   const t = confirmedTotals || totals(cart, coupon, pay, products, STORE, pincode);
   return (
     <aside className="summary" id="coSum"><h2>Your order</h2>
@@ -37,7 +37,13 @@ function Summary({ cart, coupon, pay, products, store: STORE, submitting, formEr
         const p = byId(l.id, products);
         return (
           <div className="dline" key={`${l.id}|${l.c}|${l.s}`}><ProductMedia className="mini" product={p} ci={l.c} />
-            <div><h4>{p.name}</h4><p className="meta">{p.colors[l.c][1]} · {l.s} · Qty {l.qty}</p><b style={{ fontSize: ".88rem" }}>{money(linePrice(p, l) * l.qty)}</b></div></div>
+            <div><h4>{p.name}</h4><p className="meta">{p.colors[l.c][1]} · {l.s} · Qty {l.qty}</p><b style={{ fontSize: ".88rem" }}>{money(linePrice(p, l) * l.qty)}</b>
+              <div style={{ marginTop: 8 }}><div className="qty" role="group" aria-label={`Quantity for ${p.name}, ${p.colors[l.c][1]}, size ${l.s}`}>
+                <button type="button" aria-label={`Decrease quantity of ${p.name}`} disabled={submitting || l.qty <= 1} onClick={() => onQuantityChange(l, -1)}>−</button>
+                <span aria-live="polite">{l.qty}</span>
+                <button type="button" aria-label={`Increase quantity of ${p.name}`} disabled={submitting || l.qty >= checkoutQuantityLimit(p, l)} onClick={() => onQuantityChange(l, 1)}>+</button>
+              </div></div>
+            </div></div>
         );
       })}
       <div style={{ marginTop: 10 }}>
@@ -96,7 +102,7 @@ const newKey = () => (crypto.randomUUID?.() || `${Date.now()}${Math.random()}`).
 export default function Checkout() {
   const { products, store: STORE } = useCatalog();
   usePageMeta("Checkout | Shoponzy");
-  const { cart: bag, coupon, address, setAddress, checkoutDraft, completeCheckout, cartReady, flushCart } = useStore();
+  const { cart: bag, coupon, address, setAddress, checkoutDraft, startCheckout, setQty, completeCheckout, cartReady, flushCart } = useStore();
   const [params] = useSearchParams();
   const mode = params.get("mode") || "cart";
   const cart = params.has("mode") ? (checkoutDraft?.mode === mode ? checkoutDraft.lines : []) : bag;
@@ -115,6 +121,19 @@ export default function Checkout() {
   const { user, signedIn } = useCustomer();
   const [saveAddress, setSaveAddress] = useState(true);
   const [hasSavedAddress, setHasSavedAddress] = useState(false);
+
+  function changeQuantity(line, delta) {
+    if (submitting) return;
+    const next = changeCheckoutQuantity(cart, line, delta, byId(line.id, products));
+    if (params.has("mode")) startCheckout(mode, next);
+    if (!params.has("mode") || mode !== "buy-now") {
+      const index = bag.findIndex((item) => cartLineKey(item) === cartLineKey(line));
+      const updated = next.find((item) => cartLineKey(item) === cartLineKey(line));
+      if (index >= 0) setQty(index, updated.qty - bag[index].qty);
+    }
+    setConfirmedQuote(null);
+    setFormError("");
+  }
 
   // Signed-in shoppers: fill empty fields from the profile and the default saved address.
   useEffect(() => {
@@ -273,7 +292,7 @@ export default function Checkout() {
                 </div>
               </div>
             </form>
-            <Summary cart={cart} coupon={coupon} pay={values.pay} products={products} store={STORE} submitting={submitting} formError={formError} pincode={values.pincode} confirmedTotals={confirmedTotals} />
+            <Summary cart={cart} coupon={coupon} pay={values.pay} products={products} store={STORE} submitting={submitting} formError={formError} pincode={values.pincode} confirmedTotals={confirmedTotals} onQuantityChange={changeQuantity} />
           </div>
         )}
       </div></section>
