@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useCustomer } from "../context/CustomerContext";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import { checkoutItems } from "../utils/checkout";
 import Icon from "../components/Icon";
 import ProductMedia from "../components/ProductMedia";
 import FormField, { EMAIL_RE, PHONE_RE } from "../components/FormField";
@@ -43,7 +44,7 @@ function Summary({ cart, coupon, pay, products, store: STORE, submitting, formEr
         {t.disc > 0 && <div className="srow"><span>Coupon {coupon.code}</span><span className="save">−{money(t.disc)}</span></div>}
         {t.prepaid > 0 && <div className="srow"><span>Prepaid discount ({STORE.prepaidOffPct}%)</span><span className="save">−{money(t.prepaid)}</span></div>}
         <div className="srow"><span>Shipping</span><span>{t.ship ? money(t.ship) : <span className="save">Free</span>}</span></div>
-        <CouponForm />
+        <CouponForm lines={cart} />
         <div className="srow"><span>Tax ({STORE.taxRate}%)</span><span>{money(t.tax)}</span></div>
         <div className="srow total"><span>Total</span><span>{money(t.total)}</span></div>
       </div>
@@ -54,42 +55,6 @@ function Summary({ cart, coupon, pay, products, store: STORE, submitting, formEr
       <p className="tax" style={{ textAlign: "center", marginTop: 8 }}>Final prices, stock and discounts are confirmed when you place the order.</p>
     </aside>
   );
-}
-
-/* Finds the backend variant for a bag line (colour index + size label). Products without
-   options are shown as "Default" / "One size" but stored with null colour/size. */
-function variantFor(product, line) {
-  const color = product.colors[line.c]?.[1];
-  return product.variants.find((v) => (v.color ?? "Default") === color && (v.size ?? "One size") === line.s);
-}
-
-/* Replaces the server-side guest bag with the bag shown in the browser, so the order is
-   priced from the database. Returns the names of lines that could not be added. */
-async function syncServerCart(cart, coupon, products) {
-  const current = await storeRequest("/cart");
-  for (const line of current.data.lines) {
-    await storeRequest(`/cart/items/${line.itemId}`, { method: "DELETE" });
-  }
-  const problems = [];
-  for (const line of cart) {
-    const p = byId(line.id, products);
-    const variant = p && variantFor(p, line);
-    if (!variant) { problems.push(`${p?.name || "An item"} is no longer available in this option.`); continue; }
-    try {
-      await storeRequest("/cart/items", { method: "POST", body: { productId: p.apiId, variantId: variant.id, qty: line.qty } });
-    } catch (error) {
-      problems.push(`${p.name} (${p.colors[line.c][1]}, ${line.s}): ${error.message}`);
-    }
-  }
-  if (!problems.length) {
-    try {
-      await storeRequest("/cart/coupon", { method: "PUT", body: { code: coupon?.code || null } });
-    } catch {
-      // An expired or unknown coupon shouldn't block the order; it's simply not applied.
-      await storeRequest("/cart/coupon", { method: "PUT", body: { code: null } });
-    }
-  }
-  return problems;
 }
 
 function loadRazorpay() {
@@ -129,7 +94,10 @@ const newKey = () => (crypto.randomUUID?.() || `${Date.now()}${Math.random()}`).
 export default function Checkout() {
   const { products, store: STORE } = useCatalog();
   usePageMeta("Checkout | Shoponzy");
-  const { cart, coupon, address, setAddress, clearCart } = useStore();
+  const { cart: bag, coupon, address, setAddress, checkoutDraft, completeCheckout, cartReady, flushCart } = useStore();
+  const [params] = useSearchParams();
+  const mode = params.get("mode") || "cart";
+  const cart = params.has("mode") ? (checkoutDraft?.mode === mode ? checkoutDraft.lines : []) : bag;
   const [values, setValues] = useState(() => ({ name: "", phone: "", email: "", address: "", city: "", pincode: "", state: "", ...(address || {}), pay: "upi" }));
   const [errors, setErrors] = useState({});
   const [placed, setPlaced] = useState(null);
@@ -189,11 +157,14 @@ export default function Checkout() {
     const v = values;
     setSubmitting(true);
     try {
-      const problems = await syncServerCart(cart, coupon, products);
-      if (problems.length) throw new Error(problems.join(" "));
+      if (!cartReady) throw new Error("Your bag is still loading. Please try again shortly.");
+      await flushCart();
+      if (!cart.length) throw new Error("Choose at least one item to check out.");
+      const items = checkoutItems(cart, products);
       const result = await storeRequest("/orders", {
         method: "POST",
         body: {
+          items, checkoutMode: mode, couponCode: coupon?.code || null,
           contact: { name: v.name.trim(), phone: v.phone, email: v.email.trim() },
           shippingAddress: { name: v.name.trim(), phone: v.phone, line1: v.address.trim(), city: v.city.trim(), state: v.state, pincode: v.pincode },
           paymentMethod: v.pay === "upi" ? "razorpay" : "cod",
@@ -212,7 +183,7 @@ export default function Checkout() {
         }
         order = paid;
       }
-      clearCart();
+      completeCheckout(cart, mode);
       idempotencyKey.current = newKey();
       setPlaced({ id: order.orderNumber, total: order.total, method: order.paymentMethod });
       confetti();
@@ -243,7 +214,7 @@ export default function Checkout() {
             </div>
           </div>
         ) : !cart.length ? (
-          <div className="empty"><h2>Your bag is empty</h2><p>Add something you love first.</p><Link className="btn btn-dark" to="/products">Shop now</Link></div>
+          <div className="empty"><h2>{params.has("mode") ? "No items selected" : "Your bag is empty"}</h2><p>Choose the products you want to buy.</p><Link className="btn btn-dark" to="/cart">Go to bag</Link></div>
         ) : (
           <div className="cart-l">
             <form id="coForm" noValidate style={{ display: "grid", gap: 16 }} onSubmit={submit}>

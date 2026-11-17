@@ -10,6 +10,7 @@ import { productArt } from "../components/ProductMedia";
 import { useCatalog } from "./CatalogContext";
 import { useCustomer } from "./CustomerContext";
 import { storeRequest } from "../api/storeApi";
+import { subtractPurchasedLines } from "../utils/checkout";
 
 const StoreContext = createContext(null);
 const MAX_QTY = 10;
@@ -50,6 +51,9 @@ export function StoreProvider({ children }) {
   const [guestCart, setGuestCart] = usePersisted("cart", []);
   const [accountCart, setAccountCart] = useState([]);
   const [cartReady, setCartReady] = useState(false);
+  const [checkoutDraft, setCheckoutDraft] = useState(() => {
+    try { return JSON.parse(sessionStorage.getItem("snz:checkout") || "null"); } catch { return null; }
+  });
   const cart = signedIn ? accountCart : guestCart;
   const [wish, setWish] = usePersisted("wish", []);
   const [storedCoupon, setCoupon] = usePersisted("coupon", null);
@@ -202,6 +206,17 @@ export function StoreProvider({ children }) {
   }, [updateCart]);
   const removeLine = useCallback((index) => updateCart((current) => current.filter((_, i) => i !== index)), [updateCart]);
   const clearCart = useCallback(() => { updateCart([]); setCoupon(null); }, [updateCart, setCoupon]);
+  const startCheckout = useCallback((mode, lines) => {
+    const draft = { mode, lines: lines.map((line) => ({ ...line })) };
+    setCheckoutDraft(draft);
+    try { sessionStorage.setItem("snz:checkout", JSON.stringify(draft)); } catch { /* In-memory state remains available. */ }
+  }, []);
+  const completeCheckout = useCallback((lines, mode) => {
+    if (mode !== "buy-now") updateCart((current) => subtractPurchasedLines(current, lines));
+    setCheckoutDraft(null);
+    try { sessionStorage.removeItem("snz:checkout"); } catch { /* Storage may be blocked. */ }
+    setCoupon(null);
+  }, [updateCart, setCoupon]);
 
   // Signed-in shoppers keep their wishlist on their account: the browser list is merged in at
   // sign-in, then every change is saved to the server. Signing out clears the browser copy.
@@ -243,7 +258,8 @@ export function StoreProvider({ children }) {
   const quickView = useCallback((id) => { setQuickViewId(id); openSheet("qvSheet"); }, [openSheet]);
 
   const value = {
-    cart: validCart, wish, coupon, recent, address, toasts, openSheets, quickViewId,
+    cart: validCart, wish, coupon, recent, address, toasts, openSheets, quickViewId, checkoutDraft, startCheckout, completeCheckout, cartReady,
+    flushCart: () => accountSync.current,
     setCoupon, setAddress, addToCart, setQty, removeLine, clearCart, toggleWish, viewed,
     toast, openSheet, closeSheet, quickView,
     cartCount: validCart.reduce((s, l) => s + l.qty, 0),

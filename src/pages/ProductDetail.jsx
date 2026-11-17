@@ -125,7 +125,7 @@ function ProductContentBlocks({ blocks = [], error, onRetry }) {
 }
 
 function Product({ p, products, categories, store: STORE }) {
-  const { addToCart, viewed, recent } = useStore();
+  const { addToCart, viewed, recent, startCheckout } = useStore();
   const { signedIn } = useCustomer();
   const navigate = useNavigate();
   const c = cat(p.cat, categories), sub = subOf(p, categories);
@@ -204,8 +204,10 @@ function Product({ p, products, categories, store: STORE }) {
       picker.current.sizesEl().scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
-    addToCart(p.id, opt.c, opt.s, 1, from || document.querySelector(".g-main"));
-    const destination = buy ? (signedIn ? "/checkout" : "/account?next=%2Fcheckout") : "/cart";
+    if (buy) startCheckout("buy-now", [{ id: p.id, c: opt.c, s: opt.s, qty: 1 }]);
+    else addToCart(p.id, opt.c, opt.s, 1, from || document.querySelector(".g-main"));
+    const checkoutUrl = "/checkout?mode=buy-now";
+    const destination = buy ? (signedIn ? checkoutUrl : `/account?next=${encodeURIComponent(checkoutUrl)}`) : "/cart";
     setTimeout(() => navigate(destination), 450);
   }
 

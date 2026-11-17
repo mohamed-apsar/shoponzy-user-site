@@ -4,13 +4,13 @@ import { storeRequest } from "../api/storeApi";
 import { totals } from "../utils/shop";
 import { useCatalog } from "../context/CatalogContext";
 
-export default function CouponForm() {
+export default function CouponForm({ lines }) {
   const { store, products } = useCatalog();
   const { coupon, setCoupon, cart } = useStore();
   const [code, setCode] = useState(coupon?.code || "");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const t = totals(cart, coupon, "cod", products, store);
+  const t = totals(lines || cart, coupon, "cod", products, store);
 
   async function submit(event) {
     event.preventDefault();

@@ -1,0 +1,19 @@
+export const cartLineKey = (line) => [line.id, line.c, line.s].join("|");
+
+export function subtractPurchasedLines(cart, purchased) {
+  const quantities = new Map(purchased.map((line) => [cartLineKey(line), line.qty]));
+  return cart.flatMap((line) => {
+    const qty = line.qty - (quantities.get(cartLineKey(line)) || 0);
+    return qty > 0 ? [{ ...line, qty }] : [];
+  });
+}
+
+export function checkoutItems(lines, products) {
+  return lines.map((line) => {
+    const product = products.find((p) => p.id === line.id);
+    const color = product?.colors[line.c]?.[1];
+    const variant = product?.variants.find((v) => (v.color ?? "Default") === color && (v.size ?? "One size") === line.s);
+    if (!product?.apiId || !variant?.id) throw new Error(`${product?.name || "This item"} is no longer available in this option.`);
+    return { productId: product.apiId, variantId: variant.id, qty: line.qty };
+  });
+}

@@ -1,4 +1,6 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { cartLineKey } from "../utils/checkout";
 import Icon from "../components/Icon";
 import Art from "../components/Art";
 import ProductMedia from "../components/ProductMedia";
@@ -18,8 +20,11 @@ export function EmptyBag({ heading = "Your bag is empty", text = "Explore new ar
 export default function Cart() {
   usePageMeta("Your Bag | Shoponzy");
   const { products, store: STORE } = useCatalog();
-  const { cart, coupon, setQty, removeLine } = useStore();
-  const t = totals(cart, coupon, "cod", products, STORE);
+  const { cart, coupon, setQty, removeLine, startCheckout } = useStore();
+  const navigate = useNavigate();
+  const [excluded, setExcluded] = useState([]);
+  const selected = cart.filter((line) => !excluded.includes(cartLineKey(line)));
+  const t = totals(selected, coupon, "cod", products, STORE);
 
   return (
     <>
@@ -27,12 +32,12 @@ export default function Cart() {
       <section className="section" style={{ paddingTop: 10 }}><div className="container" id="cartWrap">
         {!cart.length ? <EmptyBag /> : (
           <div className="cart-l">
-            <div>{cart.map((l, i) => {
+            <div><label style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}><input type="checkbox" checked={selected.length === cart.length} onChange={(event) => setExcluded(event.target.checked ? [] : cart.map(cartLineKey))} />Select all ({selected.length} of {cart.length})</label>{cart.map((l, i) => {
               const p = byId(l.id, products);
               return (
                 <div className="line" key={`${l.id}|${l.c}|${l.s}`}>
                   <ProductMedia as={Link} to={productUrl(p)} className="mini" product={p} ci={l.c} />
-                  <div><h3><Link to={productUrl(p)}>{p.name}</Link></h3><p className="meta">{p.colors[l.c][1]} · Size {l.s}</p>
+                  <div><label style={{ display: "flex", alignItems: "center", gap: 10 }}><input type="checkbox" aria-label={`Select ${p.name}, ${p.colors[l.c][1]}, size ${l.s}`} checked={!excluded.includes(cartLineKey(l))} onChange={(event) => setExcluded((current) => event.target.checked ? current.filter((key) => key !== cartLineKey(l)) : [...current, cartLineKey(l)])} /><h3><Link to={productUrl(p)}>{p.name}</Link></h3></label><p className="meta">{p.colors[l.c][1]} · Size {l.s}</p>
                     <div className="row"><QtyControl qty={l.qty} onChange={(d) => setQty(i, d)} onRemove={() => removeLine(i)} /><b>{money(linePrice(p, l) * l.qty)}</b></div>
                     <button type="button" className="rm" onClick={() => removeLine(i)}>Remove</button></div>
                 </div>
@@ -47,7 +52,8 @@ export default function Cart() {
               {t.tax > 0 && <div className="srow"><span>Tax ({STORE.taxRate}%)</span><span>{money(t.tax)}</span></div>}
               <div className="srow total"><span>Total</span><span>{money(t.total)}</span></div>
               <p className="tax">Pay by UPI at checkout for an extra {STORE.prepaidOffPct}% off.</p>
-              <Link className="btn btn-dark btn-block" to="/checkout" style={{ marginTop: 12 }}>Checkout <Icon name="i-arrow" /></Link>
+              {!selected.length && <p role="status">Select at least one item to check out.</p>}
+              <button type="button" className="btn btn-dark btn-block" disabled={!selected.length} onClick={() => { startCheckout("cart", selected); navigate("/checkout?mode=cart"); }} style={{ marginTop: 12 }}>Checkout ({selected.length}) <Icon name="i-arrow" /></button>
             </aside>
           </div>
         )}

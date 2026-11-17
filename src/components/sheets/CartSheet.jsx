@@ -63,7 +63,7 @@ export default function CartSheet() {
       <div className="pf" hidden={!cart.length}>
         <div className="srow total" style={{ margin: 0, border: 0, padding: 0 }}><span>Subtotal</span><span>{money(t.sub - t.disc)}</span></div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: 10 }}>
-          <Link className="btn btn-ghost" to="/cart" data-close>View bag</Link><Link className="btn btn-dark" to="/checkout" data-close>Checkout</Link>
+          <Link className="btn btn-ghost" to="/cart" data-close>View bag</Link><Link className="btn btn-dark" to="/cart" data-close>Choose items</Link>
         </div>
       </div>
     </Sheet>
