@@ -98,7 +98,15 @@ export default function PromotionalPopup() {
     if (event.target === event.currentTarget && (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom)) close();
   }}>
     <button className="store-promo-close" type="button" onClick={close} aria-label="Close promotion" autoFocus>×</button>
-    {popup.image?.url && <img className="store-promo-image" src={popup.image.url} alt={popup.image.alt || ""} />}
-    <div className="store-promo-content"><span className="store-promo-eyebrow">FROM SHOPONZY</span><h2 id="store-promo-title">{popup.title}</h2>{popup.description && <p id="store-promo-description">{popup.description}</p>}{destination && popup.buttonText && <a className="store-promo-button" href={destination} onClick={close}>{popup.buttonText}<span aria-hidden="true"> →</span></a>}<button className="store-promo-dismiss" type="button" onClick={close}>Continue shopping</button></div>
+    {popup.image?.url && <div className="store-promo-visual"><span className="store-promo-image-label">THE SHOPONZY EDIT</span><img className="store-promo-image" src={popup.image.url} alt={popup.image.alt || ""} /></div>}
+    <div className="store-promo-content">
+      <span className="store-promo-eyebrow"><span aria-hidden="true" />SHOPONZY</span>
+      <h2 id="store-promo-title">{popup.title}</h2>
+      {popup.description && <p id="store-promo-description">{popup.description}</p>}
+      <div className="store-promo-actions">
+        {destination && popup.buttonText && <a className="store-promo-button" href={destination} onClick={close}>{popup.buttonText}<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" /></svg></a>}
+        <button className="store-promo-dismiss" type="button" onClick={close}>Continue shopping</button>
+      </div>
+    </div>
   </dialog>;
 }

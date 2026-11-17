@@ -1,17 +1,31 @@
-.store-promo { box-sizing: border-box; width: min(480px, calc(100vw - 32px)); max-height: calc(100dvh - 40px); margin: auto; padding: 0; overflow: auto; border: 0; border-radius: 20px; background: #fff; color: #111318; box-shadow: 0 24px 90px #0004; }
-.store-promo[open].store-promo-with-image { display: grid; grid-template-columns: 1fr 1fr; width: min(760px, calc(100vw - 32px)); }
-.store-promo::backdrop { background: #11131899; backdrop-filter: blur(4px); }
-.store-promo-image { width: 100%; height: 100%; min-height: 340px; max-height: 520px; object-fit: cover; }
-.store-promo-content { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; padding: 44px 32px 32px; min-width: 0; }
-.store-promo-eyebrow { font-size: 10px; font-weight: 750; letter-spacing: .15em; color: #767a84; }
-.store-promo-content h2 { margin: 14px 0; font-size: clamp(24px, 4vw, 34px); line-height: 1.15; letter-spacing: -.04em; overflow-wrap: anywhere; }
-.store-promo-content p { margin: 0 0 24px; font-size: 14px; line-height: 1.7; color: #616570; white-space: pre-line; overflow-wrap: anywhere; }
-.store-promo .store-promo-close { position: absolute; top: 12px; right: 12px; display: grid; place-items: center; width: 34px; height: 34px; padding: 0; border: 1px solid #e8e8ec; border-radius: 50%; background: #fff; color: #111318; font-size: 24px; line-height: 1; cursor: pointer; }
-.store-promo-button { display: flex; align-items: center; justify-content: space-between; gap: 14px; width: 100%; padding: 14px 18px; border-radius: 10px; background: var(--accent, #ff4d2e); color: #fff; font-size: 13px; font-weight: 700; text-decoration: none; }
-.store-promo .store-promo-dismiss { margin-top: 16px; padding: 5px 0; border: 0; background: transparent; color: #616570; font-size: 12px; cursor: pointer; }
-.store-promo :focus-visible { outline: 2px solid #ff4d2e; outline-offset: 3px; }
+﻿.store-promo { box-sizing: border-box; width: min(440px, calc(100vw - 32px)); max-height: calc(100dvh - 40px); margin: auto; padding: 8px; overflow: auto; border: 1px solid #ffffff80; border-radius: 24px; background: #fff; color: #17191e; box-shadow: 0 32px 100px #11131840; }
+.store-promo[open].store-promo-with-image { display: grid; grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr); width: min(680px, calc(100vw - 32px)); }
+.store-promo::backdrop { background: #15192299; backdrop-filter: blur(5px); }
+.store-promo-visual { position: relative; display: flex; align-items: center; justify-content: center; min-width: 0; padding: 44px 20px 24px; border: 1px solid #eeece8; border-radius: 17px; background: #f7f6f3; overflow: hidden; }
+.store-promo-image-label { position: absolute; top: 20px; left: 20px; color: #76736c; font-size: 8px; font-weight: 750; letter-spacing: .14em; }
+.store-promo-image { display: block; width: 100%; height: 290px; min-height: 0; object-fit: contain; border-radius: 8px; mix-blend-mode: multiply; }
+.store-promo-content { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; padding: 52px 28px 36px; min-width: 0; }
+.store-promo-eyebrow { display: flex; align-items: center; gap: 7px; font-size: 9px; font-weight: 800; letter-spacing: .17em; color: #777b85; }
+.store-promo-eyebrow > span { width: 6px; height: 6px; border-radius: 50%; background: var(--accent, #ff4d2e); }
+.store-promo-content h2 { margin: 18px 0 12px; font-size: clamp(26px, 3vw, 34px); font-weight: 800; line-height: 1.12; letter-spacing: -.045em; overflow-wrap: anywhere; }
+.store-promo-content p { margin: 0; font-size: 13px; line-height: 1.8; color: #717581; white-space: pre-line; overflow-wrap: anywhere; }
+.store-promo .store-promo-close { position: absolute; z-index: 1; top: 15px; right: 15px; display: grid; place-items: center; width: 30px; height: 30px; padding: 0; border: 1px solid #e9eaee; border-radius: 50%; background: #fff; color: #656a75; font-size: 21px; line-height: 1; cursor: pointer; transition: background .2s, color .2s; }
+.store-promo .store-promo-close:hover { background: #f3f4f6; color: #111318; }
+.store-promo-actions { display: grid; gap: 14px; width: 100%; margin-top: 26px; }
+.store-promo-button { box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 46px; padding: 12px 16px; border-radius: 10px; background: var(--accent, #ff4d2e); color: #fff; font-size: 12px; font-weight: 750; line-height: 1.5; text-decoration: none; transition: background .2s, box-shadow .2s; overflow-wrap: anywhere; }
+.store-promo-button svg { flex-shrink: 0; }
+.store-promo-button:hover { background: var(--accent-d, #e0381b); color: #fff; box-shadow: 0 5px 15px #ff4d2e26; }
+.store-promo .store-promo-dismiss { justify-self: center; padding: 5px 0; border: 0; border-bottom: 1px solid #e1e3e8; background: transparent; color: #7c808a; font-size: 11px; line-height: 1.5; cursor: pointer; }
+.store-promo .store-promo-dismiss:hover { color: #17191e; border-color: #17191e; }
+.store-promo :focus-visible { outline: 2px solid var(--accent, #ff4d2e); outline-offset: 3px; }
 @media (max-width: 560px) {
-  .store-promo[open].store-promo-with-image { grid-template-columns: 1fr; }
-  .store-promo-image { min-height: 0; height: 200px; object-position: center; }
-  .store-promo-content { padding: 30px 24px 24px; }
+  .store-promo { max-height: calc(100dvh - 24px); border-radius: 20px; }
+  .store-promo[open].store-promo-with-image { grid-template-columns: 1fr; width: min(380px, calc(100vw - 32px)); }
+  .store-promo-visual { padding: 36px 20px 12px; border-radius: 14px; }
+  .store-promo-image { height: min(210px, 29dvh); }
+  .store-promo-image-label { top: 15px; left: 15px; }
+  .store-promo-content { padding: 28px 20px 22px; }
+  .store-promo-with-image .store-promo-content { padding-top: 24px; }
+  .store-promo-content h2 { margin-top: 13px; font-size: 28px; }
+  .store-promo-actions { margin-top: 20px; gap: 10px; }
 }
