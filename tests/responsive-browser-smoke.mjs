@@ -62,8 +62,9 @@ try {
   await command('Page.enable');
   await command('Runtime.enable');
   const modalPath='/account/orders/SZ100001?audit-modal=1';
-  const paths=process.argv.includes('--modal-only') ? [modalPath] : ['/','/products',`/products/${PRODUCTS[0].slug}`,'/categories/shoes','/cart','/checkout?mode=cart','/account','/account?section=support','/account/orders/SZ100001','/help',modalPath];
-  const sizes=[[320,640],[375,812],[768,1024],[1024,768],[1366,768],[1920,1080],[812,375]];
+  const phoneOnly=process.argv.includes('--phone-only');
+  const paths=phoneOnly ? ['/checkout?mode=cart'] : process.argv.includes('--modal-only') ? [modalPath] : ['/','/products',`/products/${PRODUCTS[0].slug}`,'/categories/shoes','/cart','/checkout?mode=cart','/account','/account?section=support','/account/orders/SZ100001','/help',modalPath];
+  const sizes=phoneOnly ? [[375,812],[1366,768]] : [[320,640],[375,812],[768,1024],[1024,768],[1366,768],[1920,1080],[812,375]];
   const failures=[];
   for(const [width,height] of sizes) {
     await command('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<768});
@@ -75,6 +76,16 @@ try {
       await new Promise(r=>setTimeout(r,180));
       const issue=await evaluate(`(()=>{const w=document.documentElement.clientWidth;const nodes=[...document.querySelectorAll('main input,main select,main textarea,main .box,main .summary,main .line,main .dline,header,footer')].filter(e=>e.getClientRects().length&&getComputedStyle(e).visibility!=='hidden');return nodes.filter(e=>{const r=e.getBoundingClientRect();return r.left < -1 || r.right > w+1;}).slice(0,6).map(e=>({tag:e.tagName,class:e.className,width:Math.round(e.getBoundingClientRect().width)}));})()`);
       if(issue.length)failures.push({width,height,path,issue});
+      if(path.startsWith('/checkout')) {
+        await evaluate('document.querySelector("input[name=phone]").focus(); document.querySelector("input[name=phone]").select()');
+        await command('Input.insertText',{text:'9876543210'});
+        assert.equal(await evaluate('document.querySelector("input[name=phone]").value'),'9876543210');
+        await command('Input.insertText',{text:'abc!@# '});
+        assert.equal(await evaluate('document.querySelector("input[name=phone]").value'),'9876543210','Phone field must reject letters, symbols and spaces');
+        await evaluate('document.querySelector("input[name=phone]").select()');
+        await command('Input.insertText',{text:'(987) 654-3210'});
+        assert.equal(await evaluate('document.querySelector("input[name=phone]").value'),'9876543210','Pasted phone numbers retain only digits');
+      }
       if(path===modalPath) {
         const modal=await evaluate('(()=>{const e=document.querySelector(".confirm-dialog");const r=e.getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,height:innerHeight,width:innerWidth,scrollable:e.scrollHeight>=e.clientHeight};})()');
         assert.ok(modal.top>=0&&modal.bottom<=modal.height+1&&modal.left>=0&&modal.right<=modal.width+1,`Confirmation popup clipped at ${width}×${height}: ${JSON.stringify(modal)}`);
