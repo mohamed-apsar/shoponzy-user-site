@@ -77,6 +77,10 @@ try {
       const issue=await evaluate(`(()=>{const w=document.documentElement.clientWidth;const nodes=[...document.querySelectorAll('main input,main select,main textarea,main .box,main .summary,main .line,main .dline,header,footer')].filter(e=>e.getClientRects().length&&getComputedStyle(e).visibility!=='hidden');return nodes.filter(e=>{const r=e.getBoundingClientRect();return r.left < -1 || r.right > w+1;}).slice(0,6).map(e=>({tag:e.tagName,class:e.className,width:Math.round(e.getBoundingClientRect().width)}));})()`);
       if(issue.length)failures.push({width,height,path,issue});
       if(['/categories/watches','/categories/sunglass','/categories/perfumes'].includes(path)) {
+        if(path!=='/categories/sunglass') {
+          assert.ok(await evaluate('document.querySelector("#coming-soon-title").textContent.includes("Coming soon.")'),'Perfumes and Watches must clearly say Coming soon');
+          assert.ok(await evaluate('document.querySelector(".coming-soon-copy p").textContent.includes("Shoponzy")'),'Collection launch description must be visible');
+        }
         assert.equal(await evaluate('document.querySelectorAll(".coming-soon-card a, .coming-soon-card button").length'),0,'No Explore button inside collection banners');
         if(path==='/categories/perfumes') {
           const layout=await evaluate('(()=>{const card=document.querySelector(".coming-soon-card");const art=document.querySelector(".coming-soon-art");const visual=art.parentElement.getBoundingClientRect();const copy=document.querySelector(".coming-soon-copy").getBoundingClientRect();return {split:card.classList.contains("is-product-preview"),copyLeft:copy.left,visualLeft:visual.left,copyTop:copy.top,visualBottom:visual.bottom,artWidth:art.getBoundingClientRect().width};})()');
