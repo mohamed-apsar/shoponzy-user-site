@@ -831,6 +831,20 @@ html, body { overflow-x: clip; }
 @media (prefers-reduced-motion: reduce) { .coming-soon-back span,.coming-soon-button,.coming-soon-button span { transition: none; } }
 
 /* Responsive layout refinements for the storefront across phones, tablets and desktops. */
+.coming-soon-card.has-uploaded-banner { grid-template-columns: minmax(0, 1fr); min-height: 0; }
+.has-uploaded-banner .coming-soon-visual { order: -1; display: block; min-height: 0; }
+.has-uploaded-banner .coming-soon-visual::before, .has-uploaded-banner .coming-soon-visual::after { display: none; }
+.has-uploaded-banner .coming-soon-banner { position: static; width: 100%; height: auto; opacity: 1; }
+.has-uploaded-banner .coming-soon-copy { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 28px; padding: clamp(24px, 3vw, 40px); }
+.has-uploaded-banner .coming-soon-kicker { display: none; }
+.has-uploaded-banner .coming-soon-pill { grid-column: 1; margin: 0; justify-self: start; }
+.has-uploaded-banner h1 { grid-column: 1; font-size: clamp(26px, 3vw, 40px); line-height: 1.15; letter-spacing: -.04em; overflow-wrap: anywhere; }
+.has-uploaded-banner p { grid-column: 1; max-width: none; margin: 0; }
+.has-uploaded-banner .coming-soon-actions { grid-column: 2; grid-row: 1 / 4; align-self: center; flex-direction: column; align-items: flex-start; gap: 12px; }
+@media (max-width: 720px) {
+  .has-uploaded-banner .coming-soon-copy { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .has-uploaded-banner .coming-soon-actions { grid-column: 1; grid-row: auto; margin-top: 4px; }
+}
 .srow { gap: 12px; }
 .srow > :first-child { min-width: 0; overflow-wrap: anywhere; }
 .srow > :last-child { flex-shrink: 0; text-align: right; }

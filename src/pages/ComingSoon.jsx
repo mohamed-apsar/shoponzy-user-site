@@ -12,7 +12,7 @@ export default function ComingSoon({ category }) {
         </Link>
 
         <section
-          className="coming-soon-card"
+          className={`coming-soon-card${category.bannerImage ? " has-uploaded-banner" : ""}`}
           style={{
             "--coming-accent": category.color || "#ff4d2e",
             "--coming-gradient": `linear-gradient(135deg, ${category.gradient?.[0] || "#17191f"}, ${category.gradient?.[1] || category.color || "#ff4d2e"})`,
@@ -22,7 +22,7 @@ export default function ComingSoon({ category }) {
           <div className="coming-soon-copy">
             <span className="coming-soon-kicker">SHOPONZY <i /> THE NEXT DROP</span>
             <span className="coming-soon-pill"><i /> COMING SOON</span>
-            <h1 id="coming-soon-title">Something good<br />is <em>on its way.</em></h1>
+            <h1 id="coming-soon-title">{category.bannerImage ? <>{category.name} <em>coming soon.</em></> : <>Something good<br />is <em>on its way.</em></>}</h1>
             <p>{category.tag || `We’re putting the finishing touches on our ${category.name} collection. It won’t be long.`}</p>
             <div className="coming-soon-actions">
               <Link className="coming-soon-button" to="/products">
@@ -32,18 +32,18 @@ export default function ComingSoon({ category }) {
             </div>
           </div>
 
-          <div className={`coming-soon-visual${category.bannerImage ? " has-banner" : ""}`} aria-hidden="true">
+          <div className={`coming-soon-visual${category.bannerImage ? " has-banner" : ""}`} aria-hidden={category.bannerImage ? undefined : true}>
             {category.bannerImage
-              ? <img className="coming-soon-banner" src={category.bannerImage} alt="" />
+              ? <img className="coming-soon-banner" src={category.bannerImage} alt={`${category.name} collection preview`} fetchPriority="high" />
               : category.image
                 ? <img className="coming-soon-product" src={category.image} alt="" />
                 : <div className="coming-soon-orbit"><span>CURATED FOR YOU</span><b>SOON</b></div>}
-            <div className="coming-soon-visual-shade" />
+            {!category.bannerImage && <><div className="coming-soon-visual-shade" />
             <div className="coming-soon-visual-label">
               <span>UP NEXT</span>
               <b>{category.name}</b>
             </div>
-            <span className="coming-soon-stamp">NEW<br />ARRIVAL</span>
+            <span className="coming-soon-stamp">NEW<br />ARRIVAL</span></>}
           </div>
         </section>
       </div>
