@@ -2,7 +2,7 @@
 import { build } from "esbuild";
 import { createServer } from "node:http";
 import { spawn } from "node:child_process";
-import { mkdtemp, readFile } from "node:fs/promises";
+import { mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import assert from "node:assert/strict";
@@ -11,7 +11,7 @@ import { PRODUCTS } from "../src/data/catalog.js";
 const fixture = `import {PRODUCTS,CATS,STORE} from './src/data/catalog.js';
 export const products=PRODUCTS.slice(0,12).map((p,i)=>({...p,apiId:'product-'+i,name:i===0?'Comfortable footwear with a very long product name for everyday use':p.name,variants:[{id:'variant-'+i,color:p.colors[0][1],size:p.sizes[0],price:p.price,stock:10}]}));
 export const cart=[{id:products[0].id,c:0,s:products[0].sizes[0],qty:2}];
-export const catalog={products,categories:CATS.map(c=>({...c,icon:c.heroArt[0],...(c.id==='watches'?{comingSoon:true,bannerImage:'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="500"><rect width="1600" height="500" fill="#171423"/><text x="100" y="270" fill="white" font-size="100">WATCHES</text></svg>')}:{})})),store:{...STORE,homeCategories:{showAllCategories:true}},status:'ready',sections:[{id:'new',source:'new',title:'New arrivals',products}],slides:[],retry:()=>{}};
+export const catalog={products,categories:CATS.map(c=>({...c,icon:c.heroArt[0],...(['watches','sunglass'].includes(c.id)?{comingSoon:true,bannerImage:'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="500"><rect width="1600" height="500" fill="#171423"/><text x="100" y="270" fill="white" font-size="100">WATCHES</text></svg>')}:{})})),store:{...STORE,homeCategories:{showAllCategories:true}},status:'ready',sections:[{id:'new',source:'new',title:'New arrivals',products}],slides:[],retry:()=>{}};
 const noop=()=>{};
 export const store={cart,coupon:null,address:{},checkoutDraft:{mode:'cart',lines:cart},cartReady:true,cartCount:2,wish:[],recent:[],openSheets:[],toasts:[],quickViewId:null,flushCart:async()=>{},openSheet:noop,closeSheet:noop,addToCart:noop,viewed:noop,startCheckout:noop,setQty:noop,removeLine:noop,setCoupon:noop,setAddress:noop,completeCheckout:noop,toggleWish:noop,toast:noop};`;
 const bundle = await build({
@@ -63,7 +63,7 @@ try {
   await command('Runtime.enable');
   const modalPath='/account/orders/SZ100001?audit-modal=1';
   const phoneOnly=process.argv.includes('--phone-only');
-  const paths=process.argv.includes('--banner-only') ? ['/categories/watches'] : phoneOnly ? ['/checkout?mode=cart'] : process.argv.includes('--modal-only') ? [modalPath] : ['/','/products',`/products/${PRODUCTS[0].slug}`,'/categories/shoes','/categories/watches','/cart','/checkout?mode=cart','/account','/account?section=support','/account/orders/SZ100001','/help',modalPath];
+  const paths=process.argv.includes('--banner-only') ? ['/categories/watches','/categories/sunglass'] : phoneOnly ? ['/checkout?mode=cart'] : process.argv.includes('--modal-only') ? [modalPath] : ['/','/products',`/products/${PRODUCTS[0].slug}`,'/categories/shoes','/categories/watches','/cart','/checkout?mode=cart','/account','/account?section=support','/account/orders/SZ100001','/help',modalPath];
   const sizes=phoneOnly ? [[375,812],[1366,768]] : [[320,640],[375,812],[768,1024],[1024,768],[1366,768],[1920,1080],[812,375]];
   const failures=[];
   for(const [width,height] of sizes) {
@@ -76,12 +76,19 @@ try {
       await new Promise(r=>setTimeout(r,180));
       const issue=await evaluate(`(()=>{const w=document.documentElement.clientWidth;const nodes=[...document.querySelectorAll('main input,main select,main textarea,main .box,main .summary,main .line,main .dline,header,footer')].filter(e=>e.getClientRects().length&&getComputedStyle(e).visibility!=='hidden');return nodes.filter(e=>{const r=e.getBoundingClientRect();return r.left < -1 || r.right > w+1;}).slice(0,6).map(e=>({tag:e.tagName,class:e.className,width:Math.round(e.getBoundingClientRect().width)}));})()`);
       if(issue.length)failures.push({width,height,path,issue});
-      if(path==='/categories/watches') {
+      if(['/categories/watches','/categories/sunglass'].includes(path)) {
         const banner=await evaluate(`(()=>{const img=document.querySelector('.coming-soon-banner');const visual=img.parentElement.getBoundingClientRect();const rect=img.getBoundingClientRect();const card=document.querySelector('.coming-soon-card').getBoundingClientRect();return {loaded:img.complete&&img.naturalWidth>0,ratio:rect.width/rect.height,width:rect.width,cardWidth:card.width,height:rect.height,visualHeight:visual.height};})()`);
         assert.ok(banner.loaded,'Coming-soon banner must load');
+        assert.equal(await evaluate('document.querySelectorAll(".coming-soon-card a, .coming-soon-card button").length'),0,'No Explore button inside collection banners');
         assert.ok(Math.abs(banner.ratio-3.2)<0.02,'Banner must retain its original proportions');
         assert.ok(Math.abs(banner.width-banner.cardWidth)<3,'Banner must fill the card width');
-        assert.ok(Math.abs(banner.height-banner.visualHeight)<2,'No empty bands above or below banner');
+        assert.ok(Math.abs(banner.height-banner.visualHeight)<=2.1,'No empty bands above or below banner (except the 1px borders)');
+        if(process.argv.includes('--screenshots')&&[375,1366].includes(width)) {
+          const screenshot=await command('Page.captureScreenshot',{format:'png'});
+          const file=join(tmpdir(),`shoponzy-${path.split('/').pop()}-${width}.png`);
+          await writeFile(file,Buffer.from(screenshot.data,'base64'));
+          console.log(`Screenshot: ${file}`);
+        }
       }
       if(path.startsWith('/checkout')) {
         await evaluate('document.querySelector("input[name=phone]").focus(); document.querySelector("input[name=phone]").select()');
