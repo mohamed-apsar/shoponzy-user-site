@@ -250,7 +250,6 @@ function Product({ p, products, categories, store: STORE }) {
                 style={{ position: "static", width: 54, height: 54, flex: "none", borderRadius: 14, boxShadow: "0 0 0 1.5px var(--line)" }} />
             </div>
             <PinCheck deliveryText={STORE.deliveryText} />
-            <div className="perks"><div><Icon name="i-refresh" />7-day returns</div><div><Icon name="i-cash" />Cash on delivery</div><div><Icon name="i-shield" />Secure checkout</div></div>
             <div className="acc">
               <details open><summary>Product details</summary><div className="body">
                 {p.desc && <p style={{ marginBottom: 10 }}>{p.desc}</p>}
