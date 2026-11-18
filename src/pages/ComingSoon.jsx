@@ -5,11 +5,12 @@ import usePageMeta from "../hooks/usePageMeta";
 export default function ComingSoon({ category }) {
   usePageMeta(`${category.name} is coming soon | Shoponzy`);
   const artwork = category.icon || category.heroArt?.[0] || ["bag", "#333333"];
+  const productPreview = !category.bannerImage && Boolean(category.image);
   return (
     <section className="coming-soon-page">
       <div className="container coming-soon-shell">
         <Link className="coming-soon-back" to="/"><span aria-hidden="true">&larr;</span> Back to Shoponzy</Link>
-        <article className="coming-soon-card" aria-labelledby="coming-soon-title">
+        <article className={`coming-soon-card${productPreview ? " is-product-preview" : ""}`} aria-labelledby="coming-soon-title">
           <header className="coming-soon-copy">
             <div>
               <span className="coming-soon-kicker">THE NEXT COLLECTION</span>

@@ -812,6 +812,20 @@ html, body { overflow-x: clip; }
 .coming-soon-art > * { width: 100%; height: 100%; }
 .coming-soon-caption { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 18px clamp(24px, 3.5vw, 44px); color: #85867e; font-size: 12px; }
 .coming-soon-caption > :last-child { font-size: 10px; font-weight: 800; letter-spacing: .18em; color: var(--ink); }
+.coming-soon-card.is-product-preview { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); }
+.is-product-preview .coming-soon-copy { flex-direction: column; align-items: flex-start; justify-content: center; gap: 28px; padding: clamp(28px, 5vw, 68px); background: #eeece5; }
+.is-product-preview .coming-soon-copy h1 { font-size: clamp(38px, 5.5vw, 76px); }
+.is-product-preview .coming-soon-copy p { max-width: 30ch; font-size: 16px; }
+.is-product-preview .coming-soon-pill { order: -1; background: rgba(255,255,255,.65); }
+.is-product-preview .coming-soon-visual { position: relative; min-height: clamp(380px, 40vw, 560px); padding: 0; overflow: hidden; border: 0; }
+.is-product-preview .coming-soon-product { position: absolute; inset: 0; width: 100%; height: 100%; max-height: none; object-fit: cover; object-position: center 60%; }
+.is-product-preview .coming-soon-caption { grid-column: 1 / -1; border-top: 1px solid #e8e8e4; }
+@media (max-width: 760px) {
+  .coming-soon-card.is-product-preview { grid-template-columns: minmax(0, 1fr); }
+  .is-product-preview .coming-soon-visual { order: -1; min-height: 0; aspect-ratio: 4 / 3; }
+  .is-product-preview .coming-soon-copy { gap: 18px; padding: 28px 24px; }
+  .is-product-preview .coming-soon-copy h1 { font-size: clamp(34px, 8vw, 52px); }
+}
 @media (max-width: 600px) {
   .coming-soon-card { border-radius: 18px; }
   .coming-soon-copy { flex-direction: column; align-items: flex-start; gap: 16px; padding: 24px 20px; }

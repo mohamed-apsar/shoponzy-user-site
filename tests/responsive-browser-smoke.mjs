@@ -11,7 +11,7 @@ import { PRODUCTS } from "../src/data/catalog.js";
 const fixture = `import {PRODUCTS,CATS,STORE} from './src/data/catalog.js';
 export const products=PRODUCTS.slice(0,12).map((p,i)=>({...p,apiId:'product-'+i,name:i===0?'Comfortable footwear with a very long product name for everyday use':p.name,variants:[{id:'variant-'+i,color:p.colors[0][1],size:p.sizes[0],price:p.price,stock:10}]}));
 export const cart=[{id:products[0].id,c:0,s:products[0].sizes[0],qty:2}];
-export const catalog={products,categories:CATS.map(c=>({...c,icon:c.heroArt[0],...(['watches','sunglass'].includes(c.id)?{comingSoon:true,bannerImage:'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="500"><rect width="1600" height="500" fill="#171423"/><text x="100" y="270" fill="white" font-size="100">WATCHES</text></svg>')}:{})})),store:{...STORE,homeCategories:{showAllCategories:true}},status:'ready',sections:[{id:'new',source:'new',title:'New arrivals',products}],slides:[],retry:()=>{}};
+export const catalog={products,categories:CATS.map(c=>({...c,icon:c.heroArt[0],...(c.id==='watches'?{comingSoon:true,bannerImage:'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="500"><rect width="1600" height="500" fill="#171423"/><text x="100" y="270" fill="white" font-size="100">WATCHES</text></svg>')}:c.id==='sunglass'?{comingSoon:true,image:'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000"><rect width="800" height="1000" fill="#ded7c9"/><path d="M0 200Q400 0 800 200M0 800Q400 1000 800 800" stroke="#eae4d8" stroke-width="120" fill="none"/><g fill="#722c2c" stroke="#b99c6a" stroke-width="8"><rect x="120" y="450" width="240" height="160" rx="30"/><rect x="440" y="450" width="240" height="160" rx="30"/><path d="M360 490Q400 470 440 490" fill="none"/></g></svg>')}:{})})),store:{...STORE,homeCategories:{showAllCategories:true}},status:'ready',sections:[{id:'new',source:'new',title:'New arrivals',products}],slides:[],retry:()=>{}};
 const noop=()=>{};
 export const store={cart,coupon:null,address:{},checkoutDraft:{mode:'cart',lines:cart},cartReady:true,cartCount:2,wish:[],recent:[],openSheets:[],toasts:[],quickViewId:null,flushCart:async()=>{},openSheet:noop,closeSheet:noop,addToCart:noop,viewed:noop,startCheckout:noop,setQty:noop,removeLine:noop,setCoupon:noop,setAddress:noop,completeCheckout:noop,toggleWish:noop,toast:noop};`;
 const bundle = await build({
@@ -77,12 +77,20 @@ try {
       const issue=await evaluate(`(()=>{const w=document.documentElement.clientWidth;const nodes=[...document.querySelectorAll('main input,main select,main textarea,main .box,main .summary,main .line,main .dline,header,footer')].filter(e=>e.getClientRects().length&&getComputedStyle(e).visibility!=='hidden');return nodes.filter(e=>{const r=e.getBoundingClientRect();return r.left < -1 || r.right > w+1;}).slice(0,6).map(e=>({tag:e.tagName,class:e.className,width:Math.round(e.getBoundingClientRect().width)}));})()`);
       if(issue.length)failures.push({width,height,path,issue});
       if(['/categories/watches','/categories/sunglass'].includes(path)) {
+        assert.equal(await evaluate('document.querySelectorAll(".coming-soon-card a, .coming-soon-card button").length'),0,'No Explore button inside collection banners');
+        if(path==='/categories/sunglass') {
+          const preview=await evaluate(`(()=>{const img=document.querySelector('.coming-soon-product');const image=img.getBoundingClientRect();const visual=img.parentElement.getBoundingClientRect();const copy=document.querySelector('.coming-soon-copy').getBoundingClientRect();return {loaded:img.complete&&img.naturalWidth>0,imageWidth:image.width,visualWidth:visual.width,imageHeight:image.height,visualHeight:visual.height,copyLeft:copy.left,visualLeft:visual.left,copyTop:copy.top,visualBottom:visual.bottom};})()`);
+          assert.ok(preview.loaded,'Portrait category image must load');
+          assert.ok(Math.abs(preview.imageWidth-preview.visualWidth)<1&&Math.abs(preview.imageHeight-preview.visualHeight)<1,'Category image must fill the visual panel');
+          assert.ok(width>760 ? preview.copyLeft<preview.visualLeft : preview.copyTop>=preview.visualBottom-1,'Portrait layout must split on desktop and stack on mobile');
+        } else {
         const banner=await evaluate(`(()=>{const img=document.querySelector('.coming-soon-banner');const visual=img.parentElement.getBoundingClientRect();const rect=img.getBoundingClientRect();const card=document.querySelector('.coming-soon-card').getBoundingClientRect();return {loaded:img.complete&&img.naturalWidth>0,ratio:rect.width/rect.height,width:rect.width,cardWidth:card.width,height:rect.height,visualHeight:visual.height};})()`);
         assert.ok(banner.loaded,'Coming-soon banner must load');
         assert.equal(await evaluate('document.querySelectorAll(".coming-soon-card a, .coming-soon-card button").length'),0,'No Explore button inside collection banners');
         assert.ok(Math.abs(banner.ratio-3.2)<0.02,'Banner must retain its original proportions');
         assert.ok(Math.abs(banner.width-banner.cardWidth)<3,'Banner must fill the card width');
         assert.ok(Math.abs(banner.height-banner.visualHeight)<=2.1,'No empty bands above or below banner (except the 1px borders)');
+        }
         if(process.argv.includes('--screenshots')&&[375,1366].includes(width)) {
           const screenshot=await command('Page.captureScreenshot',{format:'png'});
           const file=join(tmpdir(),`shoponzy-${path.split('/').pop()}-${width}.png`);
