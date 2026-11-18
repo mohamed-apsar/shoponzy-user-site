@@ -13,7 +13,8 @@ export const products=PRODUCTS.slice(0,12).map((p,i)=>({...p,apiId:'product-'+i,
 export const cart=[{id:products[0].id,c:0,s:products[0].sizes[0],qty:2}];
 export const catalog={products,categories:CATS.map(c=>({...c,icon:c.heroArt[0],...(c.id==='watches'?{comingSoon:true,bannerImage:'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="500"><rect width="1600" height="500" fill="#171423"/><text x="100" y="270" fill="white" font-size="100">WATCHES</text></svg>')}:c.id==='sunglass'?{comingSoon:true,image:'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000"><rect width="800" height="1000" fill="#ded7c9"/><path d="M0 200Q400 0 800 200M0 800Q400 1000 800 800" stroke="#eae4d8" stroke-width="120" fill="none"/><g fill="#722c2c" stroke="#b99c6a" stroke-width="8"><rect x="120" y="450" width="240" height="160" rx="30"/><rect x="440" y="450" width="240" height="160" rx="30"/><path d="M360 490Q400 470 440 490" fill="none"/></g></svg>')}:c.id==='perfumes'?{comingSoon:true}:{})})),store:{...STORE,homeCategories:{showAllCategories:true}},status:'ready',sections:[{id:'new',source:'new',title:'New arrivals',products}],slides:[],retry:()=>{}};
 const noop=()=>{};
-export const store={cart,coupon:null,address:{},checkoutDraft:{mode:'cart',lines:cart},cartReady:true,cartCount:2,wish:[],recent:[],openSheets:[],toasts:[],quickViewId:null,flushCart:async()=>{},openSheet:noop,closeSheet:noop,addToCart:noop,viewed:noop,startCheckout:noop,setQty:noop,removeLine:noop,setCoupon:noop,setAddress:noop,completeCheckout:noop,toggleWish:noop,toast:noop};`;
+export const store={cart,coupon:null,address:{},checkoutDraft:{mode:new URLSearchParams(location.search).get('mode')||'cart',lines:cart},cartReady:true,cartCount:2,wish:[],recent:[],openSheets:[],toasts:[],quickViewId:null,flushCart:async()=>{},openSheet:noop,closeSheet:noop,addToCart:noop,viewed:noop,startCheckout:noop,setQty:noop,removeLine:noop,setCoupon:noop,setAddress:noop,completeCheckout:noop,toggleWish:noop,toast:noop};`;
+if(process.argv.includes('--checkout-exit-only')) fixture=fixture.replace('qty:2}];','qty:1}];');
 if(process.argv.includes('--live-banners')) {
   const response=await fetch('https://shoponzy-backend.vercel.app/api/v1/categories');
   assert.ok(response.ok,'Public category settings must load');
@@ -71,8 +72,9 @@ try {
   await command('Runtime.enable');
   const modalPath='/account/orders/SZ100001?audit-modal=1';
   const phoneOnly=process.argv.includes('--phone-only');
-  const paths=process.argv.includes('--banner-only') ? ['/categories/watches','/categories/sunglass','/categories/perfumes'] : phoneOnly ? ['/checkout?mode=cart'] : process.argv.includes('--modal-only') ? [modalPath] : ['/','/products',`/products/${PRODUCTS[0].slug}`,'/categories/shoes','/categories/watches','/cart','/checkout?mode=cart','/account','/account?section=support','/account/orders/SZ100001','/help',modalPath];
-  const sizes=phoneOnly ? [[375,812],[1366,768]] : [[320,640],[375,812],[768,1024],[1024,768],[1366,768],[1920,1080],[812,375]];
+  const exitOnly=process.argv.includes('--checkout-exit-only');
+  const paths=exitOnly ? ['/checkout?mode=cart','/checkout?mode=buy-now'] : process.argv.includes('--banner-only') ? ['/categories/watches','/categories/sunglass','/categories/perfumes'] : phoneOnly ? ['/checkout?mode=cart'] : process.argv.includes('--modal-only') ? [modalPath] : ['/','/products',`/products/${PRODUCTS[0].slug}`,'/categories/shoes','/categories/watches','/cart','/checkout?mode=cart','/account','/account?section=support','/account/orders/SZ100001','/help',modalPath];
+  const sizes=phoneOnly||exitOnly ? [[375,812],[1366,768]] : [[320,640],[375,812],[768,1024],[1024,768],[1366,768],[1920,1080],[812,375]];
   const failures=[];
   for(const [width,height] of sizes) {
     await command('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<768});
@@ -130,6 +132,14 @@ try {
         await evaluate('document.querySelector("input[name=phone]").select()');
         await command('Input.insertText',{text:'(987) 654-3210'});
         assert.equal(await evaluate('document.querySelector("input[name=phone]").value'),'9876543210','Pasted phone numbers retain only digits');
+      }
+      if(exitOnly) {
+        const minus='document.querySelector("#coSum .qty button")';
+        assert.equal(await evaluate(minus+'.disabled'),false,'Minus must be enabled for the last unit');
+        await evaluate(minus+'.click()');
+        let home=false;
+        for(let attempt=0;attempt<50&&!home;attempt++) {home=await evaluate('location.pathname==="/" && !document.querySelector("#coSum")');if(!home)await new Promise(r=>setTimeout(r,100));}
+        assert.ok(home,'Minus on the only item at quantity 1 must navigate home');
       }
       if(path===modalPath) {
         const modal=await evaluate('(()=>{const e=document.querySelector(".confirm-dialog");const r=e.getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,height:innerHeight,width:innerWidth,scrollable:e.scrollHeight>=e.clientHeight};})()');

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useCustomer } from "../context/CustomerContext";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { checkoutItems, confirmedCheckoutTotals, cartLineKey, checkoutQuantityLimit, changeCheckoutQuantity } from "../utils/checkout";
 import { storage } from "../utils/storage";
 import Icon from "../components/Icon";
@@ -39,7 +39,7 @@ function Summary({ cart, coupon, pay, products, store: STORE, submitting, formEr
           <div className="dline" key={`${l.id}|${l.c}|${l.s}`}><ProductMedia className="mini" product={p} ci={l.c} />
             <div><h4>{p.name}</h4><p className="meta">{p.colors[l.c][1]} · {l.s} · Qty {l.qty}</p><b style={{ fontSize: ".88rem" }}>{money(linePrice(p, l) * l.qty)}</b>
               <div style={{ marginTop: 8 }}><div className="qty" role="group" aria-label={`Quantity for ${p.name}, ${p.colors[l.c][1]}, size ${l.s}`}>
-                <button type="button" aria-label={`Decrease quantity of ${p.name}`} disabled={submitting || l.qty <= 1} onClick={() => onQuantityChange(l, -1)}>−</button>
+                <button type="button" aria-label={`Decrease quantity of ${p.name}`} disabled={submitting || (l.qty <= 1 && cart.length > 1)} onClick={() => onQuantityChange(l, -1)}>−</button>
                 <span aria-live="polite">{l.qty}</span>
                 <button type="button" aria-label={`Increase quantity of ${p.name}`} disabled={submitting || l.qty >= checkoutQuantityLimit(p, l)} onClick={() => onQuantityChange(l, 1)}>+</button>
               </div></div>
@@ -112,6 +112,7 @@ export default function Checkout() {
   usePageMeta("Checkout | Shoponzy");
   const { cart: bag, coupon, address, setAddress, checkoutDraft, startCheckout, setQty, completeCheckout, cartReady, flushCart } = useStore();
   const [params] = useSearchParams();
+  const navigate = useNavigate();
   const mode = params.get("mode") || "cart";
   const cart = params.has("mode") ? (checkoutDraft?.mode === mode ? checkoutDraft.lines : []) : bag;
   const [values, setValues] = useState(() => ({ name: "", phone: "", email: "", address: "", city: "", pincode: "", state: "", ...(address || {}), pay: "upi" }));
@@ -132,6 +133,10 @@ export default function Checkout() {
 
   function changeQuantity(line, delta) {
     if (submitting) return;
+    if (delta < 0 && line.qty <= 1 && cart.length === 1) {
+      navigate("/", { replace: true });
+      return;
+    }
     const next = changeCheckoutQuantity(cart, line, delta, byId(line.id, products));
     if (params.has("mode")) startCheckout(mode, next);
     if (!params.has("mode") || mode !== "buy-now") {
