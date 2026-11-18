@@ -16,7 +16,7 @@ export default function ComingSoon({ category }) {
     <section className="coming-soon-page">
       <div className="container coming-soon-shell">
         <Link className="coming-soon-back" to="/"><span aria-hidden="true">&larr;</span> Back to Shoponzy</Link>
-        <article className={`coming-soon-card${productPreview ? " is-product-preview" : ""}${launchDescription ? " is-launch-preview" : ""}`} aria-labelledby="coming-soon-title">
+        <article className={`coming-soon-card${productPreview ? " is-product-preview" : ""}${launchDescription ? " is-launch-preview" : ""}${launchDescription && category.bannerImage ? " has-launch-banner" : ""}`} aria-labelledby="coming-soon-title">
           <header className="coming-soon-copy">
             <div>
               <span className="coming-soon-kicker">{launchDescription ? "SHOPONZY / THE NEXT COLLECTION" : "THE NEXT COLLECTION"}</span>

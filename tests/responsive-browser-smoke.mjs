@@ -8,12 +8,20 @@ import { join } from "node:path";
 import assert from "node:assert/strict";
 import { PRODUCTS } from "../src/data/catalog.js";
 
-const fixture = `import {PRODUCTS,CATS,STORE} from './src/data/catalog.js';
+let fixture = `import {PRODUCTS,CATS,STORE} from './src/data/catalog.js';
 export const products=PRODUCTS.slice(0,12).map((p,i)=>({...p,apiId:'product-'+i,name:i===0?'Comfortable footwear with a very long product name for everyday use':p.name,variants:[{id:'variant-'+i,color:p.colors[0][1],size:p.sizes[0],price:p.price,stock:10}]}));
 export const cart=[{id:products[0].id,c:0,s:products[0].sizes[0],qty:2}];
 export const catalog={products,categories:CATS.map(c=>({...c,icon:c.heroArt[0],...(c.id==='watches'?{comingSoon:true,bannerImage:'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="500"><rect width="1600" height="500" fill="#171423"/><text x="100" y="270" fill="white" font-size="100">WATCHES</text></svg>')}:c.id==='sunglass'?{comingSoon:true,image:'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000"><rect width="800" height="1000" fill="#ded7c9"/><path d="M0 200Q400 0 800 200M0 800Q400 1000 800 800" stroke="#eae4d8" stroke-width="120" fill="none"/><g fill="#722c2c" stroke="#b99c6a" stroke-width="8"><rect x="120" y="450" width="240" height="160" rx="30"/><rect x="440" y="450" width="240" height="160" rx="30"/><path d="M360 490Q400 470 440 490" fill="none"/></g></svg>')}:c.id==='perfumes'?{comingSoon:true}:{})})),store:{...STORE,homeCategories:{showAllCategories:true}},status:'ready',sections:[{id:'new',source:'new',title:'New arrivals',products}],slides:[],retry:()=>{}};
 const noop=()=>{};
 export const store={cart,coupon:null,address:{},checkoutDraft:{mode:'cart',lines:cart},cartReady:true,cartCount:2,wish:[],recent:[],openSheets:[],toasts:[],quickViewId:null,flushCart:async()=>{},openSheet:noop,closeSheet:noop,addToCart:noop,viewed:noop,startCheckout:noop,setQty:noop,removeLine:noop,setCoupon:noop,setAddress:noop,completeCheckout:noop,toggleWish:noop,toast:noop};`;
+if(process.argv.includes('--live-banners')) {
+  const response=await fetch('https://shoponzy-backend.vercel.app/api/v1/categories');
+  assert.ok(response.ok,'Public category settings must load');
+  const categories=(await response.json()).data;
+  for(const category of categories.filter(c=>['watches','perfumes'].includes(c.slug))) {
+    fixture+=`Object.assign(catalog.categories.find(c=>c.id===${JSON.stringify(category.slug)}),${JSON.stringify({comingSoon:true,bannerImage:category.bannerImage?.url||'',image:category.image?.url||''})});`;
+  }
+}
 const bundle = await build({
   stdin: { contents: `import React from 'react'; import {createRoot} from 'react-dom/client'; import {BrowserRouter} from 'react-router-dom'; import App from './src/App.jsx'; import ConfirmDialog from './src/components/ConfirmDialog.jsx'; import './src/styles/style.css'; createRoot(document.getElementById('root')).render(<BrowserRouter><App/><ConfirmDialog open={location.search.includes('audit-modal')} title="Submit return request?" message="You are requesting a return for 2 items from order SZ100001. Reason: Product not as described. Our team will review your request and update you." confirmLabel="Yes, submit request" variant="return" onCancel={()=>{}} onConfirm={()=>{}}/></BrowserRouter>);`, resolveDir: process.cwd(), loader: "jsx" },
   bundle: true, write: false, outfile: "smoke.js", jsx: "automatic",
@@ -82,7 +90,14 @@ try {
           assert.ok(await evaluate('document.querySelector(".coming-soon-copy p").textContent.includes("Shoponzy")'),'Collection launch description must be visible');
         }
         assert.equal(await evaluate('document.querySelectorAll(".coming-soon-card a, .coming-soon-card button").length'),0,'No Explore button inside collection banners');
-        if(path==='/categories/perfumes') {
+        if(await evaluate('document.querySelector(".coming-soon-card").classList.contains("has-launch-banner")')) {
+          let loaded=false;
+          for(let attempt=0;attempt<100&&!loaded;attempt++) {loaded=await evaluate('document.querySelector(".coming-soon-banner").complete&&document.querySelector(".coming-soon-banner").naturalWidth>0');if(!loaded)await new Promise(r=>setTimeout(r,100));}
+          assert.ok(loaded,'Uploaded launch banner must load');
+          const hero=await evaluate(`(()=>{const visual=document.querySelector('.coming-soon-visual').getBoundingClientRect();const copy=document.querySelector('.coming-soon-copy').getBoundingClientRect();const title=document.querySelector('.coming-soon-launch-title').getBoundingClientRect();return {visualTop:visual.top,visualBottom:visual.bottom,visualRight:visual.right,copyTop:copy.top,copyRight:copy.right,titleWidth:title.width};})()`);
+          assert.ok(hero.titleWidth>0,'Coming soon headline must be visible');
+          assert.ok(width>760 ? Math.abs(hero.visualTop-hero.copyTop)<2&&hero.copyRight<hero.visualRight : hero.copyTop>=hero.visualBottom-1,'Uploaded banners must use the launch hero on desktop and image-first layout on mobile');
+        } else if(path==='/categories/perfumes') {
           const layout=await evaluate('(()=>{const card=document.querySelector(".coming-soon-card");const art=document.querySelector(".coming-soon-art");const visual=art.parentElement.getBoundingClientRect();const copy=document.querySelector(".coming-soon-copy").getBoundingClientRect();return {split:card.classList.contains("is-product-preview"),copyLeft:copy.left,visualLeft:visual.left,copyTop:copy.top,visualBottom:visual.bottom,artWidth:art.getBoundingClientRect().width};})()');
           assert.ok(layout.split&&layout.artWidth>0,'Perfumes must use the image-and-text layout even with category artwork');
           assert.ok(width>760 ? layout.copyLeft<layout.visualLeft : layout.copyTop>=layout.visualBottom-1,'Perfumes must split on desktop and stack on mobile');
