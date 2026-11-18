@@ -1,0 +1,88 @@
+// Run from user-site: node tests/responsive-browser-smoke.mjs (Edge or POPUP_TEST_BROWSER).
+import { build } from "esbuild";
+import { createServer } from "node:http";
+import { spawn } from "node:child_process";
+import { mkdtemp, readFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import assert from "node:assert/strict";
+import { PRODUCTS } from "../src/data/catalog.js";
+
+const fixture = `import {PRODUCTS,CATS,STORE} from './src/data/catalog.js';
+export const products=PRODUCTS.slice(0,12).map((p,i)=>({...p,apiId:'product-'+i,name:i===0?'Comfortable footwear with a very long product name for everyday use':p.name,variants:[{id:'variant-'+i,color:p.colors[0][1],size:p.sizes[0],price:p.price,stock:10}]}));
+export const cart=[{id:products[0].id,c:0,s:products[0].sizes[0],qty:2}];
+export const catalog={products,categories:CATS.map(c=>({...c,icon:c.heroArt[0]})),store:{...STORE,homeCategories:{showAllCategories:true}},status:'ready',sections:[{id:'new',source:'new',title:'New arrivals',products}],slides:[],retry:()=>{}};
+const noop=()=>{};
+export const store={cart,coupon:null,address:{},checkoutDraft:{mode:'cart',lines:cart},cartReady:true,cartCount:2,wish:[],recent:[],openSheets:[],toasts:[],quickViewId:null,flushCart:async()=>{},openSheet:noop,closeSheet:noop,addToCart:noop,viewed:noop,startCheckout:noop,setQty:noop,removeLine:noop,setCoupon:noop,setAddress:noop,completeCheckout:noop,toggleWish:noop,toast:noop};`;
+const bundle = await build({
+  stdin: { contents: `import React from 'react'; import {createRoot} from 'react-dom/client'; import {BrowserRouter} from 'react-router-dom'; import App from './src/App.jsx'; import ConfirmDialog from './src/components/ConfirmDialog.jsx'; import './src/styles/style.css'; createRoot(document.getElementById('root')).render(<BrowserRouter><App/><ConfirmDialog open={location.search.includes('audit-modal')} title="Submit return request?" message="You are requesting a return for 2 items from order SZ100001. Reason: Product not as described. Our team will review your request and update you." confirmLabel="Yes, submit request" variant="return" onCancel={()=>{}} onConfirm={()=>{}}/></BrowserRouter>);`, resolveDir: process.cwd(), loader: "jsx" },
+  bundle: true, write: false, outfile: "smoke.js", jsx: "automatic",
+  define: { "import.meta.env.DEV": "false", "import.meta.env.VITE_API_BASE_URL": '"/api/v1"' },
+  plugins: [{ name: "fixtures", setup(b) {
+    b.onResolve({ filter: /^responsive-fixture$/ }, () => ({ path: "fixture", namespace: "responsive" }));
+    b.onLoad({ filter: /.*/, namespace: "responsive" }, () => ({ contents: fixture, resolveDir: process.cwd(), loader: "js" }));
+    b.onLoad({ filter: /CatalogContext\.jsx$/ }, () => ({ contents: `import {catalog} from 'responsive-fixture'; export const useCatalog=()=>catalog;`, loader: "js" }));
+    b.onLoad({ filter: /StoreContext\.jsx$/ }, () => ({ contents: `import {store} from 'responsive-fixture'; export const useStore=()=>store;`, loader: "js" }));
+    b.onLoad({ filter: /CustomerContext\.jsx$/ }, () => ({ contents: `const noop=()=>{}; export const useCustomer=()=>({signedIn:true,status:'ready',user:{id:'user',name:'Asha Kumar',email:'customer.with.a.long.email.address@example.com',phone:'9876543210'},signOut:noop,setUser:noop});`, loader: "js" }));
+  } }],
+});
+const assets = new Map(bundle.outputFiles.map((f) => [f.path.endsWith(".css") ? "/smoke.css" : "/smoke.js", f.text]));
+const server = createServer((req, res) => {
+  if (req.url.startsWith('/api/v1/')) {
+    let data = [];
+    if (/\/orders\/SZ100001$/.test(req.url)) data = { order: {orderNumber:'SZ100001',status:'delivered',paymentMethod:'razorpay',paymentStatus:'paid',subtotal:1000,total:1000,shippingFee:0,items:[{name:'Comfortable footwear with a very long product name for everyday use',color:'Lavender',size:'8',qty:2,lineTotal:1000}],shippingAddress:{name:'Asha Kumar',line1:'12 Long Street',city:'Chennai',state:'Tamil Nadu',pincode:'600040'},history:[],createdAt:new Date().toISOString()} };
+    if (/\/returns$/.test(req.url)) data = {eligibility:{eligible:false,reason:'No eligible items',items:[]},requests:[],returns:[]};
+    if (/\/orders\?/.test(req.url)) data=[];
+    if (/\/csrf$/.test(req.url)) data={csrfToken:'test'};
+    res.setHeader('Content-Type','application/json'); res.end(JSON.stringify({success:true,data,meta:{total:0}}));
+  } else if (assets.has(req.url)) {res.setHeader('Content-Type',req.url.endsWith('.css')?'text/css':'text/javascript');res.end(assets.get(req.url));}
+  else {res.setHeader('Content-Type','text/html');res.end('<!doctype html><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="/smoke.css"><div id="root"></div><script type="module" src="/smoke.js"></script>');}
+});
+await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+const profile = await mkdtemp(join(tmpdir(), "shoponzy-responsive-"));
+const browser = spawn(process.env.POPUP_TEST_BROWSER || "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe", ["--headless=new", "--disable-gpu", "--no-first-run", "--remote-debugging-port=0", `--user-data-dir=${profile}`, "about:blank"], { stdio: ["ignore", "ignore", "pipe"], windowsHide: true });
+let socket;
+const watchdog = setTimeout(() => { browser.kill(); console.error('Responsive audit timed out'); process.exit(1); }, 180000);
+try {
+  let endpoint, launchError;
+  browser.on('error', (e) => {launchError=e;});
+  for(let i=0;i<100&&!endpoint;i++) {
+    if(launchError) throw launchError;
+    try {const [port,path]=(await readFile(join(profile,'DevToolsActivePort'),'utf8')).trim().split(/\r?\n/);if(port&&path)endpoint=`ws://127.0.0.1:${port}${path}`;}catch{}
+    if(!endpoint)await new Promise(r=>setTimeout(r,100));
+  }
+  if(!endpoint)throw Error('Browser did not start');
+  const target=await(await fetch(`http://127.0.0.1:${new URL(endpoint).port}/json/new?about:blank`,{method:'PUT'})).json();
+  socket=new WebSocket(target.webSocketDebuggerUrl);
+  await new Promise(r=>socket.addEventListener('open',r,{once:true}));
+  let sequence=0;const pending=new Map();const errors=[];
+  socket.addEventListener('message',e=>{const msg=JSON.parse(e.data);if(msg.method==='Runtime.exceptionThrown')errors.push(msg.params.exceptionDetails.exception?.description||msg.params.exceptionDetails.text);if(msg.id){const task=pending.get(msg.id);pending.delete(msg.id);msg.error?task.reject(Error(msg.error.message)):task.resolve(msg.result);}});
+  const command=(method,params={})=>new Promise((resolve,reject)=>{const id=++sequence;pending.set(id,{resolve,reject});socket.send(JSON.stringify({id,method,params}));});
+  const evaluate=async(expression)=>{const r=await command('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(r.exceptionDetails)throw Error(JSON.stringify(r.exceptionDetails));return r.result.value;};
+  await command('Page.enable');
+  await command('Runtime.enable');
+  const modalPath='/account/orders/SZ100001?audit-modal=1';
+  const paths=process.argv.includes('--modal-only') ? [modalPath] : ['/','/products',`/products/${PRODUCTS[0].slug}`,'/categories/shoes','/cart','/checkout?mode=cart','/account','/account?section=support','/account/orders/SZ100001','/help',modalPath];
+  const sizes=[[320,640],[375,812],[768,1024],[1024,768],[1366,768],[1920,1080],[812,375]];
+  const failures=[];
+  for(const [width,height] of sizes) {
+    await command('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<768});
+    for(const path of paths) {
+      await command('Page.navigate',{url:`http://127.0.0.1:${server.address().port}${path}`});
+      let ready=false;
+      for(let i=0;i<70;i++){ready=await evaluate('Boolean(document.querySelector("main h1, main h2"))');if(ready)break;await new Promise(r=>setTimeout(r,100));}
+      assert.ok(ready,`Page did not render: ${path}: ${errors.join('; ')}`);
+      await new Promise(r=>setTimeout(r,180));
+      const issue=await evaluate(`(()=>{const w=document.documentElement.clientWidth;const nodes=[...document.querySelectorAll('main input,main select,main textarea,main .box,main .summary,main .line,main .dline,header,footer')].filter(e=>e.getClientRects().length&&getComputedStyle(e).visibility!=='hidden');return nodes.filter(e=>{const r=e.getBoundingClientRect();return r.left < -1 || r.right > w+1;}).slice(0,6).map(e=>({tag:e.tagName,class:e.className,width:Math.round(e.getBoundingClientRect().width)}));})()`);
+      if(issue.length)failures.push({width,height,path,issue});
+      if(path===modalPath) {
+        const modal=await evaluate('(()=>{const e=document.querySelector(".confirm-dialog");const r=e.getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,height:innerHeight,width:innerWidth,scrollable:e.scrollHeight>=e.clientHeight};})()');
+        assert.ok(modal.top>=0&&modal.bottom<=modal.height+1&&modal.left>=0&&modal.right<=modal.width+1,`Confirmation popup clipped at ${width}×${height}: ${JSON.stringify(modal)}`);
+      }
+    }
+    console.log(`Audited ${width}×${height}`);
+  }
+  console.log(JSON.stringify(failures,null,2));
+  assert.equal(failures.length,0,'Responsive elements extend outside the viewport');
+  console.log(`PASS: ${paths.length*sizes.length} representative page/viewport checks`);
+} finally {clearTimeout(watchdog);socket?.close();browser.kill();server.close();}

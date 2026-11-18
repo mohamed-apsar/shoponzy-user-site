@@ -445,14 +445,16 @@ body.pdp-page .tab-space { height: 80px; }
 .page-title { padding-top: 20px; padding-bottom: 6px; }
 .page-title h1 { font-size: clamp(1.5rem, 3vw, 2.2rem); font-weight: 800; letter-spacing: -.02em; }
 .page-title p { color: var(--muted); font-size: .9rem; }
-.cart-l { display: grid; gap: 22px; }
-@media (min-width: 1000px) { .cart-l { grid-template-columns: 1fr 380px; gap: 36px; align-items: start; } }
-.line { display: grid; grid-template-columns: 92px 1fr; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.cart-l { display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px; }
+@media (min-width: 1000px) { .cart-l { grid-template-columns: minmax(0, 1fr) 380px; gap: 36px; align-items: start; } }
+.line { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.line > *, .dline > *, .cart-l > *, .form > *, .field { min-width: 0; }
+.line h3, .dline h4, .box .tax, .support-ticket-row, .confirm-dialog p { overflow-wrap: anywhere; }
 .line .mini { width: 92px; aspect-ratio: 1; border-radius: 12px; overflow: hidden; background: var(--soft); }
 .line .mini svg, .line .mini img { width: 100%; height: 100%; object-fit: cover; }
 .line h3 { font-size: .92rem; font-weight: 700; line-height: 1.35; }
 .line .meta { color: var(--muted); font-size: .8rem; }
-.line .row { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; gap: 10px; }
+.line .row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-top: 10px; gap: 10px; }
 .account-orders-list { display: grid; }
 .account-order-row { box-sizing: border-box; display: grid !important; grid-template-columns: 76px minmax(0, 1fr) 150px; align-items: center; gap: 16px; width: 100%; padding: 14px 0 !important; border-bottom: 1px solid var(--line); color: var(--ink); transition: background .18s, transform .18s; }
 .account-order-row:hover { background: var(--soft); transform: translateX(2px); }
@@ -501,7 +503,7 @@ body.pdp-page .tab-space { height: 80px; }
 .box h2 { font-size: 1.1rem; font-weight: 800; margin-bottom: 14px; display: flex; gap: 10px; align-items: center; }
 .box h2 .n { width: 28px; height: 28px; border-radius: 8px; background: var(--ink); color: #fff; display: grid; place-items: center; font-size: .85rem; }
 .form { display: grid; gap: 14px; }
-@media (min-width: 640px) { .form.two { grid-template-columns: 1fr 1fr; } .form .full { grid-column: 1 / -1; } }
+@media (min-width: 640px) { .form.two { grid-template-columns: repeat(2, minmax(0, 1fr)); } .form .full { grid-column: 1 / -1; } }
 .auth-layout { width: 100%; }
 .auth-card { margin: 0 auto; box-shadow: var(--shadow); }
 .auth-signin { width: min(100%, 500px); padding: clamp(24px, 5vw, 42px); gap: 18px; }
@@ -584,7 +586,7 @@ body.pdp-page .tab-space { height: 80px; }
 .field .err.show { display: block; }
 .pay { display: flex; gap: 12px; padding: 14px; border-radius: 14px; border: 1.5px solid var(--line); cursor: pointer; transition: .2s; }
 .pay:has(input:checked) { border-color: var(--ink); background: var(--soft); }
-.pay input { width: 18px; height: 18px; accent-color: var(--ink); margin-top: 3px; }
+.pay input { flex-shrink: 0; width: 18px; height: 18px; accent-color: var(--ink); margin-top: 3px; }
 .pay b { display: block; } .pay small { color: var(--muted); }
 .success { text-align: center; padding: 40px 16px; }
 .success .tick { width: 86px; height: 86px; margin: 0 auto 16px; border-radius: 50%; background: var(--ok-t); color: var(--ok); display: grid; place-items: center; }
@@ -702,7 +704,7 @@ body.pdp-page .tab-space { height: 80px; }
 }
 .sheet .sort-list button { display: flex; justify-content: space-between; width: 100%; padding: 14px 4px; border-bottom: 1px solid var(--line); font-weight: 600; }
 .sheet .sort-list button[aria-pressed="true"] { color: var(--accent-d); font-weight: 800; }
-.dline { display: grid; grid-template-columns: 70px 1fr; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.dline { display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
 .dline .mini { width: 70px; aspect-ratio: 1; border-radius: 10px; overflow: hidden; background: var(--soft); }
 .dline .mini svg, .dline .mini img { width: 100%; height: 100%; object-fit: cover; }
 .dline h4 { font-size: .86rem; font-weight: 700; line-height: 1.3; }
@@ -760,7 +762,7 @@ html, body { overflow-x: clip; }
 .section, .hero, main { overflow-x: clip; }
 .buy .btn { min-width: 0; padding-left: 14px; padding-right: 14px; }
 .confirm-backdrop { position: fixed; inset: 0; z-index: 1200; display: grid; place-items: center; padding: 20px; background: rgba(15, 17, 22, .55); backdrop-filter: blur(2px); }
-.confirm-dialog { width: min(512px, 100%); padding: 36px 34px 28px; border-radius: 12px; background: #fff; text-align: center; box-shadow: 0 24px 70px rgba(0, 0, 0, .24); animation: confirm-in .18s ease-out; }
+.confirm-dialog { width: min(512px, 100%); max-height: calc(100dvh - 40px); overflow-y: auto; overscroll-behavior: contain; padding: 36px 34px 28px; border-radius: 12px; background: #fff; text-align: center; box-shadow: 0 24px 70px rgba(0, 0, 0, .24); animation: confirm-in .18s ease-out; }
 .confirm-dialog-icon { width: 78px; height: 78px; margin: 0 auto 24px; display: grid; place-items: center; border: 4px solid #f2b983; border-radius: 50%; color: #e9a96c; font-size: 52px; font-weight: 300; line-height: 1; }
 .confirm-dialog h2 { margin: 0 0 10px; color: #555; font-size: clamp(22px, 4vw, 29px); }
 .confirm-dialog p { margin: 0; color: #717171; font-size: 16px; line-height: 1.55; }
@@ -829,6 +831,15 @@ html, body { overflow-x: clip; }
 @media (prefers-reduced-motion: reduce) { .coming-soon-back span,.coming-soon-button,.coming-soon-button span { transition: none; } }
 
 /* Responsive layout refinements for the storefront across phones, tablets and desktops. */
+.srow { gap: 12px; }
+.srow > :first-child { min-width: 0; overflow-wrap: anywhere; }
+.srow > :last-child { flex-shrink: 0; text-align: right; }
+.news input { min-width: 0; max-width: 100%; }
+.support-ticket-modal-head > div { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 767px) {
+  .field input, .field select, .field textarea, .coupon input, .news input { font-size: 16px; }
+  .support-ticket-head { flex-wrap: wrap; }
+}
 @media (max-width: 900px) {
   .sec-head { align-items: flex-start; flex-wrap: wrap; }
   .sec-head > :first-child { min-width: 0; }
