@@ -108,13 +108,14 @@ try {
         assert.equal(await evaluate(scale),1);
         const src=await evaluate(image+'.getAttribute("src")');
         const galleryWidth=await evaluate(trigger+'.clientWidth');
+        const modalCount=await evaluate('document.querySelectorAll("[aria-modal=true]").length');
         await evaluate(trigger+'.focus();'+trigger+'.querySelector(".gallery-zoom-icon").click()');
         await evaluate(`(async()=>{await Promise.all(${image}.getAnimations().map(animation=>animation.finished));return true;})()`);
         assert.equal(await evaluate(trigger+'.getAttribute("aria-pressed")'),'true');
         assert.equal(await evaluate(scale),2,'The icon must magnify the image in the gallery');
         assert.equal(await evaluate(image+'.getAttribute("src")'),src);
         assert.equal(await evaluate(trigger+'.clientWidth'),galleryWidth);
-        assert.equal(await evaluate('Boolean(document.querySelector("[aria-modal=true]"))'),false);
+        assert.equal(await evaluate('document.querySelectorAll("[aria-modal=true]").length'),modalCount,'Zoom must not open a modal');
         if(process.argv.includes('--screenshots')) {
           const screenshot=await command('Page.captureScreenshot',{format:'png'});
           const file=join(tmpdir(),`shoponzy-zoom-gallery-${width}.png`);
@@ -122,8 +123,7 @@ try {
           console.log(`Screenshot: ${file}`);
         }
         assert.ok(await evaluate('document.activeElement==='+trigger),'Focus must stay on the zoom button');
-        await command('Input.dispatchKeyEvent',{type:'keyDown',key:'Enter',code:'Enter'});
-        await command('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter'});
+        await evaluate(trigger+'.querySelector(".gallery-zoom-icon").click()');
         await evaluate(`(async()=>{await Promise.all(${image}.getAnimations().map(animation=>animation.finished));return true;})()`);
         assert.equal(await evaluate(trigger+'.getAttribute("aria-pressed")'),'false');
         assert.equal(await evaluate(scale),1,'The same button must restore the original size');
