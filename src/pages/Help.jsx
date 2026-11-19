@@ -1,7 +1,7 @@
 import OrderTracking, { deliveryDate } from "../components/OrderTracking";
 import { useEffect, useState } from "react";
 import Icon from "../components/Icon";
-import FormField, { PHONE_RE, normalisePhone } from "../components/FormField";
+import FormField, { EMAIL_RE, PHONE_RE, normalisePhone } from "../components/FormField";
 import { storeRequest } from "../api/storeApi";
 import { usePageFx } from "../fx/usePageFx";
 import usePageMeta from "../hooks/usePageMeta";
@@ -37,7 +37,8 @@ function Faqs() {
 }
 
 function TrackOrder() {
-  const [values, setValues] = useState({ phone: "", code: "" });
+  const [values, setValues] = useState({ phone: "", email: "", code: "" });
+  const [useEmail, setUseEmail] = useState(false);
   const [requested, setRequested] = useState(false);
   const [message, setMessage] = useState("");
   const [errors, setErrors] = useState({});
@@ -53,14 +54,15 @@ function TrackOrder() {
     if (busy) return;
     const er = {};
     if (!PHONE_RE.test(normalisePhone(values.phone))) er.phone = "Enter the mobile number used at checkout.";
-    if (verify && !/^\d{4,10}$/.test(values.code.trim())) er.code = "Enter the SMS verification code.";
+    if (useEmail && !EMAIL_RE.test(values.email.trim())) er.email = "Enter the email address used at checkout.";
+    if (verify && !/^\d{4,10}$/.test(values.code.trim())) er.code = "Enter the verification code.";
     setErrors(er);
     setFailure("");
     setResult(null);
     if (Object.keys(er).length) return;
     setBusy(true);
     try {
-      const details = { phone: values.phone };
+      const details = { phone: values.phone, ...(useEmail ? { email: values.email.trim() } : {}) };
       if (verify) {
         const { data } = await storeRequest("/orders/track", { method: "POST", body: { ...details, code: values.code.trim() } });
         setResult(data.orders);
@@ -75,7 +77,13 @@ function TrackOrder() {
       }
     } catch (error) {
       setResult(null);
-      setFailure(error.message);
+      if (error.code === "TRACKING_SMS_UNAVAILABLE") {
+        changeDetails();
+        setUseEmail(true);
+        setMessage("Enter your checkout email address to receive your verification code by email.");
+      } else {
+        setFailure(error.message);
+      }
     } finally {
       setBusy(false);
     }
@@ -94,9 +102,11 @@ function TrackOrder() {
   return (
     <form className="form two box" id="trackForm" noValidate onSubmit={submit} style={{ marginTop: 12 }}>
       <FormField label="Checkout mobile number" required full inputMode="tel" autoComplete="tel-national" maxLength={10} readOnly={requested || busy} {...field("phone")} />
+      {useEmail && <FormField label="Checkout email address" type="email" full required autoComplete="email" readOnly={requested || busy} {...field("email")} />}
       {message && <p className="tax full" role="status">{message}</p>}
-      {requested && !result && <FormField label="SMS verification code" required full inputMode="numeric" autoComplete="one-time-code" maxLength={10} readOnly={busy} {...field("code")} />}
-      {!result && <div className="full"><button className="btn btn-dark btn-block" disabled={busy}>{busy ? "Please wait…" : requested ? "Verify and track order" : "Send verification code"}</button></div>}
+      {requested && !result && <FormField label={useEmail ? "Email verification code" : "SMS verification code"} required full inputMode="numeric" autoComplete="one-time-code" maxLength={10} readOnly={busy} {...field("code")} />}
+      {!result && <div className="full"><button className="btn btn-dark btn-block" disabled={busy}>{busy ? "Please wait…" : requested ? "Verify and track order" : useEmail ? "Email verification code" : "Send SMS code"}</button></div>}
+      {!result && <div className="full"><button type="button" className="btn btn-ghost" disabled={busy} onClick={() => { changeDetails(); setUseEmail(!useEmail); }}>{useEmail ? "Use SMS instead" : "Use email instead"}</button></div>}
       {requested && <div className="full account-order-pagination">
         {!result && <button type="button" className="btn btn-ghost" disabled={busy} onClick={(event) => submit(event, false)}>Resend code</button>}
         <button type="button" className="btn btn-ghost" disabled={busy} onClick={changeDetails}>Use a different mobile number</button>
@@ -223,7 +233,7 @@ export default function Help({ section }) {
   if (section) {
     let content;
     switch (section) {
-      case "track-order": content = <><p>Verify your checkout mobile number by SMS to see your recent order IDs and delivery status.</p><TrackOrder /></>; break;
+      case "track-order": content = <><p>Enter your checkout mobile number, then verify by SMS or checkout email to find your orders.</p><TrackOrder /></>; break;
       case "contact": content = <><p>Contact our team and we’ll get back to you shortly.</p><ContactForm /><p className="tax" style={{ marginTop: 12 }}>Email <a href={`mailto:${STORE.email}`} style={{ textDecoration: "underline" }}>{STORE.email}</a> · Call <a href={`tel:${STORE.phoneTel}`} style={{ textDecoration: "underline" }}>{STORE.phoneDisplay}</a></p></>; break;
       case "about": content = <p>Shoponzy brings shoes, sunglasses, perfumes, clothing, watches and everyday essentials together in one easy store, with honest prices and quick delivery.</p>; break;
       case "order-cancellation": content = <p>Orders can be cancelled before they are shipped. Contact us with your order ID to request a cancellation.</p>; break;
@@ -248,7 +258,7 @@ export default function Help({ section }) {
           <a className="help-card" href="#contact"><Icon name="i-wa" /><b>Talk to us</b><span>{STORE.phoneDisplay}</span></a>
         </div>
         <div className="prose" style={{ maxWidth: 860, marginTop: 20 }}>
-          <h2 id="track">Order tracking</h2><p>Verify your checkout mobile number by SMS to find your recent orders.</p>
+          <h2 id="track">Order tracking</h2><p>Enter your checkout mobile number, then verify by SMS or checkout email to find your orders.</p>
         </div>
         <div style={{ maxWidth: 860 }}><TrackOrder /></div>
         <div className="prose" style={{ maxWidth: 860, marginTop: 20 }}>
