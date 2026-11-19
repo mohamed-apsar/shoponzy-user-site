@@ -8,6 +8,7 @@ import { join } from "node:path";
 import assert from "node:assert/strict";
 import { PRODUCTS } from "../src/data/catalog.js";
 
+const zoomOnly=process.argv.includes('--zoom-only');
 const layoutOnly=process.argv.includes('--subcategory-layout-only');
 const homepageOnly=process.argv.includes('--homepage-only');
 let fixture = `import {PRODUCTS,CATS,STORE} from './src/data/catalog.js';
@@ -27,6 +28,7 @@ if(process.argv.includes('--live-banners')) {
 }
 if(layoutOnly) fixture+=`catalog.homepageSubcategories=Array.from({length:Number(new URLSearchParams(location.search).get('subcategory-count')||3)},(_,i)=>({id:'sub-'+i,name:['Kids','Women','Men'][i]||'Category '+(i+1),image:'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="#ded7c9"/></svg>'),href:'/categories/shoes?sub=sub-'+i}));catalog.slides=[{title:'Existing homepage banner',text:'Banner content stays unchanged.',cta:'Shop Now',href:'/products',bg:'#4b3430',art:['sneaker','#eee','shoes']}];`;
 if(homepageOnly) fixture+='store.cart=[];store.cartCount=0;store.checkoutDraft.lines=[];';
+if(zoomOnly) fixture+=`catalog.products[0].images=['#e7b873','#9bb2c7'].map(color=>'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200"><rect width="1200" height="1200" fill="'+color+'"/><circle cx="600" cy="600" r="240" fill="white"/></svg>'));catalog.products[0].colorImages=[];`;
 const bundle = await build({
   stdin: { contents: `import React from 'react'; import {createRoot} from 'react-dom/client'; import {BrowserRouter} from 'react-router-dom'; import App from './src/App.jsx'; ${homepageOnly ? "import {CatalogProvider} from './src/context/CatalogContext.jsx';" : ''} import ConfirmDialog from './src/components/ConfirmDialog.jsx'; import './src/styles/style.css'; createRoot(document.getElementById('root')).render(<BrowserRouter>${homepageOnly ? "<CatalogProvider><App/></CatalogProvider>" : "<App/>"}<ConfirmDialog open={location.search.includes('audit-modal')} title="Submit return request?" message="You are requesting a return for 2 items from order SZ100001. Reason: Product not as described. Our team will review your request and update you." confirmLabel="Yes, submit request" variant="return" onCancel={()=>{}} onConfirm={()=>{}}/></BrowserRouter>);`, resolveDir: process.cwd(), loader: "jsx" },
   bundle: true, write: false, outfile: "smoke.js", jsx: "automatic",
@@ -82,10 +84,12 @@ try {
   const modalPath='/account/orders/SZ100001?audit-modal=1';
   const phoneOnly=process.argv.includes('--phone-only');
   const exitOnly=process.argv.includes('--checkout-exit-only');
-  const paths=layoutOnly ? ['/?subcategory-count=3','/?subcategory-count=12'] : homepageOnly ? ['/'] : exitOnly ? ['/checkout?mode=cart','/checkout?mode=buy-now'] : process.argv.includes('--banner-only') ? ['/categories/watches','/categories/sunglass','/categories/perfumes'] : phoneOnly ? ['/checkout?mode=cart'] : process.argv.includes('--modal-only') ? [modalPath] : ['/','/products',`/products/${PRODUCTS[0].slug}`,'/categories/shoes','/categories/watches','/cart','/checkout?mode=cart','/account','/account?section=support','/account/orders/SZ100001','/help',modalPath];
-  const sizes=homepageOnly||phoneOnly||exitOnly ? [[375,812],[1366,768]] : [[320,640],[375,812],[768,1024],[1024,768],[1366,768],[1920,1080],[812,375]];
+  const paths=zoomOnly ? [`/products/${PRODUCTS[0].slug}`] : layoutOnly ? ['/?subcategory-count=3','/?subcategory-count=12'] : homepageOnly ? ['/'] : exitOnly ? ['/checkout?mode=cart','/checkout?mode=buy-now'] : process.argv.includes('--banner-only') ? ['/categories/watches','/categories/sunglass','/categories/perfumes'] : phoneOnly ? ['/checkout?mode=cart'] : process.argv.includes('--modal-only') ? [modalPath] : ['/','/products',`/products/${PRODUCTS[0].slug}`,'/categories/shoes','/categories/watches','/cart','/checkout?mode=cart','/account','/account?section=support','/account/orders/SZ100001','/help',modalPath];
+  const sizes=zoomOnly||homepageOnly||phoneOnly||exitOnly ? [[375,812],[1366,768]] : [[320,640],[375,812],[768,1024],[1024,768],[1366,768],[1920,1080],[812,375]];
   const failures=[];
   for(const [width,height] of sizes) {
+    if(zoomOnly)await command('Emulation.setTouchEmulationEnabled',{enabled:width<768,maxTouchPoints:2});
+    if(zoomOnly)await command('Emulation.setEmulatedMedia',{features:[{name:'hover',value:width<768?'none':'hover'},{name:'pointer',value:width<768?'coarse':'fine'}]});
     await command('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<768});
     for(const path of paths) {
       if(homepageOnly)await fetch('http://127.0.0.1:'+server.address().port+'/fixture/homepage?enabled=0');
@@ -96,6 +100,59 @@ try {
       await new Promise(r=>setTimeout(r,180));
       const issue=await evaluate(`(()=>{const w=document.documentElement.clientWidth;const nodes=[...document.querySelectorAll('main input,main select,main textarea,main .box,main .summary,main .line,main .dline,header,footer')].filter(e=>e.getClientRects().length&&getComputedStyle(e).visibility!=='hidden');return nodes.filter(e=>{const r=e.getBoundingClientRect();return r.left < -1 || r.right > w+1;}).slice(0,6).map(e=>({tag:e.tagName,class:e.className,width:Math.round(e.getBoundingClientRect().width)}));})()`);
       if(issue.length)failures.push({width,height,path,issue});
+      if(zoomOnly) {
+        const viewerButton=(label)=>'document.querySelector('+JSON.stringify(`.product-viewer button[aria-label="${label}"]`)+')';
+        assert.equal(await evaluate('document.querySelectorAll(".gallery-zoom-trigger").length'),2);
+        assert.equal(await evaluate('document.querySelectorAll(".gallery-zoom-icon").length'),2);
+        assert.equal(await evaluate('getComputedStyle(document.querySelector(".gallery-zoom-trigger")).cursor'),'zoom-in');
+        const touchHint=await evaluate('matchMedia("(hover: none), (pointer: coarse)").matches');
+        const hint=touchHint ? '.gallery-zoom-label .zoom-hint-touch' : '.gallery-zoom-label .zoom-hint-desktop';
+        assert.notEqual(await evaluate(`getComputedStyle(document.querySelector(${JSON.stringify(hint)})).display`),'none');
+        if(process.argv.includes('--screenshots')) {
+          const screenshot=await command('Page.captureScreenshot',{format:'png'});
+          const file=join(tmpdir(),`shoponzy-zoom-gallery-${width}.png`);
+          await writeFile(file,Buffer.from(screenshot.data,'base64'));
+          console.log(`Screenshot: ${file}`);
+        }
+        await evaluate('document.querySelector(".gallery-zoom-trigger").focus();document.querySelector(".gallery-zoom-trigger").click()');
+        assert.ok(await evaluate('Boolean(document.querySelector(".product-viewer[aria-modal=true]"))'));
+        assert.ok(await evaluate('document.querySelector(".product-viewer-media img").getAttribute("src")===document.querySelector(".gallery-image img").getAttribute("src")'),'Viewer must preserve the original image source');
+        assert.equal(await evaluate('document.querySelector(".product-viewer-stage").dataset.zoom'),'1.00');
+        if(process.argv.includes('--screenshots')) {
+          const screenshot=await command('Page.captureScreenshot',{format:'png'});
+          const file=join(tmpdir(),`shoponzy-zoom-viewer-${width}.png`);
+          await writeFile(file,Buffer.from(screenshot.data,'base64'));
+          console.log(`Screenshot: ${file}`);
+        }
+        await evaluate(viewerButton('Zoom in')+'.click()');
+        assert.equal(await evaluate('document.querySelector(".product-viewer-stage").dataset.zoom'),'1.50');
+        await evaluate(viewerButton('Zoom in')+'.click()');
+        const beforePan=await evaluate('document.querySelector(".product-viewer-media").style.transform');
+        const panCenter=await evaluate('(()=>{const r=document.querySelector(".product-viewer-stage").getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};})()');
+        await command('Input.dispatchMouseEvent',{type:'mousePressed',x:panCenter.x,y:panCenter.y,button:'left',clickCount:1});
+        await command('Input.dispatchMouseEvent',{type:'mouseMoved',x:panCenter.x+40,y:panCenter.y+40,button:'left',buttons:1});
+        await command('Input.dispatchMouseEvent',{type:'mouseReleased',x:panCenter.x+40,y:panCenter.y+40,button:'left',clickCount:1});
+        assert.notEqual(await evaluate('document.querySelector(".product-viewer-media").style.transform'),beforePan,'Zoomed images must support dragging');
+        await evaluate('document.querySelector(".product-viewer-reset").click()');
+        if(width<768) {
+          const center=await evaluate('(()=>{const r=document.querySelector(".product-viewer-stage").getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};})()');
+          await command('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:center.x-40,y:center.y,id:0},{x:center.x+40,y:center.y,id:1}]});
+          await command('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:center.x-90,y:center.y,id:0},{x:center.x+90,y:center.y,id:1}]});
+          await command('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+          assert.ok(Number(await evaluate('document.querySelector(".product-viewer-stage").dataset.zoom'))>1,'Pinch must enlarge the image');
+        }
+        await evaluate(viewerButton('Next image')+'.click()');
+        assert.ok(await evaluate('document.querySelector(".product-viewer-title span").textContent.includes("2 of 2")'));
+        assert.equal(await evaluate('document.querySelector(".product-viewer-stage").dataset.zoom'),'1.00');
+        await command('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape'});
+        await command('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape'});
+        assert.equal(await evaluate('document.querySelector(".product-viewer")'),null);
+        assert.ok(await evaluate('document.activeElement.classList.contains("gallery-zoom-trigger")'),'Focus must return to the gallery');
+        await command('Input.dispatchKeyEvent',{type:'keyDown',key:'Enter',code:'Enter'});
+        await command('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter'});
+        assert.ok(await evaluate('Boolean(document.querySelector(".product-viewer"))'),'Keyboard must open the enlarged viewer');
+        await evaluate(viewerButton('Close image viewer')+'.click()');
+      }
       if(layoutOnly) {
         const geometry=await evaluate(`(()=>{const nav=document.querySelector('.stories');const style=getComputedStyle(nav);const cards=[...nav.querySelectorAll('.story')].map(el=>{const r=el.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,image:el.querySelector('img').getBoundingClientRect().width,href:el.getAttribute('href')};});return {width:document.documentElement.clientWidth,paddingTop:parseFloat(style.paddingTop),paddingBottom:parseFloat(style.paddingBottom),gap:parseFloat(style.columnGap),bannerTop:document.querySelector('.hero').getBoundingClientRect().top,cards};})()`);
         const expected=Number(new URLSearchParams(path.split('?')[1]).get('subcategory-count'));

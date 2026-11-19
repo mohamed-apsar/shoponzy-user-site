@@ -13,8 +13,7 @@ import usePageMeta from "../hooks/usePageMeta";
 import { fetchProductContentBlocks } from "../api/storeApi";
 import { useCatalog } from "../context/CatalogContext";
 import { useCustomer } from "../context/CustomerContext";
-
-const hoverDevice = () => matchMedia("(hover: hover)").matches;
+import ProductImageViewer, { ZoomIcon } from "../components/ProductImageViewer";
 
 function Gallery({ p, ci, containerRef }) {
   const [k, setK] = useState(0);
@@ -22,7 +21,7 @@ function Gallery({ p, ci, containerRef }) {
   const main = useRef(null);
   const views = Array.from({ length: mediaCount(p, ci) }, (_, i) => i);
 
-  useEffect(() => { setK(0); main.current?.scrollTo({ left: 0 }); }, [ci]);
+  useEffect(() => { setK(0); setZoom(-1); main.current?.scrollTo({ left: 0 }); }, [ci]);
 
   function onScroll() {
     const g = main.current, next = Math.round(g.scrollLeft / g.clientWidth);
@@ -32,12 +31,6 @@ function Gallery({ p, ci, containerRef }) {
     setK(i);
     main.current.scrollTo({ left: i * main.current.clientWidth, behavior: "smooth" });
   }
-  function onMove(event) {
-    const d = event.currentTarget, r = d.getBoundingClientRect();
-    d.style.setProperty("--zx", ((event.clientX - r.left) / r.width) * 100 + "%");
-    d.style.setProperty("--zy", ((event.clientY - r.top) / r.height) * 100 + "%");
-  }
-
   return (
     <div className="gallery" ref={containerRef}>
       <div className="g-thumbs" role="group" aria-label="Images">
@@ -46,12 +39,17 @@ function Gallery({ p, ci, containerRef }) {
       <div>
         <div className="g-main" tabIndex={0} aria-label="Product images, swipe to see more" ref={main} onScroll={onScroll}>
           {views.map((i) => (
-            <ProductMedia as="div" key={i} product={p} ci={ci} k={i} className={zoom === i ? "zoom" : undefined}
-              onMouseMove={onMove} onMouseLeave={() => setZoom(-1)} onClick={() => hoverDevice() && setZoom(zoom === i ? -1 : i)} />
+            <div key={i} className="gallery-zoom-trigger" role="button" tabIndex={0} aria-label={`Zoom ${p.name}, image ${i + 1}`} onClick={() => setZoom(i)}
+              onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setZoom(i); } }}>
+              <ProductMedia className="gallery-image" product={p} ci={ci} k={i} />
+              <span className="gallery-zoom-icon" aria-hidden="true"><ZoomIcon /></span>
+              <span className="gallery-zoom-label" aria-hidden="true"><span className="zoom-hint-desktop">Click image to zoom</span><span className="zoom-hint-touch">Tap to zoom</span></span>
+            </div>
           ))}
         </div>
         <div className="g-dots">{views.map((i) => <i key={i} className={i === k ? "on" : ""} />)}</div>
       </div>
+      {zoom >= 0 && <ProductImageViewer key={`${ci}:${zoom}`} product={p} colorIndex={ci} index={zoom} count={views.length} onIndexChange={setZoom} onClose={() => setZoom(-1)} />}
     </div>
   );
 }
