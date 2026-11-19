@@ -49,7 +49,7 @@ function Summary({ cart, coupon, pay, products, store: STORE, submitting, formEr
       <div style={{ marginTop: 10 }}>
         <div className="srow"><span>Subtotal</span><span>{money(t.sub)}</span></div>
         {t.disc > 0 && <div className="srow"><span>Coupon {coupon.code}</span><span className="save">−{money(t.disc)}</span></div>}
-        {t.account > 0 && <div className="srow"><span>Account discount (10%)</span><span className="save">−{money(t.account)}</span></div>}
+        {t.account > 0 && <div className="srow"><span>Account discount</span><span className="save">−{money(t.account)}</span></div>}
         {t.prepaid > 0 && <div className="srow"><span>Prepaid discount ({STORE.prepaidOffPct}%)</span><span className="save">−{money(t.prepaid)}</span></div>}
         <div className="srow" data-shipping-status={t.shippingStatus}><span>Shipping</span><span>{t.ship == null ? (t.shippingStatus === "pending" ? "Enter PIN code" : "Unavailable") : t.ship ? money(t.ship) : <span className="save">Free</span>}</span></div>
         {t.shippingStatus === "unavailable" && <p className="err-t" role="alert">{t.shippingMessage}</p>}
@@ -281,7 +281,7 @@ export default function Checkout() {
           <div className="success box" role="status"><div className="tick"><Icon name="i-check" /></div>
             <h1 style={{ fontSize: "1.6rem", fontWeight: 800 }}>Order placed!</h1>
             <p className="tax" style={{ fontSize: ".95rem" }}>
-              We have received your payment of <b>{money(placed.total)}</b>.
+              {placed.total === 0 ? "No payment was required." : <>We have received your payment of <b>{money(placed.total)}</b>.</>}
               {" "}Keep your order ID to track your order.
             </p>
             <span className="oid">Order {placed.id}</span>
@@ -295,11 +295,11 @@ export default function Checkout() {
         ) : (
           <div className="cart-l">
             <form id="coForm" noValidate style={{ display: "grid", gap: 16 }} onSubmit={submit}>
-              {!signedIn && (
+              {!signedIn && STORE.accountDiscount?.value > 0 && (
                 <div className="box">
                   <div className="checkout-offer">
                     <div>
-                      <strong>Get 10% off with a Shoponzy account</strong>
+                      <strong>Get {STORE.accountDiscount.type === "fixed" ? "up to " + money(STORE.accountDiscount.value) : STORE.accountDiscount.value + "%"} off with a Shoponzy account</strong>
                       <p className="tax">Sign up or log in to claim your discount, or continue below as a guest.</p>
                     </div>
                     <div className="checkout-offer-actions">

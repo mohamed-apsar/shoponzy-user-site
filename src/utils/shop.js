@@ -53,7 +53,10 @@ export function totals(cart, coupon, pay = "cod", products = PRODUCTS, store = S
       disc = Math.min(disc, sub);
     } else cmsg = `Add ${money(c.minSubtotal - sub)} more to use ${c.code}`;
   }
-  const account = signedIn ? Math.round((sub - disc) * 10) / 100 : 0;
+  const rule = store.accountDiscount ?? STORE.accountDiscount;
+  const afterCoupon = Math.round((sub - disc) * 100) / 100;
+  const accountAmount = rule.type === "fixed" ? rule.value : afterCoupon * rule.value / 100;
+  const account = signedIn ? Math.round(Math.min(afterCoupon, accountAmount) * 100) / 100 : 0;
   const prepaid = pay === "upi" ? Math.round(((sub - disc - account) * store.prepaidOffPct) / 100) : 0;
   const defaultShipping = sub === 0 || sub - disc >= store.freeShippingAbove ? 0 : store.shippingFee;
   const delivery = shippingForPincode(store.shipping, pincode, defaultShipping);

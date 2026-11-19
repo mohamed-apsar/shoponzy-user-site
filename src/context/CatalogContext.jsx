@@ -168,6 +168,7 @@ function mapSettings(settings) {
     freeShippingAbove: commerce.freeShippingAbove ?? DEFAULT_STORE.freeShippingAbove,
     shippingFee: commerce.shippingFee ?? DEFAULT_STORE.shippingFee,
     shipping: settings.shipping || { states: [], pincodes: [] },
+    accountDiscount: commerce.accountDiscount ?? DEFAULT_STORE.accountDiscount,
     prepaidOffPct: commerce.prepaidOffPct ?? DEFAULT_STORE.prepaidOffPct,
     deliveryText: commerce.deliveryText || DEFAULT_STORE.deliveryText,
     phoneDisplay: contact.phone || DEFAULT_STORE.phoneDisplay,

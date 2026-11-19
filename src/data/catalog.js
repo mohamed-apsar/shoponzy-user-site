@@ -24,6 +24,7 @@ export const STORE = {
   currency: "₹",
   freeShippingAbove: 999, // CONFIRM
   shippingFee: 59, // CONFIRM
+  accountDiscount: { type: "percent", value: 10 },
   prepaidOffPct: 5, // CONFIRM: extra % off for prepaid orders
   taxRate: 0,
   coupons: { WELCOME10: { pct: 10, min: 1499, label: "10% off on ₹1,499+" } }, // CONFIRM
