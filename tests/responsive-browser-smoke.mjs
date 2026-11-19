@@ -8,6 +8,7 @@ import { join } from "node:path";
 import assert from "node:assert/strict";
 import { PRODUCTS } from "../src/data/catalog.js";
 
+const layoutOnly=process.argv.includes('--subcategory-layout-only');
 const homepageOnly=process.argv.includes('--homepage-only');
 let fixture = `import {PRODUCTS,CATS,STORE} from './src/data/catalog.js';
 export const products=PRODUCTS.slice(0,12).map((p,i)=>({...p,apiId:'product-'+i,name:i===0?'Comfortable footwear with a very long product name for everyday use':p.name,variants:[{id:'variant-'+i,color:p.colors[0][1],size:p.sizes[0],price:p.price,stock:10}]}));
@@ -24,6 +25,7 @@ if(process.argv.includes('--live-banners')) {
     fixture+=`Object.assign(catalog.categories.find(c=>c.id===${JSON.stringify(category.slug)}),${JSON.stringify({comingSoon:true,bannerImage:category.bannerImage?.url||'',image:category.image?.url||''})});`;
   }
 }
+if(layoutOnly) fixture+=`catalog.homepageSubcategories=Array.from({length:Number(new URLSearchParams(location.search).get('subcategory-count')||3)},(_,i)=>({id:'sub-'+i,name:['Kids','Women','Men'][i]||'Category '+(i+1),image:'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="#ded7c9"/></svg>'),href:'/categories/shoes?sub=sub-'+i}));catalog.slides=[{title:'Existing homepage banner',text:'Banner content stays unchanged.',cta:'Shop Now',href:'/products',bg:'#4b3430',art:['sneaker','#eee','shoes']}];`;
 if(homepageOnly) fixture+='store.cart=[];store.cartCount=0;store.checkoutDraft.lines=[];';
 const bundle = await build({
   stdin: { contents: `import React from 'react'; import {createRoot} from 'react-dom/client'; import {BrowserRouter} from 'react-router-dom'; import App from './src/App.jsx'; ${homepageOnly ? "import {CatalogProvider} from './src/context/CatalogContext.jsx';" : ''} import ConfirmDialog from './src/components/ConfirmDialog.jsx'; import './src/styles/style.css'; createRoot(document.getElementById('root')).render(<BrowserRouter>${homepageOnly ? "<CatalogProvider><App/></CatalogProvider>" : "<App/>"}<ConfirmDialog open={location.search.includes('audit-modal')} title="Submit return request?" message="You are requesting a return for 2 items from order SZ100001. Reason: Product not as described. Our team will review your request and update you." confirmLabel="Yes, submit request" variant="return" onCancel={()=>{}} onConfirm={()=>{}}/></BrowserRouter>);`, resolveDir: process.cwd(), loader: "jsx" },
@@ -80,7 +82,7 @@ try {
   const modalPath='/account/orders/SZ100001?audit-modal=1';
   const phoneOnly=process.argv.includes('--phone-only');
   const exitOnly=process.argv.includes('--checkout-exit-only');
-  const paths=homepageOnly ? ['/'] : exitOnly ? ['/checkout?mode=cart','/checkout?mode=buy-now'] : process.argv.includes('--banner-only') ? ['/categories/watches','/categories/sunglass','/categories/perfumes'] : phoneOnly ? ['/checkout?mode=cart'] : process.argv.includes('--modal-only') ? [modalPath] : ['/','/products',`/products/${PRODUCTS[0].slug}`,'/categories/shoes','/categories/watches','/cart','/checkout?mode=cart','/account','/account?section=support','/account/orders/SZ100001','/help',modalPath];
+  const paths=layoutOnly ? ['/?subcategory-count=3','/?subcategory-count=12'] : homepageOnly ? ['/'] : exitOnly ? ['/checkout?mode=cart','/checkout?mode=buy-now'] : process.argv.includes('--banner-only') ? ['/categories/watches','/categories/sunglass','/categories/perfumes'] : phoneOnly ? ['/checkout?mode=cart'] : process.argv.includes('--modal-only') ? [modalPath] : ['/','/products',`/products/${PRODUCTS[0].slug}`,'/categories/shoes','/categories/watches','/cart','/checkout?mode=cart','/account','/account?section=support','/account/orders/SZ100001','/help',modalPath];
   const sizes=homepageOnly||phoneOnly||exitOnly ? [[375,812],[1366,768]] : [[320,640],[375,812],[768,1024],[1024,768],[1366,768],[1920,1080],[812,375]];
   const failures=[];
   for(const [width,height] of sizes) {
@@ -94,6 +96,18 @@ try {
       await new Promise(r=>setTimeout(r,180));
       const issue=await evaluate(`(()=>{const w=document.documentElement.clientWidth;const nodes=[...document.querySelectorAll('main input,main select,main textarea,main .box,main .summary,main .line,main .dline,header,footer')].filter(e=>e.getClientRects().length&&getComputedStyle(e).visibility!=='hidden');return nodes.filter(e=>{const r=e.getBoundingClientRect();return r.left < -1 || r.right > w+1;}).slice(0,6).map(e=>({tag:e.tagName,class:e.className,width:Math.round(e.getBoundingClientRect().width)}));})()`);
       if(issue.length)failures.push({width,height,path,issue});
+      if(layoutOnly) {
+        const geometry=await evaluate(`(()=>{const nav=document.querySelector('.stories');const style=getComputedStyle(nav);const cards=[...nav.querySelectorAll('.story')].map(el=>{const r=el.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,image:el.querySelector('img').getBoundingClientRect().width,href:el.getAttribute('href')};});return {width:document.documentElement.clientWidth,paddingTop:parseFloat(style.paddingTop),paddingBottom:parseFloat(style.paddingBottom),gap:parseFloat(style.columnGap),bannerTop:document.querySelector('.hero').getBoundingClientRect().top,cards};})()`);
+        const expected=Number(new URLSearchParams(path.split('?')[1]).get('subcategory-count'));
+        assert.equal(geometry.cards.length,expected);
+        assert.ok(geometry.paddingTop>=16&&geometry.paddingTop<=20&&geometry.paddingBottom>=16&&geometry.paddingBottom<=20);
+        assert.ok(geometry.gap>=24&&geometry.gap<=32);
+        if(width>=900)assert.ok(geometry.cards.every(card=>card.image>=110&&card.image<=120),'Desktop circle images must measure 110?120px');
+        const rows=new Map();for(const card of geometry.cards){const key=Math.round(card.top);rows.set(key,[...(rows.get(key)||[]),card]);assert.ok(card.left>=-1&&card.right<=geometry.width+1,'Cards must remain reachable inside the viewport');}
+        for(const row of rows.values())assert.ok(Math.abs(row[0].left+row[row.length-1].right-geometry.width)<3,'Every row must stay centered');
+        assert.ok(Math.abs(geometry.bannerTop-Math.max(...geometry.cards.map(card=>card.bottom))-16)<2,'Visual gap before the banner must be 16px');
+        assert.equal(geometry.cards[0].href,'/categories/shoes?sub=sub-0');
+      }
       if(['/categories/watches','/categories/sunglass','/categories/perfumes'].includes(path)) {
         if(path!=='/categories/sunglass') {
           assert.ok(await evaluate('document.querySelector("#coming-soon-title").textContent.includes("Coming soon.")'),'Perfumes and Watches must clearly say Coming soon');
