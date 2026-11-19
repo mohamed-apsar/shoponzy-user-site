@@ -286,7 +286,7 @@ export default function Checkout() {
             </p>
             <span className="oid">Order {placed.id}</span>
             <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginTop: 20 }}>
-              <Link className="btn btn-dark" to={signedIn ? `/account/orders/${placed.id}` : "/track-order"}>{signedIn ? "View order" : "Track order"}</Link>
+              <Link className="btn btn-dark" to={`/account/orders/${placed.id}/track`}>Track My Order</Link>
               <Link className="btn btn-ghost" to="/products">Keep shopping</Link>
             </div>
           </div>

@@ -142,7 +142,7 @@ export function Orders({ guest = false }) {
             {o.fulfilment?.estimatedDeliveryDate && !["cancelled", "returned"].includes(o.status) && <p className="tax">Estimated delivery {deliveryDate(o.fulfilment.estimatedDeliveryDate)}</p>}
           </div>
           <div className="account-order-actions">
-            <Link className="btn btn-dark" to={`/account/orders/${o.orderNumber}/track`}>Track Order</Link>
+            <Link className="btn btn-dark" to={`/account/orders/${o.orderNumber}/track`}>Track My Order</Link>
             <Link className="view-all" to={`/account/orders/${o.orderNumber}`}>Order details</Link>
           </div>
         </article>

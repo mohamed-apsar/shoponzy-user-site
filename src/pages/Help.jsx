@@ -1,5 +1,6 @@
 import OrderTracking, { deliveryDate } from "../components/OrderTracking";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import Icon from "../components/Icon";
 import FormField, { EMAIL_RE, PHONE_RE, normalisePhone } from "../components/FormField";
 import { storeRequest } from "../api/storeApi";
@@ -12,7 +13,7 @@ import NotFound from "./NotFound";
 /* Policy routes (/about, /shipping-policy, …) render this page scrolled to their section.
    Phase 6 moves the text into Manage Site → Pages & Policies. */
 export const HELP_SECTIONS = {
-  "track-order": ["track", "Track Your Order"], contact: ["contact", "Contact Us"], about: ["about", "About Us"],
+  "find-order": ["track", "Find Orders From Another Browser"], contact: ["contact", "Contact Us"], about: ["about", "About Us"],
   "order-cancellation": ["cancel", "Order Cancellation"],
   "shipping-policy": ["shipping", "Shipping Policy"], "return-policy": ["returns", "Return & Refund Policy"],
   "privacy-policy": ["privacy", "Privacy Policy"], terms: ["terms", "Terms & Conditions"], faqs: ["faq", "FAQs"],
@@ -233,7 +234,7 @@ export default function Help({ section }) {
   if (section) {
     let content;
     switch (section) {
-      case "track-order": content = <><p>Verify the mobile number or email address used at checkout to find your orders.</p><TrackOrder /></>; break;
+      case "find-order": content = <><p>Verify the mobile number or email address used at checkout to find your orders.</p><TrackOrder /></>; break;
       case "contact": content = <><p>Contact our team and we’ll get back to you shortly.</p><ContactForm /><p className="tax" style={{ marginTop: 12 }}>Email <a href={`mailto:${STORE.email}`} style={{ textDecoration: "underline" }}>{STORE.email}</a> · Call <a href={`tel:${STORE.phoneTel}`} style={{ textDecoration: "underline" }}>{STORE.phoneDisplay}</a></p></>; break;
       case "about": content = <p>Shoponzy brings shoes, sunglasses, perfumes, clothing, watches and everyday essentials together in one easy store, with honest prices and quick delivery.</p>; break;
       case "order-cancellation": content = <p>Orders can be cancelled before they are shipped. Contact us with your order ID to request a cancellation.</p>; break;
@@ -253,14 +254,14 @@ export default function Help({ section }) {
       {/* DRAFT POLICY TEXT: confirm every line with the store owner before launch (needed for payment gateway approval) */}
       <section className="section" style={{ paddingTop: 14 }}><div className="container">
         <div className="help-grid" data-stagger>
-          <a className="help-card" href="#track"><Icon name="i-box" /><b>Track an order</b><span>Verify your mobile number</span></a>
+          <a className="help-card" href="#track"><Icon name="i-box" /><b>Track an order</b><span>View orders from this browser</span></a>
           <a className="help-card" href="#returns"><Icon name="i-refresh" /><b>Returns &amp; exchange</b><span>7 days, unused with tags</span></a>
           <a className="help-card" href="#contact"><Icon name="i-wa" /><b>Talk to us</b><span>{STORE.phoneDisplay}</span></a>
         </div>
         <div className="prose" style={{ maxWidth: 860, marginTop: 20 }}>
-          <h2 id="track">Order tracking</h2><p>Verify the mobile number or email address used at checkout to find your orders.</p>
+          <h2 id="track">Order tracking</h2><p>Open My Orders to track orders placed in this browser.</p>
         </div>
-        <div style={{ maxWidth: 860 }}><TrackOrder /></div>
+        <Link className="btn btn-dark" to="/my-orders">Track My Order</Link>
         <div className="prose" style={{ maxWidth: 860, marginTop: 20 }}>
           <h2 id="cancel">Order cancellation</h2><p>Orders can be cancelled before they are shipped. Contact us with your order ID.</p>
           <h2 id="shipping">Shipping policy</h2><ul><li>Orders are dispatched within 1–2 working days.</li><li>{STORE.deliveryText}.</li><li>Free delivery on orders above ₹999; a flat ₹59 applies below that.</li><li>Cash on delivery is available on most PIN codes.</li></ul>

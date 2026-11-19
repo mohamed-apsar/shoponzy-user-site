@@ -7,7 +7,7 @@ import usePageMeta from "../hooks/usePageMeta";
 
 export default function AccountTracking() {
   const { orderNumber } = useParams();
-  const { signedIn, status } = useCustomer();
+  const { status } = useCustomer();
   const [result, setResult] = useState(null);
   const [failure, setFailure] = useState("");
   const id = encodeURIComponent(orderNumber);
@@ -51,7 +51,7 @@ export default function AccountTracking() {
       </div>
       <section className="section"><div className="container">
         {failure && <p className="err-t" role="alert">{failure}</p>}
-        {failure && !signedIn && <Link className="view-all" to="/track-order">Verify your checkout details</Link>}
+
         {result?.orderNumber === orderNumber.toUpperCase() ? <OrderTracking order={result} /> : !failure && <p role="status">Loading tracking…</p>}
       </div></section>
     </>

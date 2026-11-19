@@ -38,6 +38,7 @@ export default function App() {
         <Route path="account/orders/:orderNumber" element={<AccountOrder />} />
         <Route path="account/orders/:orderNumber/track" element={<AccountTracking />} />
         <Route path="my-orders" element={<MyOrders />} />
+        <Route path="track-order" element={<Navigate to="/my-orders" replace />} />
         <Route path="forgot-password" element={<ForgotPassword />} />
         <Route path="reset-password" element={<ResetPassword />} />
         <Route path="help" element={<Help />} />
