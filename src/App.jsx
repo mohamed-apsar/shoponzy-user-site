@@ -12,6 +12,7 @@ import NotFound from "./pages/NotFound";
 import LegacyRedirect from "./pages/LegacyRedirect";
 import Account from "./pages/Account";
 import AccountOrder from "./pages/AccountOrder";
+import AccountTracking from "./pages/AccountTracking";
 import { ForgotPassword, ResetPassword } from "./pages/PasswordReset";
 import { PublishedPagesProvider } from "./context/PublishedPagesContext";
 
@@ -34,6 +35,7 @@ export default function App() {
         <Route path="wishlist" element={<Wishlist />} />
         <Route path="account" element={<Account />} />
         <Route path="account/orders/:orderNumber" element={<AccountOrder />} />
+        <Route path="account/orders/:orderNumber/track" element={<AccountTracking />} />
         <Route path="forgot-password" element={<ForgotPassword />} />
         <Route path="reset-password" element={<ResetPassword />} />
         <Route path="help" element={<Help />} />

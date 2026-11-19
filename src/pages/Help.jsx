@@ -1,7 +1,7 @@
+import OrderTracking from "../components/OrderTracking";
 import { useEffect, useState } from "react";
 import Icon from "../components/Icon";
 import FormField, { PHONE_RE, normalisePhone } from "../components/FormField";
-import { money } from "../utils/shop";
 import { storeRequest } from "../api/storeApi";
 import { usePageFx } from "../fx/usePageFx";
 import usePageMeta from "../hooks/usePageMeta";
@@ -18,10 +18,6 @@ export const HELP_SECTIONS = {
   "privacy-policy": ["privacy", "Privacy Policy"], terms: ["terms", "Terms & Conditions"], faqs: ["faq", "FAQs"],
 };
 
-const STATUS_LABELS = {
-  placed: "Order placed", confirmed: "Confirmed", packed: "Packed", shipped: "Shipped",
-  delivered: "Delivered", cancelled: "Cancelled", returned: "Returned",
-};
 const ORDER_ID_RE = /^SZ\d{6,9}$/;
 
 function Faqs() {
@@ -58,6 +54,7 @@ function TrackOrder() {
     if (!PHONE_RE.test(normalisePhone(values.phone))) er.phone = "Enter the mobile number used at checkout.";
     setErrors(er);
     setFailure("");
+    setResult(null);
     if (Object.keys(er).length) return;
     setBusy(true);
     try {
@@ -77,14 +74,7 @@ function TrackOrder() {
       <FormField label="Mobile number" inputMode="tel" {...field("phone")} />
       <div className="full"><button className="btn btn-dark btn-block" disabled={busy}>{busy ? "Checking…" : "Track order"}</button></div>
       {failure && <p className="err-t full" role="alert">{failure}</p>}
-      {result && (
-        <div className="full" role="status">
-          <p><b>Order {result.orderNumber}</b> · {STATUS_LABELS[result.status] || result.status} · {money(result.total)} · {result.itemCount} item(s)</p>
-          {result.fulfilment?.trackingNumber && <p className="tax">Courier: {result.fulfilment.courier || "—"} · Tracking no. {result.fulfilment.trackingNumber}
-            {result.fulfilment.trackingUrl && <> · <a href={result.fulfilment.trackingUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "underline" }}>Track parcel</a></>}</p>}
-          <ul className="tax">{result.history.map((h) => <li key={`${h.status}-${h.at}`}>{STATUS_LABELS[h.status] || h.status} — {new Date(h.at).toLocaleString("en-IN")}</li>)}</ul>
-        </div>
-      )}
+      {result && <div className="full"><h3>Order {result.orderNumber}</h3><OrderTracking order={result} /></div>}
     </form>
   );
 }

@@ -7,11 +7,12 @@ import { storeRequest, storeUpload } from "../api/storeApi";
 import { money } from "../utils/shop";
 import usePageMeta from "../hooks/usePageMeta";
 import OrderProductImage from "../components/OrderProductImage";
+import { deliveryDate } from "../components/OrderTracking";
 
 export const STATES = ["Tamil Nadu", "Kerala", "Karnataka", "Andhra Pradesh", "Telangana", "Puducherry", "Maharashtra", "Delhi", "Gujarat", "West Bengal", "Other"];
 export const STATUS_LABELS = {
-  pending_payment: "Awaiting payment", placed: "Order placed", confirmed: "Confirmed", packed: "Packed",
-  shipped: "Shipped", delivered: "Delivered", cancelled: "Cancelled", returned: "Returned",
+  pending_payment: "Awaiting payment", placed: "Order placed", confirmed: "Confirmed", packed: "Processing",
+  shipped: "Shipped", out_for_delivery: "Out for delivery", delivered: "Delivered", cancelled: "Cancelled", returned: "Returned",
 };
 const errorText = (error) => (error.details?.length ? error.details.map((d) => d.message).join(" ") : error.message);
 
@@ -103,10 +104,12 @@ function Register({ onDone, onMode }) {
 /* ---------------- Signed in ---------------- */
 function Orders() {
   const [orders, setOrders] = useState(null);
+  const [page, setPage] = useState(1);
+  const [pages, setPages] = useState(1);
   const [failure, setFailure] = useState("");
-  const load = useCallback(() => storeRequest("/orders?limit=50")
-    .then((r) => { setOrders(r.data); setFailure(""); })
-    .catch((e) => setFailure(e.message)), []);
+  const load = useCallback(() => storeRequest(`/orders?limit=20&page=${page}`)
+    .then((r) => { setOrders(r.data); setPages(r.meta?.pages || 1); setFailure(""); })
+    .catch((e) => setFailure(e.message)), [page]);
   useEffect(() => {
     const refreshWhenVisible = () => { if (document.visibilityState === "visible") load(); };
     load();
@@ -127,12 +130,25 @@ function Orders() {
       {!orders ? !failure && <p className="tax">Loading…</p> : !orders.length ? (
         <div className="tax"><p>No orders are linked to this account yet.</p><p>If you checked out as a guest, your account email and phone must match the checkout details for those orders to appear.</p><button type="button" className="view-all" onClick={load}>Refresh orders</button> <Link to="/products" style={{ textDecoration: "underline" }}>Start shopping</Link></div>
       ) : orders.map((o) => (
-        <Link key={o.orderNumber} to={`/account/orders/${o.orderNumber}`} className="srow account-order-row" style={{ borderBottom: "1px solid var(--line)", padding: "12px 0" }}>
+        <article key={o.orderNumber} className="account-order-card">
           <OrderProductImage item={o.items?.[0]} className="account-order-thumb" />
-          <span><b>{o.orderNumber}</b><br /><small className="tax">{new Date(o.placedAt || o.createdAt).toLocaleDateString("en-IN")} · {o.items.reduce((s, i) => s + i.qty, 0)} item(s)</small></span>
-          <span style={{ textAlign: "right" }}>{money(o.total)}<br /><small className="tax">{STATUS_LABELS[o.status] || o.status}</small></span>
-        </Link>
+          <div className="account-order-copy">
+            <strong>{o.items.map((item) => item.name).join(", ")}</strong>
+            <p className="tax">{o.orderNumber} · {deliveryDate(o.placedAt || o.createdAt)} · {o.items.reduce((sum, item) => sum + item.qty, 0)} item(s)</p>
+            <p><b>{money(o.total)}</b> · {STATUS_LABELS[o.status] || o.status}</p>
+            {o.fulfilment?.estimatedDeliveryDate && !["cancelled", "returned"].includes(o.status) && <p className="tax">Estimated delivery {deliveryDate(o.fulfilment.estimatedDeliveryDate)}</p>}
+          </div>
+          <div className="account-order-actions">
+            <Link className="btn btn-dark" to={`/account/orders/${o.orderNumber}/track`}>Track Order</Link>
+            <Link className="view-all" to={`/account/orders/${o.orderNumber}`}>Order details</Link>
+          </div>
+        </article>
       ))}
+      {pages > 1 && <nav className="account-order-pagination" aria-label="My Orders pages">
+        <button className="btn btn-ghost" type="button" disabled={page <= 1} onClick={() => setPage(page - 1)}>Previous</button>
+        <span>Page {page} of {pages}</span>
+        <button className="btn btn-ghost" type="button" disabled={page >= pages} onClick={() => setPage(page + 1)}>Next</button>
+      </nav>}
     </div>
   );
 }
