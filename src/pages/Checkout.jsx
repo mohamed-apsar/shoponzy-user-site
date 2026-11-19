@@ -298,7 +298,7 @@ export default function Checkout() {
               {!signedIn && (
                 <div className="box">
                   <strong>Get 10% off with a Shoponzy account</strong>
-                  <p><Link to={"/account?mode=signup&next=" + accountNext}>Sign up</Link> or <Link to={"/account?next=" + accountNext}>log in</Link> to claim your discount. You can also continue as a guest.</p>
+                  <p><Link to={"/account?from=checkout-offer&mode=signup&next=" + accountNext}>Sign up</Link> or <Link to={"/account?from=checkout-offer&next=" + accountNext}>log in</Link> to claim your discount. You can also continue as a guest.</p>
                 </div>
               )}
               <div className="box"><h2><span className="n">1</span>Contact</h2><div className="form two">

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import FormField, { EMAIL_RE, PHONE_RE, normalisePhone } from "../components/FormField";
 import Icon from "../components/Icon";
 import { useCustomer } from "../context/CustomerContext";
@@ -386,6 +386,7 @@ export default function Account() {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const next = params.get("next");
+  const checkoutReturn = next?.split(/[?#]/, 1)[0] === "/checkout" ? next : null;
   const [authMode, setAuthMode] = useState(() => params.get("mode") === "signup" ? "signup" : "login");
   const accountSections = [
     ["orders", "My Order", "i-box"],
@@ -408,12 +409,17 @@ export default function Account() {
   };
   const done = () => { if (next && next.startsWith("/") && !next.startsWith("//")) navigate(next); else scrollTo({ top: 0 }); };
 
+  if (checkoutReturn && params.get("from") !== "checkout-offer") {
+    return <Navigate to={checkoutReturn} replace />;
+  }
+
   return (
     <>
       {user && <div className="container page-title"><h1>Hi, {user.name.split(" ")[0]}</h1><p>Your orders, addresses and details.</p></div>}
       <section className="section" style={{ paddingTop: 12 }}><div className="container">
         {status === "loading" ? <p className="tax">Loading…</p> : !user ? (
           <div className="auth-layout">
+            {checkoutReturn && <Link className="btn btn-ghost" to={checkoutReturn}>Continue as guest</Link>}
             {authMode === "signup"
               ? <Register onDone={done} onMode={switchAuthMode} />
               : <SignIn onDone={done} onMode={switchAuthMode} />}
