@@ -12,7 +12,6 @@ import { usePageFx } from "../fx/usePageFx";
 import usePageMeta from "../hooks/usePageMeta";
 import { fetchProductContentBlocks } from "../api/storeApi";
 import { useCatalog } from "../context/CatalogContext";
-import { useCustomer } from "../context/CustomerContext";
 import ProductImageViewer from "../components/ProductImageViewer";
 
 function Gallery({ p, ci, containerRef }) {
@@ -119,7 +118,6 @@ function ProductContentBlocks({ blocks = [], error, onRetry }) {
 
 function Product({ p, products, categories, store: STORE }) {
   const { addToCart, viewed, recent, startCheckout } = useStore();
-  const { signedIn } = useCustomer();
   const navigate = useNavigate();
   const c = cat(p.cat, categories), sub = subOf(p, categories);
   const [opt, setOpt] = useState({ c: 0, s: p.sizes.length === 1 && sizeIsAvailable(p, 0, p.sizes[0]) ? p.sizes[0] : "" });
@@ -200,7 +198,7 @@ function Product({ p, products, categories, store: STORE }) {
     if (buy) startCheckout("buy-now", [{ id: p.id, c: opt.c, s: opt.s, qty: 1 }]);
     else addToCart(p.id, opt.c, opt.s, 1, from || document.querySelector(".g-main"));
     const checkoutUrl = "/checkout?mode=buy-now";
-    const destination = buy ? (signedIn ? checkoutUrl : `/account?next=${encodeURIComponent(checkoutUrl)}`) : "/cart";
+    const destination = buy ? checkoutUrl : "/cart";
     setTimeout(() => navigate(destination), 450);
   }
 

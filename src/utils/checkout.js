@@ -19,7 +19,7 @@ export function confirmedCheckoutTotals(order, payment) {
     throw new Error("The payment amount could not be confirmed. Please try again.");
   }
   return {
-    sub: order.subtotal, disc: order.couponDiscount, prepaid: order.prepaidDiscount,
+    sub: order.subtotal, disc: order.couponDiscount, ...(order.accountDiscount > 0 ? { account: order.accountDiscount } : {}), prepaid: order.prepaidDiscount,
     ship: order.shippingFee, tax: order.tax, total: amount / 100,
     shippingStatus: "ready",
   };

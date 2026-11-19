@@ -29,8 +29,8 @@ function validate(v) {
   return er;
 }
 
-function Summary({ cart, coupon, pay, products, store: STORE, submitting, formError, pincode, confirmedTotals, onQuantityChange }) {
-  const t = confirmedTotals || totals(cart, coupon, pay, products, STORE, pincode);
+function Summary({ cart, coupon, pay, products, store: STORE, submitting, formError, pincode, confirmedTotals, signedIn, onQuantityChange }) {
+  const t = confirmedTotals || totals(cart, coupon, pay, products, STORE, pincode, signedIn);
   return (
     <aside className="summary" id="coSum"><h2>Your order</h2>
       {cart.map((l) => {
@@ -49,6 +49,7 @@ function Summary({ cart, coupon, pay, products, store: STORE, submitting, formEr
       <div style={{ marginTop: 10 }}>
         <div className="srow"><span>Subtotal</span><span>{money(t.sub)}</span></div>
         {t.disc > 0 && <div className="srow"><span>Coupon {coupon.code}</span><span className="save">−{money(t.disc)}</span></div>}
+        {t.account > 0 && <div className="srow"><span>Account discount (10%)</span><span className="save">−{money(t.account)}</span></div>}
         {t.prepaid > 0 && <div className="srow"><span>Prepaid discount ({STORE.prepaidOffPct}%)</span><span className="save">−{money(t.prepaid)}</span></div>}
         <div className="srow" data-shipping-status={t.shippingStatus}><span>Shipping</span><span>{t.ship == null ? (t.shippingStatus === "pending" ? "Enter PIN code" : "Unavailable") : t.ship ? money(t.ship) : <span className="save">Free</span>}</span></div>
         {t.shippingStatus === "unavailable" && <p className="err-t" role="alert">{t.shippingMessage}</p>}
@@ -114,6 +115,7 @@ export default function Checkout() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const mode = params.get("mode") || "cart";
+  const accountNext = encodeURIComponent("/checkout" + (params.size ? "?" + params.toString() : ""));
   const cart = params.has("mode") ? (checkoutDraft?.mode === mode ? checkoutDraft.lines : []) : bag;
   const [values, setValues] = useState(() => ({ name: "", phone: "", email: "", address: "", city: "", pincode: "", state: "", ...(address || {}), pay: "upi" }));
   const editedFields = useRef(new Set(Object.keys(address || {})));
@@ -122,7 +124,7 @@ export default function Checkout() {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
   const [confirmedQuote, setConfirmedQuote] = useState(null);
-  const checkoutSignature = JSON.stringify({ cart, coupon, values });
+  const checkoutSignature = JSON.stringify({ cart, coupon, values, signedIn });
   const confirmedTotals = confirmedQuote?.signature === checkoutSignature ? confirmedQuote.totals : null;
   const attemptSignature = useRef(null);
   // One key per checkout attempt: a double click or retry returns the same order instead of a duplicate.
@@ -198,7 +200,7 @@ export default function Checkout() {
     setFormError("");
     const first = Object.keys(er)[0];
     if (first) return event.target.elements[first].focus();
-    const delivery = totals(cart, coupon, values.pay, products, STORE, values.pincode);
+    const delivery = totals(cart, coupon, values.pay, products, STORE, values.pincode, signedIn);
     if (delivery.shippingStatus !== "ready") {
       setFormError(delivery.shippingMessage);
       return;
@@ -293,6 +295,12 @@ export default function Checkout() {
         ) : (
           <div className="cart-l">
             <form id="coForm" noValidate style={{ display: "grid", gap: 16 }} onSubmit={submit}>
+              {!signedIn && (
+                <div className="box">
+                  <strong>Get 10% off with a Shoponzy account</strong>
+                  <p><Link to={"/account?mode=signup&next=" + accountNext}>Sign up</Link> or <Link to={"/account?next=" + accountNext}>log in</Link> to claim your discount. You can also continue as a guest.</p>
+                </div>
+              )}
               <div className="box"><h2><span className="n">1</span>Contact</h2><div className="form two">
                 <FormField label="Full name" required autoComplete="name" {...field("name")} />
                 <FormField label="Mobile number" required inputMode="tel" autoComplete="tel" {...field("phone")} />
@@ -311,7 +319,6 @@ export default function Checkout() {
                   </label>
                 )}
               </div>
-              {!signedIn && <p className="tax" style={{ marginTop: 10 }}>Have an account? <Link to="/account?next=/checkout" style={{ textDecoration: "underline" }}>Sign in</Link> to use your saved details and see this order later.</p>}
               </div>
               <div className="box"><h2><span className="n">3</span>Payment</h2>
                 <div style={{ display: "grid", gap: 10 }}>
@@ -319,7 +326,7 @@ export default function Checkout() {
                 </div>
               </div>
             </form>
-            <Summary cart={cart} coupon={coupon} pay={values.pay} products={products} store={STORE} submitting={submitting} formError={formError} pincode={values.pincode} confirmedTotals={confirmedTotals} onQuantityChange={changeQuantity} />
+            <Summary cart={cart} coupon={coupon} pay={values.pay} products={products} store={STORE} submitting={submitting} formError={formError} pincode={values.pincode} confirmedTotals={confirmedTotals} signedIn={signedIn} onQuantityChange={changeQuantity} />
           </div>
         )}
       </div></section>
