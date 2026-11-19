@@ -124,12 +124,12 @@ export default function Checkout() {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
   const [confirmedQuote, setConfirmedQuote] = useState(null);
+  const { user, signedIn } = useCustomer();
   const checkoutSignature = JSON.stringify({ cart, coupon, values, signedIn });
   const confirmedTotals = confirmedQuote?.signature === checkoutSignature ? confirmedQuote.totals : null;
   const attemptSignature = useRef(null);
   // One key per checkout attempt: a double click or retry returns the same order instead of a duplicate.
   const idempotencyKey = useRef(newKey());
-  const { user, signedIn } = useCustomer();
   const [saveAddress, setSaveAddress] = useState(true);
   const [hasSavedAddress, setHasSavedAddress] = useState(false);
 
