@@ -72,7 +72,7 @@ function StaticDoodleBanner({ products = [] }) {
 }
 
 export default function Home() {
-  const { categories: CATS, slides: HERO_SLIDES, products: PRODUCTS, sections, store } = useCatalog();
+  const { slides: HERO_SLIDES, products: PRODUCTS, sections, store, homepageSubcategories = [] } = useCatalog();
   usePageMeta(
     store.seo?.title || "Shoponzy | Shoes, Sunglasses, Perfumes, Clothing & Watches Online",
     store.seo?.description,
@@ -95,9 +95,7 @@ export default function Home() {
   const shoes = categorySection?.products || [];
   const deals = dealsSection?.products || [...PRODUCTS].sort((a, b) => off(b) - off(a)).slice(0, 8);
   const stripSettings = store.homeCategories;
-  const stripCategories = stripSettings.showAllCategories
-    ? CATS
-    : stripSettings.categories.map((slug) => CATS.find((category) => category.id === slug)).filter(Boolean);
+  const stripCategories = homepageSubcategories;
 
   return (
     <>
@@ -106,7 +104,7 @@ export default function Home() {
           ? <img src={stripSettings.newInImage} alt="" loading="lazy" />
           : <Art kind="sneaker" color="#FF4D2E" category="shoes" />}</span></span>Shop all</Link>}
         {stripCategories.map((c) => (
-          <Link className="story" key={c.id} to={categoryUrl(c.id)}><span className="ring"><span>{c.image
+          <Link className="story" key={c.id} to={c.href}><span className="ring"><span>{c.image
             ? <img src={c.image} alt="" loading="lazy" />
             : <Art kind={c.icon[0]} color={c.icon[1]} category={c.id} />}</span></span>{c.name}</Link>
         ))}

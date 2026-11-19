@@ -92,7 +92,7 @@ function Listing({ pageCat }) {
     ...EMPTY, subs: params.get("sub") ? [
       (() => {
         const selected = c?.descendants?.find(([slug, , , , , id]) => id === params.get("sub") || slug === params.get("sub"));
-        return selected?.[8]?.[1] || selected?.[5] || params.get("sub");
+        return selected?.[5] || params.get("sub");
       })(),
     ] : [], sale: params.get("sale") === "1", q: params.get("q") || "",
     sort: params.get("sort") || "featured",
@@ -115,18 +115,18 @@ function Listing({ pageCat }) {
   const list = useMemo(() => {
     const q = st.q.toLowerCase();
     let out = base.filter((p) => (!st.subs.length || st.subs.some((selected) => {
-      const sub = subsAll.find((item) => (item[5] || item[0]) === selected);
+      const sub = (c?.descendants || subsAll).find((item) => (item[5] || item[0]) === selected);
       return sub ? productMatchesCategory(p, sub) : p.sub === selected;
     })) && (!st.cats.length || st.cats.includes(p.cat))
       && (!st.sizes.length || p.sizes.some((s) => st.sizes.includes(s))) && (!st.colors.length || p.colors.some((x) => st.colors.includes(x[1])))
       && (!st.max || p.price <= st.max) && (!st.sale || off(p) > 0) && (!q || matches(p, q, CATS)));
     if (SORTERS[st.sort]) out = [...out].sort(SORTERS[st.sort]);
     return out;
-  }, [base, st, CATS, subsAll]);
+  }, [base, st, CATS, subsAll, c]);
 
   const chips = [
     ...st.cats.map((v) => ["cats", v, cat(v, CATS)?.name || v]),
-    ...st.subs.map((v) => ["subs", v, subsAll.find((x) => (x[5] || x[0]) === v)?.[1] || v]),
+    ...st.subs.map((v) => ["subs", v, (c?.descendants || subsAll).find((x) => (x[5] || x[0]) === v)?.[1] || v]),
     ...st.sizes.map((v) => ["sizes", v, "Size " + v]), ...st.colors.map((v) => ["colors", v, v]),
     ...(st.max ? [["max", "", "Up to " + money(st.max)]] : []), ...(st.sale ? [["sale", "", "On sale"]] : []), ...(st.q ? [["q", "", `“${st.q}”`]] : []),
   ];

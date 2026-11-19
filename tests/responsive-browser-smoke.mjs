@@ -8,6 +8,7 @@ import { join } from "node:path";
 import assert from "node:assert/strict";
 import { PRODUCTS } from "../src/data/catalog.js";
 
+const homepageOnly=process.argv.includes('--homepage-only');
 let fixture = `import {PRODUCTS,CATS,STORE} from './src/data/catalog.js';
 export const products=PRODUCTS.slice(0,12).map((p,i)=>({...p,apiId:'product-'+i,name:i===0?'Comfortable footwear with a very long product name for everyday use':p.name,variants:[{id:'variant-'+i,color:p.colors[0][1],size:p.sizes[0],price:p.price,stock:10}]}));
 export const cart=[{id:products[0].id,c:0,s:products[0].sizes[0],qty:2}];
@@ -23,22 +24,28 @@ if(process.argv.includes('--live-banners')) {
     fixture+=`Object.assign(catalog.categories.find(c=>c.id===${JSON.stringify(category.slug)}),${JSON.stringify({comingSoon:true,bannerImage:category.bannerImage?.url||'',image:category.image?.url||''})});`;
   }
 }
+if(homepageOnly) fixture+='store.cart=[];store.cartCount=0;store.checkoutDraft.lines=[];';
 const bundle = await build({
-  stdin: { contents: `import React from 'react'; import {createRoot} from 'react-dom/client'; import {BrowserRouter} from 'react-router-dom'; import App from './src/App.jsx'; import ConfirmDialog from './src/components/ConfirmDialog.jsx'; import './src/styles/style.css'; createRoot(document.getElementById('root')).render(<BrowserRouter><App/><ConfirmDialog open={location.search.includes('audit-modal')} title="Submit return request?" message="You are requesting a return for 2 items from order SZ100001. Reason: Product not as described. Our team will review your request and update you." confirmLabel="Yes, submit request" variant="return" onCancel={()=>{}} onConfirm={()=>{}}/></BrowserRouter>);`, resolveDir: process.cwd(), loader: "jsx" },
+  stdin: { contents: `import React from 'react'; import {createRoot} from 'react-dom/client'; import {BrowserRouter} from 'react-router-dom'; import App from './src/App.jsx'; ${homepageOnly ? "import {CatalogProvider} from './src/context/CatalogContext.jsx';" : ''} import ConfirmDialog from './src/components/ConfirmDialog.jsx'; import './src/styles/style.css'; createRoot(document.getElementById('root')).render(<BrowserRouter>${homepageOnly ? "<CatalogProvider><App/></CatalogProvider>" : "<App/>"}<ConfirmDialog open={location.search.includes('audit-modal')} title="Submit return request?" message="You are requesting a return for 2 items from order SZ100001. Reason: Product not as described. Our team will review your request and update you." confirmLabel="Yes, submit request" variant="return" onCancel={()=>{}} onConfirm={()=>{}}/></BrowserRouter>);`, resolveDir: process.cwd(), loader: "jsx" },
   bundle: true, write: false, outfile: "smoke.js", jsx: "automatic",
   define: { "import.meta.env.DEV": "false", "import.meta.env.VITE_API_BASE_URL": '"/api/v1"' },
   plugins: [{ name: "fixtures", setup(b) {
     b.onResolve({ filter: /^responsive-fixture$/ }, () => ({ path: "fixture", namespace: "responsive" }));
     b.onLoad({ filter: /.*/, namespace: "responsive" }, () => ({ contents: fixture, resolveDir: process.cwd(), loader: "js" }));
-    b.onLoad({ filter: /CatalogContext\.jsx$/ }, () => ({ contents: `import {catalog} from 'responsive-fixture'; export const useCatalog=()=>catalog;`, loader: "js" }));
+    if(!homepageOnly) b.onLoad({ filter: /CatalogContext\.jsx$/ }, () => ({ contents: `import {catalog} from 'responsive-fixture'; export const useCatalog=()=>catalog;`, loader: "js" }));
     b.onLoad({ filter: /StoreContext\.jsx$/ }, () => ({ contents: `import {store} from 'responsive-fixture'; export const useStore=()=>store;`, loader: "js" }));
     b.onLoad({ filter: /CustomerContext\.jsx$/ }, () => ({ contents: `const noop=()=>{}; export const useCustomer=()=>({signedIn:true,status:'ready',user:{id:'user',name:'Asha Kumar',email:'customer.with.a.long.email.address@example.com',phone:'9876543210'},signOut:noop,setUser:noop});`, loader: "js" }));
   } }],
 });
 const assets = new Map(bundle.outputFiles.map((f) => [f.path.endsWith(".css") ? "/smoke.css" : "/smoke.js", f.text]));
+let homepageEnabled=false;
 const server = createServer((req, res) => {
+  if(req.url.startsWith('/fixture/homepage')) {homepageEnabled=new URL(req.url,'http://localhost').searchParams.get('enabled')==='1';res.end('ok');return;}
   if (req.url.startsWith('/api/v1/')) {
     let data = [];
+    if(homepageOnly&&req.url==='/api/v1/categories') data=[{id:'home-root',slug:'shoes',name:'Foot Wear',level:1,status:'enabled',children:[{id:'home-sub',slug:'sneakers',name:'Homepage Sneakers',level:2,status:'enabled',showOnHomepage:homepageEnabled,image:{url:'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><rect width="80" height="80" fill="red"/></svg>')},children:[]}]}];
+    if(homepageOnly&&req.url==='/api/v1/homepage') data={sections:[],banners:[]};
+    if(homepageOnly&&req.url==='/api/v1/site-settings') data={homeCategories:{showNewIn:false}};
     if (/\/orders\/SZ100001$/.test(req.url)) data = { order: {orderNumber:'SZ100001',status:'delivered',paymentMethod:'razorpay',paymentStatus:'paid',subtotal:1000,total:1000,shippingFee:0,items:[{name:'Comfortable footwear with a very long product name for everyday use',color:'Lavender',size:'8',qty:2,lineTotal:1000}],shippingAddress:{name:'Asha Kumar',line1:'12 Long Street',city:'Chennai',state:'Tamil Nadu',pincode:'600040'},history:[],createdAt:new Date().toISOString()} };
     if (/\/returns$/.test(req.url)) data = {eligibility:{eligible:false,reason:'No eligible items',items:[]},requests:[],returns:[]};
     if (/\/orders\?/.test(req.url)) data=[];
@@ -73,12 +80,13 @@ try {
   const modalPath='/account/orders/SZ100001?audit-modal=1';
   const phoneOnly=process.argv.includes('--phone-only');
   const exitOnly=process.argv.includes('--checkout-exit-only');
-  const paths=exitOnly ? ['/checkout?mode=cart','/checkout?mode=buy-now'] : process.argv.includes('--banner-only') ? ['/categories/watches','/categories/sunglass','/categories/perfumes'] : phoneOnly ? ['/checkout?mode=cart'] : process.argv.includes('--modal-only') ? [modalPath] : ['/','/products',`/products/${PRODUCTS[0].slug}`,'/categories/shoes','/categories/watches','/cart','/checkout?mode=cart','/account','/account?section=support','/account/orders/SZ100001','/help',modalPath];
-  const sizes=phoneOnly||exitOnly ? [[375,812],[1366,768]] : [[320,640],[375,812],[768,1024],[1024,768],[1366,768],[1920,1080],[812,375]];
+  const paths=homepageOnly ? ['/'] : exitOnly ? ['/checkout?mode=cart','/checkout?mode=buy-now'] : process.argv.includes('--banner-only') ? ['/categories/watches','/categories/sunglass','/categories/perfumes'] : phoneOnly ? ['/checkout?mode=cart'] : process.argv.includes('--modal-only') ? [modalPath] : ['/','/products',`/products/${PRODUCTS[0].slug}`,'/categories/shoes','/categories/watches','/cart','/checkout?mode=cart','/account','/account?section=support','/account/orders/SZ100001','/help',modalPath];
+  const sizes=homepageOnly||phoneOnly||exitOnly ? [[375,812],[1366,768]] : [[320,640],[375,812],[768,1024],[1024,768],[1366,768],[1920,1080],[812,375]];
   const failures=[];
   for(const [width,height] of sizes) {
     await command('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<768});
     for(const path of paths) {
+      if(homepageOnly)await fetch('http://127.0.0.1:'+server.address().port+'/fixture/homepage?enabled=0');
       await command('Page.navigate',{url:`http://127.0.0.1:${server.address().port}${path}`});
       let ready=false;
       for(let i=0;i<70;i++){ready=await evaluate('Boolean(document.querySelector("main h1, main h2"))');if(ready)break;await new Promise(r=>setTimeout(r,100));}
@@ -140,6 +148,19 @@ try {
         let home=false;
         for(let attempt=0;attempt<50&&!home;attempt++) {home=await evaluate('location.pathname==="/" && !document.querySelector("#coSum")');if(!home)await new Promise(r=>setTimeout(r,100));}
         assert.ok(home,'Minus on the only item at quantity 1 must navigate home');
+      }
+      if(homepageOnly) {
+        assert.equal(await evaluate('document.querySelectorAll(".stories .story").length'),0,'Unselected subcategories must not appear');
+        await evaluate('fetch("/fixture/homepage?enabled=1").then(()=>window.dispatchEvent(new Event("focus")))');
+        let shown=false;
+        for(let i=0;i<100&&!shown;i++){shown=await evaluate('document.querySelector(".stories .story")?.textContent==="Homepage Sneakers"');if(!shown)await new Promise(r=>setTimeout(r,100));}
+        assert.ok(shown,'Enabling a subcategory must update the open homepage');
+        assert.equal(await evaluate('document.querySelector(".stories .story").getAttribute("href")'),'/categories/shoes?sub=home-sub');
+        assert.ok(await evaluate('Boolean(document.querySelector(".stories .story img"))'),'Existing subcategory image must display');
+        await evaluate('fetch("/fixture/homepage?enabled=0")');
+        let hidden=false;
+        for(let i=0;i<180&&!hidden;i++){hidden=await evaluate('document.querySelectorAll(".stories .story").length===0');if(!hidden)await new Promise(r=>setTimeout(r,100));}
+        assert.ok(hidden,'Disabling must automatically remove the subcategory without reload or focus');
       }
       if(path===modalPath) {
         const modal=await evaluate('(()=>{const e=document.querySelector(".confirm-dialog");const r=e.getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,height:innerHeight,width:innerWidth,scrollable:e.scrollHeight>=e.clientHeight};})()');

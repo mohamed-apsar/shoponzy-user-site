@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { STORE as DEFAULT_STORE } from "../data/catalog";
 import { API_BASE } from "../api/config";
+import { homepageSubcategories } from "../utils/homepageCategories";
 
 const CatalogContext = createContext(null);
 const PRODUCT_PAGE_SIZE = 60;
@@ -224,6 +225,7 @@ async function loadCatalog() {
   }));
   return {
     categories,
+    homepageSubcategories: homepageSubcategories(categoryResponse.data),
     products,
     slides,
     sections,
@@ -234,6 +236,7 @@ async function loadCatalog() {
 export function CatalogProvider({ children }) {
   const [catalog, setCatalog] = useState({
     categories: [],
+    homepageSubcategories: [],
     products: [],
     slides: [],
     sections: [],
@@ -255,6 +258,27 @@ export function CatalogProvider({ children }) {
   }, [attempt]);
 
   const retry = useCallback(() => setAttempt((value) => value + 1), []);
+
+  useEffect(() => {
+    if (catalog.status !== "ready") return undefined;
+    let active = true;
+    let busy = false;
+    async function refreshCategories() {
+      if (busy || document.visibilityState !== "visible") return;
+      busy = true;
+      try {
+        const result = await getJson("/categories");
+        if (active) setCatalog((current) => ({ ...current,
+          categories: result.data.map(mapCategory),
+          homepageSubcategories: homepageSubcategories(result.data),
+        }));
+      } catch { /* Keep the last successful catalogue; try again on the next refresh. */ }
+      finally { busy = false; }
+    }
+    const timer = window.setInterval(refreshCategories, 15000);
+    window.addEventListener("focus", refreshCategories);
+    return () => { active = false; window.clearInterval(timer); window.removeEventListener("focus", refreshCategories); };
+  }, [catalog.status]);
 
   useEffect(() => {
     const refreshWhenVisible = () => {
