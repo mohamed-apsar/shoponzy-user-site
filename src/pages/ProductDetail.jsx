@@ -13,7 +13,7 @@ import usePageMeta from "../hooks/usePageMeta";
 import { fetchProductContentBlocks } from "../api/storeApi";
 import { useCatalog } from "../context/CatalogContext";
 import { useCustomer } from "../context/CustomerContext";
-import ProductImageViewer, { ZoomIcon } from "../components/ProductImageViewer";
+import ProductImageViewer from "../components/ProductImageViewer";
 
 function Gallery({ p, ci, containerRef }) {
   const [k, setK] = useState(0);
@@ -39,17 +39,12 @@ function Gallery({ p, ci, containerRef }) {
       <div>
         <div className="g-main" tabIndex={0} aria-label="Product images, swipe to see more" ref={main} onScroll={onScroll}>
           {views.map((i) => (
-            <div key={i} className="gallery-zoom-trigger" role="button" tabIndex={0} aria-label={`Zoom ${p.name}, image ${i + 1}`} onClick={() => setZoom(i)}
-              onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setZoom(i); } }}>
-              <ProductMedia className="gallery-image" product={p} ci={ci} k={i} />
-              <span className="gallery-zoom-icon" aria-hidden="true"><ZoomIcon /></span>
-              <span className="gallery-zoom-label" aria-hidden="true"><span className="zoom-hint-desktop">Click image to zoom</span><span className="zoom-hint-touch">Tap to zoom</span></span>
-            </div>
+            <ProductImageViewer key={i} product={p} colorIndex={ci} index={i} zoomed={zoom === i}
+              onToggle={() => setZoom((current) => current === i ? -1 : i)} />
           ))}
         </div>
         <div className="g-dots">{views.map((i) => <i key={i} className={i === k ? "on" : ""} />)}</div>
       </div>
-      {zoom >= 0 && <ProductImageViewer key={`${ci}:${zoom}`} product={p} colorIndex={ci} index={zoom} count={views.length} onIndexChange={setZoom} onClose={() => setZoom(-1)} />}
     </div>
   );
 }

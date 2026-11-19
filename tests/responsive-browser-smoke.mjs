@@ -101,57 +101,32 @@ try {
       const issue=await evaluate(`(()=>{const w=document.documentElement.clientWidth;const nodes=[...document.querySelectorAll('main input,main select,main textarea,main .box,main .summary,main .line,main .dline,header,footer')].filter(e=>e.getClientRects().length&&getComputedStyle(e).visibility!=='hidden');return nodes.filter(e=>{const r=e.getBoundingClientRect();return r.left < -1 || r.right > w+1;}).slice(0,6).map(e=>({tag:e.tagName,class:e.className,width:Math.round(e.getBoundingClientRect().width)}));})()`);
       if(issue.length)failures.push({width,height,path,issue});
       if(zoomOnly) {
-        const viewerButton=(label)=>'document.querySelector('+JSON.stringify(`.product-viewer button[aria-label="${label}"]`)+')';
+        const trigger='document.querySelector(".gallery-zoom-trigger")';
+        const image=trigger+'.querySelector(".gallery-image img")';
+        const scale=`new DOMMatrix(getComputedStyle(${image}).transform).a`;
         assert.equal(await evaluate('document.querySelectorAll(".gallery-zoom-trigger").length'),2);
-        assert.equal(await evaluate('document.querySelectorAll(".gallery-zoom-icon").length'),2);
-        assert.equal(await evaluate('getComputedStyle(document.querySelector(".gallery-zoom-trigger")).cursor'),'zoom-in');
-        const touchHint=await evaluate('matchMedia("(hover: none), (pointer: coarse)").matches');
-        const hint=touchHint ? '.gallery-zoom-label .zoom-hint-touch' : '.gallery-zoom-label .zoom-hint-desktop';
-        assert.notEqual(await evaluate(`getComputedStyle(document.querySelector(${JSON.stringify(hint)})).display`),'none');
+        assert.equal(await evaluate(scale),1);
+        const src=await evaluate(image+'.getAttribute("src")');
+        const galleryWidth=await evaluate(trigger+'.clientWidth');
+        await evaluate(trigger+'.focus();'+trigger+'.querySelector(".gallery-zoom-icon").click()');
+        await evaluate(`(async()=>{await Promise.all(${image}.getAnimations().map(animation=>animation.finished));return true;})()`);
+        assert.equal(await evaluate(trigger+'.getAttribute("aria-pressed")'),'true');
+        assert.equal(await evaluate(scale),2,'The icon must magnify the image in the gallery');
+        assert.equal(await evaluate(image+'.getAttribute("src")'),src);
+        assert.equal(await evaluate(trigger+'.clientWidth'),galleryWidth);
+        assert.equal(await evaluate('Boolean(document.querySelector("[aria-modal=true]"))'),false);
         if(process.argv.includes('--screenshots')) {
           const screenshot=await command('Page.captureScreenshot',{format:'png'});
           const file=join(tmpdir(),`shoponzy-zoom-gallery-${width}.png`);
           await writeFile(file,Buffer.from(screenshot.data,'base64'));
           console.log(`Screenshot: ${file}`);
         }
-        await evaluate('document.querySelector(".gallery-zoom-trigger").focus();document.querySelector(".gallery-zoom-trigger").click()');
-        assert.ok(await evaluate('Boolean(document.querySelector(".product-viewer[aria-modal=true]"))'));
-        assert.ok(await evaluate('document.querySelector(".product-viewer-media img").getAttribute("src")===document.querySelector(".gallery-image img").getAttribute("src")'),'Viewer must preserve the original image source');
-        assert.equal(await evaluate('document.querySelector(".product-viewer-stage").dataset.zoom'),'1.00');
-        if(process.argv.includes('--screenshots')) {
-          const screenshot=await command('Page.captureScreenshot',{format:'png'});
-          const file=join(tmpdir(),`shoponzy-zoom-viewer-${width}.png`);
-          await writeFile(file,Buffer.from(screenshot.data,'base64'));
-          console.log(`Screenshot: ${file}`);
-        }
-        await evaluate(viewerButton('Zoom in')+'.click()');
-        assert.equal(await evaluate('document.querySelector(".product-viewer-stage").dataset.zoom'),'1.50');
-        await evaluate(viewerButton('Zoom in')+'.click()');
-        const beforePan=await evaluate('document.querySelector(".product-viewer-media").style.transform');
-        const panCenter=await evaluate('(()=>{const r=document.querySelector(".product-viewer-stage").getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};})()');
-        await command('Input.dispatchMouseEvent',{type:'mousePressed',x:panCenter.x,y:panCenter.y,button:'left',clickCount:1});
-        await command('Input.dispatchMouseEvent',{type:'mouseMoved',x:panCenter.x+40,y:panCenter.y+40,button:'left',buttons:1});
-        await command('Input.dispatchMouseEvent',{type:'mouseReleased',x:panCenter.x+40,y:panCenter.y+40,button:'left',clickCount:1});
-        assert.notEqual(await evaluate('document.querySelector(".product-viewer-media").style.transform'),beforePan,'Zoomed images must support dragging');
-        await evaluate('document.querySelector(".product-viewer-reset").click()');
-        if(width<768) {
-          const center=await evaluate('(()=>{const r=document.querySelector(".product-viewer-stage").getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};})()');
-          await command('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:center.x-40,y:center.y,id:0},{x:center.x+40,y:center.y,id:1}]});
-          await command('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:center.x-90,y:center.y,id:0},{x:center.x+90,y:center.y,id:1}]});
-          await command('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
-          assert.ok(Number(await evaluate('document.querySelector(".product-viewer-stage").dataset.zoom'))>1,'Pinch must enlarge the image');
-        }
-        await evaluate(viewerButton('Next image')+'.click()');
-        assert.ok(await evaluate('document.querySelector(".product-viewer-title span").textContent.includes("2 of 2")'));
-        assert.equal(await evaluate('document.querySelector(".product-viewer-stage").dataset.zoom'),'1.00');
-        await command('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape'});
-        await command('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape'});
-        assert.equal(await evaluate('document.querySelector(".product-viewer")'),null);
-        assert.ok(await evaluate('document.activeElement.classList.contains("gallery-zoom-trigger")'),'Focus must return to the gallery');
+        assert.ok(await evaluate('document.activeElement==='+trigger),'Focus must stay on the zoom button');
         await command('Input.dispatchKeyEvent',{type:'keyDown',key:'Enter',code:'Enter'});
         await command('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter'});
-        assert.ok(await evaluate('Boolean(document.querySelector(".product-viewer"))'),'Keyboard must open the enlarged viewer');
-        await evaluate(viewerButton('Close image viewer')+'.click()');
+        await evaluate(`(async()=>{await Promise.all(${image}.getAnimations().map(animation=>animation.finished));return true;})()`);
+        assert.equal(await evaluate(trigger+'.getAttribute("aria-pressed")'),'false');
+        assert.equal(await evaluate(scale),1,'The same button must restore the original size');
       }
       if(layoutOnly) {
         const geometry=await evaluate(`(()=>{const nav=document.querySelector('.stories');const style=getComputedStyle(nav);const cards=[...nav.querySelectorAll('.story')].map(el=>{const r=el.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,image:el.querySelector('img').getBoundingClientRect().width,href:el.getAttribute('href')};});return {width:document.documentElement.clientWidth,paddingTop:parseFloat(style.paddingTop),paddingBottom:parseFloat(style.paddingBottom),gap:parseFloat(style.columnGap),bannerTop:document.querySelector('.hero').getBoundingClientRect().top,cards};})()`);
