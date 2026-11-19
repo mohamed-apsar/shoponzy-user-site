@@ -1,4 +1,4 @@
-import OrderTracking from "../components/OrderTracking";
+import OrderTracking, { deliveryDate } from "../components/OrderTracking";
 import { useEffect, useState } from "react";
 import Icon from "../components/Icon";
 import FormField, { PHONE_RE, normalisePhone } from "../components/FormField";
@@ -17,8 +17,6 @@ export const HELP_SECTIONS = {
   "shipping-policy": ["shipping", "Shipping Policy"], "return-policy": ["returns", "Return & Refund Policy"],
   "privacy-policy": ["privacy", "Privacy Policy"], terms: ["terms", "Terms & Conditions"], faqs: ["faq", "FAQs"],
 };
-
-const ORDER_ID_RE = /^SZ\d{6,9}$/;
 
 function Faqs() {
   const [faqs, setFaqs] = useState([]);
@@ -39,11 +37,12 @@ function Faqs() {
 }
 
 function TrackOrder() {
-  const [values, setValues] = useState({ order: "", phone: "", code: "" });
+  const [values, setValues] = useState({ phone: "", code: "" });
   const [requested, setRequested] = useState(false);
   const [message, setMessage] = useState("");
   const [errors, setErrors] = useState({});
   const [result, setResult] = useState(null);
+  const [selectedOrderNumber, setSelectedOrderNumber] = useState("");
   const [failure, setFailure] = useState("");
   const [busy, setBusy] = useState(false);
   const update = (e) => { const { name, value } = e.target; setValues((v) => ({ ...v, [name]: value })); };
@@ -52,8 +51,7 @@ function TrackOrder() {
   async function submit(event, verify = requested) {
     event.preventDefault();
     if (busy) return;
-    const orderNumber = values.order.trim().toUpperCase(), er = {};
-    if (!ORDER_ID_RE.test(orderNumber)) er.order = "Enter your order ID, e.g. SZ100001.";
+    const er = {};
     if (!PHONE_RE.test(normalisePhone(values.phone))) er.phone = "Enter the mobile number used at checkout.";
     if (verify && !/^\d{4,10}$/.test(values.code.trim())) er.code = "Enter the SMS verification code.";
     setErrors(er);
@@ -62,10 +60,11 @@ function TrackOrder() {
     if (Object.keys(er).length) return;
     setBusy(true);
     try {
-      const details = { orderNumber, phone: values.phone };
+      const details = { phone: values.phone };
       if (verify) {
         const { data } = await storeRequest("/orders/track", { method: "POST", body: { ...details, code: values.code.trim() } });
-        setResult(data);
+        setResult(data.orders);
+        setSelectedOrderNumber(data.orders[0]?.orderNumber || "");
         setValues((current) => ({ ...current, code: "" }));
         setMessage("");
       } else {
@@ -91,19 +90,25 @@ function TrackOrder() {
     setMessage("");
   }
 
+  const selectedOrder = result?.find((order) => order.orderNumber === selectedOrderNumber);
   return (
     <form className="form two box" id="trackForm" noValidate onSubmit={submit} style={{ marginTop: 12 }}>
-      <FormField label="Order ID" placeholder="e.g. SZ100001" required readOnly={requested || busy} {...field("order")} />
-      <FormField label="Checkout mobile number" required inputMode="tel" autoComplete="tel-national" maxLength={10} readOnly={requested || busy} {...field("phone")} />
+      <FormField label="Checkout mobile number" required full inputMode="tel" autoComplete="tel-national" maxLength={10} readOnly={requested || busy} {...field("phone")} />
       {message && <p className="tax full" role="status">{message}</p>}
       {requested && !result && <FormField label="SMS verification code" required full inputMode="numeric" autoComplete="one-time-code" maxLength={10} readOnly={busy} {...field("code")} />}
       {!result && <div className="full"><button className="btn btn-dark btn-block" disabled={busy}>{busy ? "Please wait…" : requested ? "Verify and track order" : "Send verification code"}</button></div>}
       {requested && <div className="full account-order-pagination">
         {!result && <button type="button" className="btn btn-ghost" disabled={busy} onClick={(event) => submit(event, false)}>Resend code</button>}
-        <button type="button" className="btn btn-ghost" disabled={busy} onClick={changeDetails}>{result ? "Track another order" : "Change order details"}</button>
+        <button type="button" className="btn btn-ghost" disabled={busy} onClick={changeDetails}>Use a different mobile number</button>
       </div>}
       {failure && <p className="err-t full" role="alert">{failure}</p>}
-      {result && <div className="full"><h3>Order {result.orderNumber}</h3><OrderTracking order={result} /></div>}
+      {result?.length > 1 && (
+        <FormField as="select" id="tracked-order" name="trackedOrder" label="Select a recent order" full value={selectedOrderNumber} onChange={(event) => setSelectedOrderNumber(event.target.value)}>
+          {result.map((order) => <option value={order.orderNumber} key={order.orderNumber}>{order.orderNumber}{order.placedAt ? ` · ${deliveryDate(order.placedAt)}` : ""}</option>)}
+        </FormField>
+      )}
+      {selectedOrder && <div className="full"><h3>Order {selectedOrder.orderNumber}</h3><OrderTracking order={selectedOrder} /></div>}
+      {result?.length === 0 && <p className="tax full" role="status">No recent orders found for this mobile number.</p>}
     </form>
   );
 }
@@ -218,7 +223,7 @@ export default function Help({ section }) {
   if (section) {
     let content;
     switch (section) {
-      case "track-order": content = <><p>Enter your order ID and checkout mobile number. Verify the SMS code to see your delivery status and courier details.</p><TrackOrder /></>; break;
+      case "track-order": content = <><p>Verify your checkout mobile number by SMS to see your recent order IDs and delivery status.</p><TrackOrder /></>; break;
       case "contact": content = <><p>Contact our team and we’ll get back to you shortly.</p><ContactForm /><p className="tax" style={{ marginTop: 12 }}>Email <a href={`mailto:${STORE.email}`} style={{ textDecoration: "underline" }}>{STORE.email}</a> · Call <a href={`tel:${STORE.phoneTel}`} style={{ textDecoration: "underline" }}>{STORE.phoneDisplay}</a></p></>; break;
       case "about": content = <p>Shoponzy brings shoes, sunglasses, perfumes, clothing, watches and everyday essentials together in one easy store, with honest prices and quick delivery.</p>; break;
       case "order-cancellation": content = <p>Orders can be cancelled before they are shipped. Contact us with your order ID to request a cancellation.</p>; break;
@@ -238,12 +243,12 @@ export default function Help({ section }) {
       {/* DRAFT POLICY TEXT: confirm every line with the store owner before launch (needed for payment gateway approval) */}
       <section className="section" style={{ paddingTop: 14 }}><div className="container">
         <div className="help-grid" data-stagger>
-          <a className="help-card" href="#track"><Icon name="i-box" /><b>Track an order</b><span>Order ID + mobile number</span></a>
+          <a className="help-card" href="#track"><Icon name="i-box" /><b>Track an order</b><span>Verify your mobile number</span></a>
           <a className="help-card" href="#returns"><Icon name="i-refresh" /><b>Returns &amp; exchange</b><span>7 days, unused with tags</span></a>
           <a className="help-card" href="#contact"><Icon name="i-wa" /><b>Talk to us</b><span>{STORE.phoneDisplay}</span></a>
         </div>
         <div className="prose" style={{ maxWidth: 860, marginTop: 20 }}>
-          <h2 id="track">Order tracking</h2><p>Enter your order ID and the mobile number you used at checkout to see the latest status and courier tracking.</p>
+          <h2 id="track">Order tracking</h2><p>Verify your checkout mobile number by SMS to find your recent orders.</p>
         </div>
         <div style={{ maxWidth: 860 }}><TrackOrder /></div>
         <div className="prose" style={{ maxWidth: 860, marginTop: 20 }}>
