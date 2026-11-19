@@ -297,8 +297,16 @@ export default function Checkout() {
             <form id="coForm" noValidate style={{ display: "grid", gap: 16 }} onSubmit={submit}>
               {!signedIn && (
                 <div className="box">
-                  <strong>Get 10% off with a Shoponzy account</strong>
-                  <p><Link to={"/account?from=checkout-offer&mode=signup&next=" + accountNext}>Sign up</Link> or <Link to={"/account?from=checkout-offer&next=" + accountNext}>log in</Link> to claim your discount. You can also continue as a guest.</p>
+                  <div className="checkout-offer">
+                    <div>
+                      <strong>Get 10% off with a Shoponzy account</strong>
+                      <p className="tax">Sign up or log in to claim your discount, or continue below as a guest.</p>
+                    </div>
+                    <div className="checkout-offer-actions">
+                      <Link className="btn btn-dark" to={"/account?from=checkout-offer&mode=signup&next=" + accountNext}>Sign up</Link>
+                      <Link className="btn btn-ghost" to={"/account?from=checkout-offer&next=" + accountNext}>Log in</Link>
+                    </div>
+                  </div>
                 </div>
               )}
               <div className="box"><h2><span className="n">1</span>Contact</h2><div className="form two">

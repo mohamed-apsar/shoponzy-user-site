@@ -445,6 +445,10 @@ body.pdp-page .tab-space { height: 80px; }
 @media (max-width: 700px) { .product-content-image-row { gap: 8px; } .product-content-image-row img { border-radius: 8px; } }
 
 /* ---------- Cart / checkout ---------- */
+.checkout-offer { display: grid; gap: 14px; }
+.checkout-offer .tax { margin-top: 4px; }
+.checkout-offer-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.checkout-offer-actions .btn { flex: 0 1 132px; }
 .page-title { padding-top: 20px; padding-bottom: 6px; }
 .page-title h1 { font-size: clamp(1.5rem, 3vw, 2.2rem); font-weight: 800; letter-spacing: -.02em; }
 .page-title p { color: var(--muted); font-size: .9rem; }
