@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { storeRequest } from "../api/storeApi";
 import OrderTracking from "../components/OrderTracking";
 import { useCustomer } from "../context/CustomerContext";
@@ -14,7 +14,7 @@ export default function AccountTracking() {
   usePageMeta(`Track order ${orderNumber} | Shoponzy`);
 
   useEffect(() => {
-    if (!signedIn) return;
+    if (status === "loading") return;
     let active = true;
     let loading = false;
     setResult(null);
@@ -41,20 +41,17 @@ export default function AccountTracking() {
       document.removeEventListener("visibilitychange", load);
       window.clearInterval(timer);
     };
-  }, [id, signedIn]);
-
-  if (status !== "loading" && !signedIn) {
-    return <Navigate to={`/account?next=${encodeURIComponent(`/account/orders/${id}/track`)}`} replace />;
-  }
+  }, [id, status]);
 
   return (
     <>
       <div className="container page-title">
         <h1>Track your order</h1>
-        <p>{orderNumber} · <Link className="view-all" to="/account?section=orders">Back to My Orders</Link></p>
+        <p>{orderNumber} · <Link className="view-all" to="/my-orders">Back to My Orders</Link></p>
       </div>
       <section className="section"><div className="container">
         {failure && <p className="err-t" role="alert">{failure}</p>}
+        {failure && !signedIn && <Link className="view-all" to="/track-order">Verify your checkout details</Link>}
         {result?.orderNumber === orderNumber.toUpperCase() ? <OrderTracking order={result} /> : !failure && <p role="status">Loading tracking…</p>}
       </div></section>
     </>

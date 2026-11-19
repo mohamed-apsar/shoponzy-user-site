@@ -102,14 +102,14 @@ function Register({ onDone, onMode }) {
 }
 
 /* ---------------- Signed in ---------------- */
-function Orders() {
+export function Orders({ guest = false }) {
   const [orders, setOrders] = useState(null);
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
   const [failure, setFailure] = useState("");
-  const load = useCallback(() => storeRequest(`/orders?limit=20&page=${page}`)
+  const load = useCallback(() => storeRequest(`/orders${guest ? "/guest" : ""}?limit=20&page=${page}`)
     .then((r) => { setOrders(r.data); setPages(r.meta?.pages || 1); setFailure(""); })
-    .catch((e) => setFailure(e.message)), [page]);
+    .catch((e) => setFailure(e.message)), [guest, page]);
   useEffect(() => {
     const refreshWhenVisible = () => { if (document.visibilityState === "visible") load(); };
     load();
@@ -128,7 +128,10 @@ function Orders() {
       <p className="tax">Order status updates refresh automatically.</p>
       {failure && <p className="err-t">{failure}</p>}
       {!orders ? !failure && <p className="tax">Loading…</p> : !orders.length ? (
-        <div className="tax"><p>No orders are linked to this account yet.</p><p>If you checked out as a guest, your account email and phone must match the checkout details for those orders to appear.</p><button type="button" className="view-all" onClick={load}>Refresh orders</button> <Link to="/products" style={{ textDecoration: "underline" }}>Start shopping</Link></div>
+        <div className="tax">
+          {guest ? <p>No guest orders were found in this browser.</p> : <><p>No orders are linked to this account yet.</p><p>If you checked out as a guest, your account email and phone must match the checkout details for those orders to appear.</p></>}
+          <button type="button" className="view-all" onClick={load}>Refresh orders</button> <Link to="/products" style={{ textDecoration: "underline" }}>Start shopping</Link>
+        </div>
       ) : orders.map((o) => (
         <article key={o.orderNumber} className="account-order-card">
           <OrderProductImage item={o.items?.[0]} className="account-order-thumb" />

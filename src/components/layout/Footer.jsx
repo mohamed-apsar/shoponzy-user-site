@@ -22,7 +22,7 @@ export default function Footer() {
             <a href={wa("Hello Shoponzy, I have a question.", STORE)} target="_blank" rel="noopener" aria-label="WhatsApp"><Icon name="i-wa" /></a>
           </div></div>
         <div><h4>Help center</h4><ul>
-          <li><Link to="/track-order">Track Your Order</Link></li><li><Link to="/return-policy">Return / Refund</Link></li>
+          <li><Link to="/my-orders">My Orders</Link></li><li><Link to="/track-order">Track Your Order</Link></li><li><Link to="/return-policy">Return / Refund</Link></li>
           <li><Link to="/order-cancellation">Order cancellation</Link></li>{pages.some((page) => page.slug === "faqs") && <li><Link to="/faqs">FAQs</Link></li>}<li><Link to="/contact">Contact us</Link></li>
         </ul></div>
         <div><h4>Information</h4><ul>

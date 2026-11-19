@@ -57,7 +57,8 @@ export function MenuSheet() {
         <Link to="/contact" data-close>Contact us<Icon name="i-right" /></Link>
         <Link to="/products?sale=1" data-close>Deals<Icon name="i-right" /></Link>
         <Link to="/wishlist" data-close>Wishlist<Icon name="i-right" /></Link>
-        <Link to="/account" data-close>My account & orders<Icon name="i-right" /></Link>
+        <Link to="/my-orders" data-close>My Orders<Icon name="i-right" /></Link>
+        <Link to="/account" data-close>My account<Icon name="i-right" /></Link>
         <Link to="/track-order" data-close>Track Your Order<Icon name="i-right" /></Link>
         <Link to="/help" data-close>Help<Icon name="i-right" /></Link>
       </div>

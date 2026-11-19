@@ -81,7 +81,7 @@ export default function AccountOrder() {
   return (
     <>
       <div className="container page-title order-page-heading"><h1>Order {orderNumber}</h1>
-        <p><Link to="/account?section=orders" style={{ textDecoration: "underline" }}>← Back to my orders</Link></p></div>
+        <p><Link to="/my-orders" style={{ textDecoration: "underline" }}>← Back to my orders</Link></p></div>
       <section className="section" style={{ paddingTop: 12 }}><div className="container">
         {failure && <p className="err-t" role="alert">{failure}</p>}
         {!order ? !failure && <p className="tax">Loading…</p> : (

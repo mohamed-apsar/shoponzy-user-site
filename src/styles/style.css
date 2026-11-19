@@ -485,6 +485,7 @@ body.pdp-page .tab-space { height: 80px; }
 .tracking-exceptions { grid-column: 1 / -1; }
 .tracking-exceptions p + p { margin-top: 12px; }
 #trackForm .order-tracking-view { margin-top: 12px; }
+#trackForm input:disabled { background: #f3f4f6; cursor: not-allowed; }
 @media (max-width: 720px) {
   .order-tracking-view { grid-template-columns: minmax(0, 1fr); }
   .account-order-card { grid-template-columns: auto minmax(0, 1fr); }

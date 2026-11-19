@@ -192,7 +192,10 @@ export default function Header() {
                 <button type="button" role="menuitem" tabIndex={profileOpen ? 0 : -1} onClick={requestLogout}>Logout</button>
               </div>
             </div>
-          ) : <Link className="tool hide-m" to="/account" aria-label="My account"><Icon name="i-user" /></Link>}
+          ) : <>
+            <Link className="tool hide-m" to="/my-orders" aria-label="My Orders" title="My Orders"><Icon name="i-box" /></Link>
+            <Link className="tool hide-m" to="/account" aria-label="My account"><Icon name="i-user" /></Link>
+          </>}
           <a className="tool" href="/cart" data-open-cart aria-label="Bag"><Icon name="i-bag" /><Badge n={cartCount} /></a>
         </div>
       </div>
