@@ -58,6 +58,7 @@ export function MenuSheet() {
         <Link to="/products?sale=1" data-close>Deals<Icon name="i-right" /></Link>
         <Link to="/wishlist" data-close>Wishlist<Icon name="i-right" /></Link>
         <Link to="/account" data-close>My account & orders<Icon name="i-right" /></Link>
+        <Link to="/track-order" data-close>Track Your Order<Icon name="i-right" /></Link>
         <Link to="/help" data-close>Help<Icon name="i-right" /></Link>
       </div>
       <div className="pf"><a className="btn btn-wa" href={wa("Hello Shoponzy, I have a question.", store)} target="_blank" rel="noopener"><Icon name="i-wa" />Chat on WhatsApp</a></div>
