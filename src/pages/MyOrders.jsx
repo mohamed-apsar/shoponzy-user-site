@@ -11,7 +11,6 @@ export default function MyOrders() {
     <>
       <div className="container page-title">
         <h1>My Orders</h1>
-        <p>View guest orders placed in this browser.</p>
       </div>
       <section className="section"><div className="container">
         {status === "loading" ? <p role="status">Loading orders…</p> : <Orders guest />}

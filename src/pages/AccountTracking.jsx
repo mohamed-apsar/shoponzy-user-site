@@ -47,7 +47,8 @@ export default function AccountTracking() {
     <>
       <div className="container page-title">
         <h1>Track your order</h1>
-        <p>{orderNumber} · <Link className="view-all" to="/my-orders">Back to My Orders</Link></p>
+        <p>{orderNumber}</p>
+        <Link className="btn btn-ghost" style={{ marginTop: 12 }} to="/my-orders"><span aria-hidden="true">←</span> Back to My Orders</Link>
       </div>
       <section className="section"><div className="container">
         {failure && <p className="err-t" role="alert">{failure}</p>}
