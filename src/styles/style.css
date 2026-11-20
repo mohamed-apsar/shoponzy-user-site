@@ -407,9 +407,6 @@ ul, ol { list-style: none; }
 .err-t { color: var(--accent-d); font-size: .82rem; font-weight: 600; margin-top: 8px; }
 .buy { display: flex; gap: 10px; margin-top: 22px; }
 .buy .btn { flex: 1; min-height: 54px; }
-.pin { margin-top: 18px; display: flex; gap: 8px; }
-.pin input { flex: 1; min-width: 0; height: 46px; border-radius: 12px; border: 1.5px solid var(--line); padding: 0 14px; }
-.pin-msg { font-size: .84rem; margin-top: 6px; }
 .perks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 18px; }
 .perks div { text-align: center; padding: 12px 6px; border-radius: 14px; background: var(--soft); font-size: .74rem; font-weight: 700; line-height: 1.3; }
 .perks .icon { margin: 0 auto 4px; color: var(--accent); }

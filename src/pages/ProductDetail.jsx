@@ -48,21 +48,6 @@ function Gallery({ p, ci, containerRef }) {
   );
 }
 
-function PinCheck({ deliveryText }) {
-  const [msg, setMsg] = useState(null);
-  function submit(event) {
-    event.preventDefault();
-    const v = event.target.querySelector("input").value.trim(), ok = /^\d{6}$/.test(v);
-    setMsg({ ok, text: ok ? `✓ ${deliveryText}. Exact date is confirmed after your order.` : "Please enter a valid 6-digit PIN code." });
-  }
-  return (
-    <>
-      <form className="pin" onSubmit={submit}><input inputMode="numeric" maxLength={6} placeholder="Enter PIN code" aria-label="PIN code" /><button className="btn btn-ghost" style={{ minHeight: 46 }}>Check</button></form>
-      <p className="pin-msg" style={msg ? { color: msg.ok ? "var(--ok)" : "var(--accent-d)" } : undefined}>{msg?.text}</p>
-    </>
-  );
-}
-
 /* The selected colour's own banner and three-image row (nothing is rendered for slots left empty). */
 function ColorShowcase({ showcase, colorName }) {
   if (!showcase?.blocks?.length) return null;
@@ -207,7 +192,9 @@ function Product({ p, products, categories, store: STORE }) {
   const specs = p.specs || [["Type", sub[1]], ["Colours", p.colors.map((x) => x[1]).join(", ")], ["Sizes", p.sizes.join(", ")]];
   const selectedColor = p.colors[opt.c]?.[1] || "Default";
   const colorVariants = (p.variants || []).filter((variant) => (variant.color ?? "Default") === selectedColor);
-  const priceVariants = opt.s ? colorVariants.filter((variant) => variant.size === opt.s) : colorVariants;
+  const priceVariants = opt.s ? colorVariants.filter((variant) => (variant.size ?? "One size") === opt.s) : colorVariants;
+  const variantSku = priceVariants[0]?.sku;
+  const productCode = p.sku || (variantSku && priceVariants.every((variant) => variant.sku === variantSku) ? variantSku : "");
   const priceFrom = priceVariants.length ? Math.min(...priceVariants.map((variant) => variant.price)) : p.price;
   const priceTo = !opt.s && priceVariants.length
     ? Math.max(...priceVariants.map((variant) => variant.price))
@@ -240,11 +227,13 @@ function Product({ p, products, categories, store: STORE }) {
               <WishButton id={p.id} className="heart tap" label="Save to wishlist"
                 style={{ position: "static", width: 54, height: 54, flex: "none", borderRadius: 14, boxShadow: "0 0 0 1.5px var(--line)" }} />
             </div>
-            <PinCheck deliveryText={STORE.deliveryText} />
             <div className="acc">
               <details open><summary>Product details</summary><div className="body">
                 {p.desc && <p style={{ marginBottom: 10 }}>{p.desc}</p>}
-                <table className="spec"><tbody>{specs.map((r) => <tr key={r[0]}><td>{r[0]}</td><td>{r[1]}</td></tr>)}<tr><td>Product code</td><td>{p.id}</td></tr></tbody></table>
+                <table className="spec"><tbody>
+                  {specs.filter(([label]) => !productCode || label.trim().toLowerCase() !== "product code").map(([label, value]) => <tr key={label}><td>{label}</td><td>{value}</td></tr>)}
+                  {productCode && <tr><td>Product code</td><td>{productCode}</td></tr>}
+                </tbody></table>
               </div></details>
             </div>
             <p style={{ marginTop: 14 }}><a className="view-all" target="_blank" rel="noopener" href={wa(`${p.name} ${location.href}`, STORE)}><Icon name="i-wa" />Share on WhatsApp</a></p>

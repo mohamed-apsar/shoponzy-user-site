@@ -101,6 +101,7 @@ function mapProduct(product, categoryById) {
   return {
     id: product.legacyId || product.id,
     apiId: product.id,
+    sku: product.sku || "",
     categoryIds: path,
     assignedCategoryId,
     slug: product.slug,
