@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { storeRequest } from "../api/storeApi";
 import { API_BASE } from "../api/config";
+import Icon from "../components/Icon";
 import { money } from "../utils/shop";
 import usePageMeta from "../hooks/usePageMeta";
 import { STATUS_LABELS } from "./Account";
@@ -81,8 +82,10 @@ export default function AccountOrder() {
   const f = order?.fulfilment || {};
   return (
     <>
-      <div className="container page-title order-page-heading"><h1>Order {orderNumber}</h1>
-        <p><Link className="btn btn-ghost" to="/my-orders"><span aria-hidden="true">←</span> Back to My Orders</Link></p></div>
+      <div className="container page-title order-page-heading">
+        <Link className="btn order-back" to="/my-orders"><span className="order-back-icon"><Icon name="i-arrow" /></span>Back to My Orders</Link>
+        <h1>Order {orderNumber}</h1>
+      </div>
       <section className="section" style={{ paddingTop: 12 }}><div className="container">
         {failure && <p className="err-t" role="alert">{failure}</p>}
         {!order ? !failure && <p className="tax">Loading…</p> : (

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { storeRequest } from "../api/storeApi";
 import OrderTracking from "../components/OrderTracking";
+import Icon from "../components/Icon";
 import { useCustomer } from "../context/CustomerContext";
 import usePageMeta from "../hooks/usePageMeta";
 
@@ -45,10 +46,10 @@ export default function AccountTracking() {
 
   return (
     <>
-      <div className="container page-title">
+      <div className="container page-title order-page-heading">
+        <Link className="btn order-back" to="/my-orders"><span className="order-back-icon"><Icon name="i-arrow" /></span>Back to My Orders</Link>
         <h1>Track your order</h1>
         <p>{orderNumber}</p>
-        <Link className="btn btn-ghost" style={{ marginTop: 12 }} to="/my-orders"><span aria-hidden="true">←</span> Back to My Orders</Link>
       </div>
       <section className="section"><div className="container">
         {failure && <p className="err-t" role="alert">{failure}</p>}
