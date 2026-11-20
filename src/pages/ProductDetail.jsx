@@ -7,7 +7,7 @@ import SectionHead from "../components/SectionHead";
 import { ProductList, WishButton } from "../components/ProductCard";
 import NotFound from "./NotFound";
 import { useStore } from "../context/StoreContext";
-import { byId, bySlug, cat, categoryUrl, money, off, sizeIsAvailable, subOf, wa } from "../utils/shop";
+import { byId, bySlug, cat, categoryUrl, money, off, sizeIsAvailable, subOf } from "../utils/shop";
 import { usePageFx } from "../fx/usePageFx";
 import usePageMeta from "../hooks/usePageMeta";
 import { fetchProductContentBlocks } from "../api/storeApi";
@@ -236,7 +236,6 @@ function Product({ p, products, categories, store: STORE }) {
                 </tbody></table>
               </div></details>
             </div>
-            <p style={{ marginTop: 14 }}><a className="view-all" target="_blank" rel="noopener" href={wa(`${p.name} ${location.href}`, STORE)}><Icon name="i-wa" />Share on WhatsApp</a></p>
           </div>
         </div>
       </div></section>
