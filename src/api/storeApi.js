@@ -1,7 +1,7 @@
 /* Storefront API client. Cookies carry the guest bag and (later) the customer session;
    state-changing requests send the double-submit CSRF token the backend requires. */
-import { API_BASE } from "./config";
-let csrfToken = "";
+import { API_BASE, useSameOriginApi } from "./config";
+const csrfTokens = new Map();
 
 export class ApiError extends Error {
   constructor(message, status, code, details) {
@@ -20,10 +20,39 @@ async function decode(response) {
   return body;
 }
 
-async function refreshCsrfToken() {
-  const body = await decode(await fetch(`${API_BASE}/csrf`, { credentials: "include" }));
-  csrfToken = body.data.csrfToken;
-  return csrfToken;
+function csrfTokenFor(base) {
+  if (!csrfTokens.has(base)) {
+    const request = fetch(`${base}/csrf`, { credentials: "include", cache: "no-store" })
+      .then(decode)
+      .then(({ data }) => data.csrfToken)
+      .catch((error) => {
+        if (csrfTokens.get(base) === request) csrfTokens.delete(base);
+        throw error;
+      });
+    csrfTokens.set(base, request);
+  }
+  return csrfTokens.get(base);
+}
+
+async function csrfRejected(response) {
+  if (response.status !== 403) return false;
+  const body = await response.clone().json().catch(() => null);
+  return body?.error?.code === "CSRF_INVALID";
+}
+
+async function withCsrf(send, retry = true) {
+  const base = API_BASE;
+  const firstToken = csrfTokenFor(base);
+  const first = await send(base, await firstToken);
+  if (!retry || !(await csrfRejected(first))) return first;
+
+  if (csrfTokens.get(base) === firstToken) csrfTokens.delete(base);
+  const retryBase = API_BASE;
+  const fresh = await send(retryBase, await csrfTokenFor(retryBase));
+  // A browser that blocks third-party cookies can get a fresh token but still
+  // cannot send the matching cookie. Switch only after an explicit rejection.
+  if (!(await csrfRejected(fresh)) || !useSameOriginApi(retryBase)) return fresh;
+  return send(API_BASE, await csrfTokenFor(API_BASE));
 }
 
 /* The access cookie is short-lived; one refresh is shared by concurrent requests that hit a 401. */
@@ -35,36 +64,22 @@ function refreshSession() {
 
 /* Multipart upload (return-request photos). Same CSRF/session handling as storeRequest. */
 export async function storeUpload(path, file, { retryCsrf = true } = {}) {
-  if (!csrfToken) await refreshCsrfToken();
   const body = new FormData();
   body.append("file", file);
-  const response = await fetch(`${API_BASE}${path}`, { method: "POST", headers: { "X-CSRF-Token": csrfToken }, credentials: "include", body });
-  if (response.status === 403 && retryCsrf) {
-    const peek = await response.clone().json().catch(() => null);
-    if (peek?.error?.code === "CSRF_INVALID") { csrfToken = ""; return storeUpload(path, file, { retryCsrf: false }); }
-  }
-  return decode(response);
+  return decode(await withCsrf((base, token) => fetch(`${base}${path}`, {
+    method: "POST", headers: { "X-CSRF-Token": token }, credentials: "include", body,
+  }), retryCsrf));
 }
 
 export async function storeRequest(path, { method = "GET", body, retryCsrf = true, retryAuth = true } = {}) {
   const headers = {};
   const mutating = !["GET", "HEAD", "OPTIONS"].includes(method);
-  if (mutating) {
-    if (!csrfToken) await refreshCsrfToken();
-    headers["X-CSRF-Token"] = csrfToken;
-  }
   if (body !== undefined) headers["Content-Type"] = "application/json";
-  const response = await fetch(`${API_BASE}${path}`, {
-    method, headers, credentials: "include", cache: "no-store", body: body === undefined ? undefined : JSON.stringify(body),
+  const send = (base, token) => fetch(`${base}${path}`, {
+    method, headers: token ? { ...headers, "X-CSRF-Token": token } : headers,
+    credentials: "include", cache: "no-store", body: body === undefined ? undefined : JSON.stringify(body),
   });
-  // The CSRF cookie can expire while the page stays open: fetch a fresh token once and retry.
-  if (response.status === 403 && mutating && retryCsrf) {
-    const peek = await response.clone().json().catch(() => null);
-    if (peek?.error?.code === "CSRF_INVALID") {
-      csrfToken = "";
-      return storeRequest(path, { method, body, retryCsrf: false, retryAuth });
-    }
-  }
+  const response = await (mutating ? withCsrf(send, retryCsrf) : send(API_BASE));
   if (response.status === 401 && retryAuth && !path.startsWith("/auth/") && (await refreshSession())) {
     return storeRequest(path, { method, body, retryCsrf, retryAuth: false });
   }

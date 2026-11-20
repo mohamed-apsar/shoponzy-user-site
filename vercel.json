@@ -1,6 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "headers": [
+    { "source": "/api/v1/csrf", "headers": [{ "key": "Cache-Control", "value": "private, no-store" }] }
+  ],
   "rewrites": [
+    { "source": "/api/v1/:path*", "destination": "https://shoponzy-backend.vercel.app/api/v1/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
