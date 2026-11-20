@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { storeRequest } from "../api/storeApi";
+import { API_BASE } from "../api/config";
 import { money } from "../utils/shop";
 import usePageMeta from "../hooks/usePageMeta";
 import { STATUS_LABELS } from "./Account";
@@ -111,6 +112,7 @@ export default function AccountOrder() {
               <div className="srow"><span>Delivery</span><span>{order.shippingFee ? money(order.shippingFee) : <span className="save">Free</span>}</span></div>
               <div className="srow total"><span>Total</span><span>{money(order.total)}</span></div>
               {order.refundedAmount > 0 && <div className="srow"><span>Refunded</span><span>{money(order.refundedAmount)}</span></div>}
+              {order.status !== "pending_payment" && <a className="btn btn-ghost btn-block" style={{ marginTop: 14 }} href={`${API_BASE}/orders/${encodeURIComponent(order.orderNumber)}/invoice`} target="_blank" rel="noopener noreferrer">Invoice</a>}
               <button type="button" className="btn btn-dark btn-block" style={{ marginTop: 14 }} onClick={reorder}>Reorder</button>
               {CANCELLABLE.includes(order.status) && (
                 <button type="button" className="btn btn-ghost btn-block" style={{ marginTop: 10 }} disabled={busy} onClick={() => setConfirmCancel(true)}>{busy ? "Cancelling…" : "Cancel order"}</button>

@@ -1,8 +1,7 @@
-import OrderTracking, { deliveryDate } from "../components/OrderTracking";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Icon from "../components/Icon";
-import FormField, { EMAIL_RE, PHONE_RE, normalisePhone } from "../components/FormField";
+import FormField, { PHONE_RE, normalisePhone } from "../components/FormField";
 import { storeRequest } from "../api/storeApi";
 import { usePageFx } from "../fx/usePageFx";
 import usePageMeta from "../hooks/usePageMeta";
@@ -13,7 +12,7 @@ import NotFound from "./NotFound";
 /* Policy routes (/about, /shipping-policy, …) render this page scrolled to their section.
    Phase 6 moves the text into Manage Site → Pages & Policies. */
 export const HELP_SECTIONS = {
-  "find-order": ["track", "Find Orders From Another Browser"], contact: ["contact", "Contact Us"], about: ["about", "About Us"],
+  contact: ["contact", "Contact Us"], about: ["about", "About Us"],
   "order-cancellation": ["cancel", "Order Cancellation"],
   "shipping-policy": ["shipping", "Shipping Policy"], "return-policy": ["returns", "Return & Refund Policy"],
   "privacy-policy": ["privacy", "Privacy Policy"], terms: ["terms", "Terms & Conditions"], faqs: ["faq", "FAQs"],
@@ -35,93 +34,6 @@ function Faqs() {
       ))}
     </div>
   ));
-}
-
-function TrackOrder() {
-  const [values, setValues] = useState({ phone: "", email: "", code: "" });
-  const [useEmail, setUseEmail] = useState(false);
-  const [requested, setRequested] = useState(false);
-  const [message, setMessage] = useState("");
-  const [errors, setErrors] = useState({});
-  const [result, setResult] = useState(null);
-  const [selectedOrderNumber, setSelectedOrderNumber] = useState("");
-  const [failure, setFailure] = useState("");
-  const [busy, setBusy] = useState(false);
-  const update = (e) => { const { name, value } = e.target; setValues((v) => ({ ...v, [name]: value })); };
-  const field = (name) => ({ name, id: `t-${name}`, value: values[name], onChange: update, error: errors[name] });
-
-  async function submit(event, verify = requested) {
-    event.preventDefault();
-    if (busy) return;
-    const er = {};
-    if (!useEmail && !PHONE_RE.test(normalisePhone(values.phone))) er.phone = "Enter the mobile number used at checkout.";
-    if (useEmail && !EMAIL_RE.test(values.email.trim())) er.email = "Enter the email address used at checkout.";
-    if (verify && !/^\d{4,10}$/.test(values.code.trim())) er.code = "Enter the verification code.";
-    setErrors(er);
-    setFailure("");
-    setResult(null);
-    if (Object.keys(er).length) return;
-    setBusy(true);
-    try {
-      const details = useEmail ? { email: values.email.trim() } : { phone: values.phone };
-      if (verify) {
-        const { data } = await storeRequest("/orders/track", { method: "POST", body: { ...details, code: values.code.trim() } });
-        setResult(data.orders);
-        setSelectedOrderNumber(data.orders[0]?.orderNumber || "");
-        setValues((current) => ({ ...current, code: "" }));
-        setMessage("");
-      } else {
-        const { data } = await storeRequest("/orders/track/request-otp", { method: "POST", body: details });
-        setRequested(true);
-        setValues((current) => ({ ...current, code: "" }));
-        setMessage(data.message);
-      }
-    } catch (error) {
-      setResult(null);
-      if (error.code === "TRACKING_SMS_UNAVAILABLE") {
-        changeDetails();
-        setUseEmail(true);
-        setMessage("Enter your checkout email address to receive your verification code by email.");
-      } else {
-        setFailure(error.message);
-      }
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  function changeDetails() {
-    setRequested(false);
-    setValues((current) => ({ ...current, code: "" }));
-    setResult(null);
-    setFailure("");
-    setErrors({});
-    setMessage("");
-  }
-
-  const selectedOrder = result?.find((order) => order.orderNumber === selectedOrderNumber);
-  return (
-    <form className="form two box" id="trackForm" noValidate onSubmit={submit} style={{ marginTop: 12 }}>
-      <FormField label="Checkout mobile number" required={!useEmail} disabled={useEmail} inputMode="tel" autoComplete="tel-national" maxLength={10} readOnly={requested || busy} {...field("phone")} />
-      <FormField label="Checkout email address" type="email" required={useEmail} disabled={!useEmail} autoComplete="email" readOnly={requested || busy} {...field("email")} />
-      {message && <p className="tax full" role="status">{message}</p>}
-      {requested && !result && <FormField label={useEmail ? "Email verification code" : "SMS verification code"} required full inputMode="numeric" autoComplete="one-time-code" maxLength={10} readOnly={busy} {...field("code")} />}
-      {!result && <div className="full"><button className="btn btn-dark btn-block" disabled={busy}>{busy ? "Please wait…" : requested ? "Verify and track order" : useEmail ? "Email verification code" : "Send SMS code"}</button></div>}
-      {!result && <div className="full"><button type="button" className="btn btn-ghost" disabled={busy} onClick={() => { changeDetails(); setUseEmail(!useEmail); }}>{useEmail ? "Use SMS instead" : "Use email instead"}</button></div>}
-      {requested && <div className="full account-order-pagination">
-        {!result && <button type="button" className="btn btn-ghost" disabled={busy} onClick={(event) => submit(event, false)}>Resend code</button>}
-        <button type="button" className="btn btn-ghost" disabled={busy} onClick={changeDetails}>{useEmail ? "Use a different email" : "Use a different mobile number"}</button>
-      </div>}
-      {failure && <p className="err-t full" role="alert">{failure}</p>}
-      {result?.length > 1 && (
-        <FormField as="select" id="tracked-order" name="trackedOrder" label="Select a recent order" full value={selectedOrderNumber} onChange={(event) => setSelectedOrderNumber(event.target.value)}>
-          {result.map((order) => <option value={order.orderNumber} key={order.orderNumber}>{order.orderNumber}{order.placedAt ? ` · ${deliveryDate(order.placedAt)}` : ""}</option>)}
-        </FormField>
-      )}
-      {selectedOrder && <div className="full"><h3>Order {selectedOrder.orderNumber}</h3><OrderTracking order={selectedOrder} /></div>}
-      {result?.length === 0 && <p className="tax full" role="status">No recent orders found for this mobile number.</p>}
-    </form>
-  );
 }
 
 function PrivacyPolicy({ email }) {
