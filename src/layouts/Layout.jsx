@@ -39,7 +39,7 @@ export default function Layout() {
       icon.rel = "icon";
       document.head.appendChild(icon);
     }
-    icon.href = store.favicon || "/favicon.svg";
+    icon.href = store.favicon || "/favicon.png";
   }, [store.favicon]);
 
   useEffect(() => {
