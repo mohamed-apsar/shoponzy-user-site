@@ -34,16 +34,6 @@ export default function Layout() {
   const main = useRef(null);
 
   useEffect(() => {
-    let icon = document.head.querySelector('link[rel~="icon"]');
-    if (!icon) {
-      icon = document.createElement("link");
-      icon.rel = "icon";
-      document.head.appendChild(icon);
-    }
-    icon.href = store.favicon || "/favicon.svg";
-  }, [store.favicon]);
-
-  useEffect(() => {
     const verifications = [
       ["google-site-verification", store.seo?.googleVerification],
       ["msvalidate.01", store.seo?.bingVerification],
